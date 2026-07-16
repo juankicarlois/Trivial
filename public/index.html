@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trivial accesible</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#actions">Saltar a las acciones</a>
+
+    <main class="layout">
+      <!-- Vestíbulo: unirse a una sala -->
+      <section id="join-screen" aria-labelledby="join-title">
+        <h1 id="join-title">Trivial accesible</h1>
+        <p>
+          Entra en una sala escribiendo un código (invéntalo y compártelo) y tu
+          nombre. Quien tenga el mismo código jugará contigo.
+        </p>
+        <form id="join-form">
+          <div class="field">
+            <label for="room-input">Código de sala</label>
+            <input id="room-input" name="room" autocomplete="off" required
+                   maxlength="12" placeholder="p. ej. CASA" />
+          </div>
+          <div class="field">
+            <label for="name-input">Tu nombre</label>
+            <input id="name-input" name="name" autocomplete="off" required
+                   maxlength="20" placeholder="p. ej. Juanki" />
+          </div>
+          <button type="submit">Entrar en la sala</button>
+        </form>
+        <p id="join-error" class="error" role="alert"></p>
+      </section>
+
+      <!-- Partida -->
+      <section id="game-screen" aria-labelledby="game-title" hidden>
+        <h1 id="game-title">Sala <span id="room-label"></span></h1>
+
+        <!-- Región de anuncios para el lector de pantalla -->
+        <div id="announce" class="sr-only" role="status" aria-live="assertive"></div>
+
+        <p id="status" class="status"></p>
+
+        <h2>Jugadores</h2>
+        <ul id="players" class="players"></ul>
+
+        <div id="board" class="board" aria-hidden="false"></div>
+
+        <h2>Tu turno</h2>
+        <div id="actions" tabindex="-1"></div>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

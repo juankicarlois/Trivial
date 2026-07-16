@@ -1,0 +1,196 @@
+{
+  "questions": [
+    {
+      "id": "geo-001",
+      "category": "geografia",
+      "text": "¿Cuál es la capital de Australia?",
+      "options": ["Sídney", "Canberra", "Melbourne", "Perth"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "geo-002",
+      "category": "geografia",
+      "text": "¿En qué continente se encuentra el desierto del Sahara?",
+      "options": ["Asia", "África", "Oceanía", "América"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "geo-003",
+      "category": "geografia",
+      "text": "¿Cuál es el océano más extenso del planeta?",
+      "options": ["Atlántico", "Índico", "Pacífico", "Ártico"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "geo-004",
+      "category": "geografia",
+      "text": "¿Qué país es el más poblado del mundo en 2026?",
+      "options": ["China", "India", "Estados Unidos", "Indonesia"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "his-001",
+      "category": "historia",
+      "text": "¿En qué año cayó el Muro de Berlín?",
+      "options": ["1985", "1989", "1991", "1979"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "his-002",
+      "category": "historia",
+      "text": "¿Quién fue el primer presidente de los Estados Unidos?",
+      "options": ["Thomas Jefferson", "Abraham Lincoln", "George Washington", "John Adams"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "his-003",
+      "category": "historia",
+      "text": "¿En qué año llegó el ser humano a la Luna por primera vez?",
+      "options": ["1969", "1961", "1972", "1957"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "his-004",
+      "category": "historia",
+      "text": "¿En qué año terminó la Segunda Guerra Mundial?",
+      "options": ["1943", "1945", "1939", "1950"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "art-001",
+      "category": "arte",
+      "text": "¿Quién escribió \"Don Quijote de la Mancha\"?",
+      "options": ["Lope de Vega", "Miguel de Cervantes", "Francisco de Quevedo", "Calderón de la Barca"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "art-002",
+      "category": "arte",
+      "text": "¿Quién pintó la Mona Lisa?",
+      "options": ["Miguel Ángel", "Rafael", "Leonardo da Vinci", "Sandro Botticelli"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "art-003",
+      "category": "arte",
+      "text": "¿Quién es el autor de \"Cien años de soledad\"?",
+      "options": ["Mario Vargas Llosa", "Julio Cortázar", "Jorge Luis Borges", "Gabriel García Márquez"],
+      "answerIndex": 3,
+      "difficulty": 2
+    },
+    {
+      "id": "art-004",
+      "category": "arte",
+      "text": "¿Quién escribió la tragedia \"Romeo y Julieta\"?",
+      "options": ["William Shakespeare", "Christopher Marlowe", "Molière", "Oscar Wilde"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "cie-001",
+      "category": "ciencia",
+      "text": "¿Cuál es el símbolo químico del oro?",
+      "options": ["Ag", "Au", "Or", "Go"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cie-002",
+      "category": "ciencia",
+      "text": "¿Cuántos huesos tiene el cuerpo humano adulto?",
+      "options": ["186", "206", "226", "196"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cie-003",
+      "category": "ciencia",
+      "text": "¿Cuál es el planeta más grande del sistema solar?",
+      "options": ["Saturno", "Neptuno", "Júpiter", "Urano"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "cie-004",
+      "category": "ciencia",
+      "text": "¿Qué gas absorben las plantas del aire para la fotosíntesis?",
+      "options": ["Oxígeno", "Nitrógeno", "Dióxido de carbono", "Hidrógeno"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "dep-001",
+      "category": "deportes",
+      "text": "¿Cada cuántos años se celebran los Juegos Olímpicos de verano?",
+      "options": ["2", "3", "4", "5"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "dep-002",
+      "category": "deportes",
+      "text": "¿Qué selección ganó el Mundial de fútbol de 2022?",
+      "options": ["Francia", "Argentina", "Brasil", "Croacia"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dep-003",
+      "category": "deportes",
+      "text": "¿Cuántos jugadores de un equipo hay en el campo en un partido de fútbol?",
+      "options": ["9", "10", "11", "12"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "dep-004",
+      "category": "deportes",
+      "text": "En baloncesto, ¿cuántos puntos vale un tiro libre?",
+      "options": ["1", "2", "3", "4"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "cul-001",
+      "category": "cultura",
+      "text": "¿Qué empresa lanzó el primer iPhone?",
+      "options": ["Samsung", "Apple", "Nokia", "Google"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "cul-002",
+      "category": "cultura",
+      "text": "¿Qué significan las siglas \"www\" de las páginas web?",
+      "options": ["World Web Wide", "World Wide Web", "Wide World Web", "Web World Wide"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cul-003",
+      "category": "cultura",
+      "text": "¿Quién fundó Microsoft junto a Paul Allen?",
+      "options": ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Elon Musk"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "cul-004",
+      "category": "cultura",
+      "text": "¿En qué red social nacieron los mensajes llamados \"tweets\"?",
+      "options": ["Instagram", "Facebook", "Twitter (X)", "TikTok"],
+      "answerIndex": 2,
+      "difficulty": 1
+    }
+  ]
+}
