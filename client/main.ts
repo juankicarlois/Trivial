@@ -47,6 +47,11 @@ let lastState: GameView | null = null;
 let lastActionKey = '';
 /** Alterna un carácter invisible para forzar que el lector repita anuncios. */
 let announceToggle = false;
+/** Avisos acumulados de la ráfaga actual, pendientes de anunciarse juntos. */
+let pendingAnnouncements: string[] = [];
+let announceTimer: number | null = null;
+/** Ventana de agrupación: cubre los mensajes de una acción sin notarse lento. */
+const ANNOUNCE_BATCH_MS = 150;
 
 // --- Red --------------------------------------------------------------------
 
@@ -109,8 +114,27 @@ function showError(message: string): void {
 
 // --- Anuncios ---------------------------------------------------------------
 
-/** Escribe en la región aria-live para que el lector lo pronuncie. */
+/**
+ * @brief Encola un aviso para que el lector de pantalla lo pronuncie.
+ *
+ * Una sola acción genera varios avisos casi a la vez (por ejemplo: responder →
+ * "incorrecto, la respuesta era X" → "turno de Bea"). Si cada uno se escribiera
+ * directamente en la región aria-live, el siguiente pisaría al anterior y el
+ * jugador se perdería la mitad. Por eso los avisos de una misma ráfaga se
+ * agrupan y se anuncian juntos, en orden, como una sola frase.
+ */
 function announce(text: string): void {
+  pendingAnnouncements.push(text);
+  if (announceTimer !== null) return;
+  announceTimer = window.setTimeout(flushAnnouncements, ANNOUNCE_BATCH_MS);
+}
+
+function flushAnnouncements(): void {
+  announceTimer = null;
+  const text = pendingAnnouncements.join(' ');
+  pendingAnnouncements = [];
+  // El carácter invisible alterna el contenido: si el texto fuese idéntico al
+  // anterior, el lector no lo repetiría.
   announceToggle = !announceToggle;
   announceRegion.textContent = announceToggle ? text : text + '​';
 }
@@ -142,9 +166,14 @@ function handleEvent(event: GameEvent): void {
       break;
     }
     case 'answered':
-      if (event.correct) sound.correct();
-      else sound.wrong();
-      announce(`${nameOf(event.playerId)} responde: ${event.correct ? '¡correcto!' : 'incorrecto.'}`);
+      if (event.correct) {
+        sound.correct();
+        announce(`${nameOf(event.playerId)} responde: ¡correcto!`);
+      } else {
+        // Al fallar se revela la respuesta buena: si no, la mesa se queda sin saberla.
+        sound.wrong();
+        announce(`${nameOf(event.playerId)} responde: incorrecto. La respuesta era: ${event.correctText}.`);
+      }
       break;
     case 'wedgeEarned':
       sound.wedge();
@@ -266,6 +295,8 @@ function renderActions(state: GameView): void {
     const again = button('Jugar otra vez', () => net.send({ type: 'start' }));
     actions.append(again);
     focusTarget = again;
+  } else if (state.phase === 'awaitAnswer' && state.question) {
+    renderQuestion(state, iAmCurrent, (btn) => (focusTarget = btn));
   } else if (!iAmCurrent) {
     const wait = document.createElement('p');
     wait.className = 'hint';
@@ -288,24 +319,63 @@ function renderActions(state: GameView): void {
       row.append(btn);
     });
     actions.append(h, row);
-  } else if (state.phase === 'awaitAnswer' && state.question) {
-    const q = state.question;
-    const cat = categoryById(q.category).name;
-    const heading = document.createElement('p');
-    heading.className = 'question-text';
-    heading.textContent = `${q.forWin ? 'Pregunta final' : cat}: ${q.text}`;
+  }
+
+  manageFocus(state, focusTarget);
+}
+
+/**
+ * Pinta la pregunta activa para **toda la mesa**, como en el juego de tablero:
+ * los rivales la leen y la siguen, pero solo el jugador del turno puede
+ * contestar (a los demás se les muestran las opciones sin botón).
+ *
+ * @param state Estado actual de la partida.
+ * @param iAmCurrent true si el turno es de este cliente.
+ * @param setFocus Callback para marcar el mando que debe recibir el foco.
+ */
+function renderQuestion(
+  state: GameView,
+  iAmCurrent: boolean,
+  setFocus: (el: HTMLElement) => void,
+): void {
+  const q = state.question!;
+  const cat = categoryById(q.category).name;
+  const asker = state.players[state.currentPlayerIndex]?.name ?? 'el jugador';
+  const title = q.forWin ? 'Pregunta final' : cat;
+
+  const heading = document.createElement('p');
+  heading.className = 'question-text';
+  heading.textContent = `${title}: ${q.text}`;
+  actions.append(heading);
+
+  if (iAmCurrent) {
     const opts = document.createElement('div');
     opts.className = 'options';
     q.options.forEach((text, index) => {
       const btn = button(`${index + 1}. ${text}`, () => net.send({ type: 'answer', optionIndex: index }));
-      if (index === 0) focusTarget = btn;
+      if (index === 0) setFocus(btn);
       opts.append(btn);
     });
-    actions.append(heading, opts);
+    actions.append(opts);
+    // Las opciones no se anuncian: el foco cae en la primera y el lector las
+    // recorre una a una, así que repetirlas aquí sería ruido.
     announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ti: ${q.text}`);
+  } else {
+    const list = document.createElement('ol');
+    list.className = 'options-readonly';
+    for (const text of q.options) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      list.append(li);
+    }
+    const wait = document.createElement('p');
+    wait.className = 'hint';
+    wait.textContent = `Responde ${asker}…`;
+    actions.append(list, wait);
+    // El rival no tiene mandos donde poner el foco: se le lee todo de una vez.
+    const spoken = q.options.map((o, i) => `${i + 1}, ${o}`).join('. ');
+    announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ${asker}: ${q.text}. Opciones: ${spoken}`);
   }
-
-  manageFocus(state, focusTarget);
 }
 
 /**

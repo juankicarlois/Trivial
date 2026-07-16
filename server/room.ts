@@ -178,9 +178,10 @@ export class Room {
     const player = this.current();
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
+    const correctText = this.question.options[this.question.answerIndex];
     const node = this.board.nodes[player.nodeId];
     this.question = null;
-    this.emit({ kind: 'answered', playerId, correct });
+    this.emit({ kind: 'answered', playerId, correct, correctText });
 
     if (!correct) {
       this.nextTurn();

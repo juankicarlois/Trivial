@@ -66,7 +66,8 @@ export type GameEvent =
   | { kind: 'diceRolled'; playerId: string; value: number }
   | { kind: 'moved'; playerId: string; toNodeId: string }
   | { kind: 'landed'; playerId: string; nodeId: string; category: CategoryId }
-  | { kind: 'answered'; playerId: string; correct: boolean }
+  /** `correctText` permite a la mesa saber cuál era la respuesta buena. */
+  | { kind: 'answered'; playerId: string; correct: boolean; correctText: string }
   | { kind: 'wedgeEarned'; playerId: string; category: CategoryId }
   | { kind: 'turnChanged'; playerId: string }
   | { kind: 'gameWon'; playerId: string };
