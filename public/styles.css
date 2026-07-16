@@ -100,6 +100,37 @@ button.secondary { background: var(--panel-2); color: var(--text); }
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 .wedge-pip.empty { opacity: 0.25; }
+.wedge-count { color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+
+/* Panel propio: cada queso con su nombre y estado, consultable siempre. */
+.my-wedges {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.4rem;
+}
+.my-wedge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--panel);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  color: var(--muted);
+}
+.my-wedge.earned { border-color: var(--ok); color: var(--text); font-weight: 600; }
+
+kbd {
+  background: var(--panel-2);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-family: inherit;
+  font-size: 0.9em;
+  font-weight: 600;
+}
 
 .board { margin: 1rem 0; }
 

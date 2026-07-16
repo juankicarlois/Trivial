@@ -34,6 +34,8 @@ const joinError = $('join-error');
 const roomLabel = $('room-label');
 const announceRegion = $('announce');
 const statusLine = $('status');
+const myWedgesTitle = $('my-wedges-title');
+const myWedgesList = $('my-wedges');
 const playersList = $('players');
 const boardPanel = $('board');
 const actions = $('actions');
@@ -207,9 +209,52 @@ function panForNode(nodeId: string): number {
 
 function render(state: GameView): void {
   renderStatus(state);
+  renderMyWedges(state);
   renderPlayers(state);
   renderBoard(state);
   renderActions(state);
+}
+
+/**
+ * Panel propio con los seis quesos y su estado. A diferencia de los puntos de
+ * color de la lista de jugadores, aquí cada categoría se nombra en texto y se
+ * dice si está conseguida o pendiente, de modo que se puede consultar en
+ * cualquier momento sin depender de haber oído el aviso al ganarla.
+ */
+function renderMyWedges(state: GameView): void {
+  const me = state.players.find((p) => p.id === myId);
+  myWedgesList.replaceChildren();
+  if (!me) return;
+
+  myWedgesTitle.textContent = `Tus quesos (${me.wedges.length} de ${CATEGORIES.length})`;
+
+  for (const cat of CATEGORIES) {
+    const earned = me.wedges.includes(cat.id);
+    const li = document.createElement('li');
+    li.className = 'my-wedge' + (earned ? ' earned' : '');
+
+    const pip = document.createElement('span');
+    pip.className = 'wedge-pip' + (earned ? '' : ' empty');
+    pip.style.background = cat.color;
+    pip.setAttribute('aria-hidden', 'true');
+
+    const label = document.createElement('span');
+    label.textContent = `${cat.name}: ${earned ? 'conseguido' : 'pendiente'}`;
+
+    li.append(pip, label);
+    myWedgesList.append(li);
+  }
+}
+
+/** Resume los quesos propios en una frase, para leerla por el atajo de teclado. */
+function myWedgesSummary(): string {
+  const me = lastState?.players.find((p) => p.id === myId);
+  if (!me) return 'Todavía no estás en una partida.';
+  const earned = me.wedges.map((id) => categoryById(id).name);
+  const missing = CATEGORIES.filter((c) => !me.wedges.includes(c.id)).map((c) => c.name);
+  if (earned.length === 0) return `No tienes ningún queso. Te faltan los seis: ${missing.join(', ')}.`;
+  if (missing.length === 0) return '¡Tienes los seis quesos! Vuelve al centro para ganar.';
+  return `Tienes ${earned.length} de ${CATEGORIES.length} quesos: ${earned.join(', ')}. Te faltan: ${missing.join(', ')}.`;
 }
 
 function renderStatus(state: GameView): void {
@@ -267,6 +312,12 @@ function buildWedges(earned: CategoryId[]): HTMLElement {
     pip.setAttribute('aria-hidden', 'true');
     wrap.append(pip);
   }
+  // Recuento visible: seis puntos de color por sí solos cuestan de leer.
+  const count = document.createElement('span');
+  count.className = 'wedge-count';
+  count.textContent = `${earned.length}/${CATEGORIES.length}`;
+  count.setAttribute('aria-hidden', 'true');
+  wrap.append(count);
   return wrap;
 }
 
@@ -395,6 +446,21 @@ function manageFocus(state: GameView, target: HTMLElement | null): void {
   }
   lastActionKey = key;
 }
+
+// --- Atajos de teclado ------------------------------------------------------
+
+/**
+ * Q anuncia tus quesos en cualquier momento. Se ignora mientras se escribe en
+ * un campo de texto (si no, no se podría teclear una "q" en el nombre) y cuando
+ * hay modificadores, para no pisar atajos del navegador o del lector.
+ */
+document.addEventListener('keydown', (ev) => {
+  if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
+  if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
+  if (ev.key.toLowerCase() !== 'q') return;
+  ev.preventDefault();
+  announce(myWedgesSummary());
+});
 
 function button(label: string, onClick: () => void, variant = ''): HTMLButtonElement {
   const btn = document.createElement('button');

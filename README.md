@@ -52,6 +52,20 @@ npm test               # tests del tablero y del motor
   múltiple). Si aciertas, vuelves a tirar; si fallas, pasa el turno.
 - Acertar en una **sede** de categoría te da su **queso**.
 - Con los 6 quesos, vuelve al centro y acierta la pregunta final para **ganar**.
+- La pregunta la ve **toda la mesa**, pero solo contesta quien tiene el turno. Al
+  fallar se revela la respuesta correcta.
+
+### Teclas
+
+| Tecla | Acción |
+|-------|--------|
+| `Q`   | Anuncia tus quesos (cuáles tienes y cuáles te faltan), en cualquier momento |
+| `Tab` / `Mayús+Tab` | Moverse entre los mandos |
+| `Intro` / `Espacio` | Activar el mando enfocado |
+
+El foco salta solo al mando principal cuando te toca actuar (tirar, elegir
+dirección o responder). También tienes tus quesos siempre visibles en el panel
+«Tus quesos».
 
 ## Estructura
 
