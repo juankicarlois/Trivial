@@ -13,6 +13,7 @@ import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.
 import type { AchievementView, GameEvent, GameView, PlayerView } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
+import { loadProfileId } from './identity.js';
 import {
   achievementsSummary,
   boardRadarSummary,
@@ -24,25 +25,10 @@ const board = buildBoard();
 const sound = new SoundEngine();
 
 /**
- * Identidad persistente del jugador. Se guarda en el navegador para que las
- * estadísticas y los logros sobrevivan entre partidas, incluso si cambia de
- * nombre. Si el navegador no deja guardar (modo privado, permisos), se usa una
- * identidad de usar y tirar: se puede jugar, pero el progreso no se acumula.
+ * Identidad persistente del jugador, para que las estadísticas y los logros
+ * sobrevivan entre partidas aunque cambie de nombre. Ver `identity.ts`: no puede
+ * usar `crypto.randomUUID()`, que no existe al servir por IP de la red local.
  */
-function loadProfileId(): string {
-  const KEY = 'trivial.profileId';
-  try {
-    let id = localStorage.getItem(KEY);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(KEY, id);
-    }
-    return id;
-  } catch {
-    return crypto.randomUUID();
-  }
-}
-
 const profileId = loadProfileId();
 
 // --- Elementos del DOM ------------------------------------------------------
@@ -118,7 +104,13 @@ const net = new Net({
         break;
     }
   },
-  onClose: () => announce('Conexión perdida. Reintentando…'),
+  onClose: () => {
+    const message = 'Conexión perdida. Reintentando…';
+    // En el vestíbulo no hay región de anuncios a la vista: se dice en el hueco
+    // de error del formulario, o el jugador se queda sin saber qué pasa.
+    if (gameScreen.hidden) joinError.textContent = message;
+    else announce(message);
+  },
 });
 net.connect();
 
@@ -135,7 +127,12 @@ joinForm.addEventListener('submit', (ev) => {
   roomCode = code;
   myName = name;
   sound.unlock(); // gesto de usuario: habilita el audio
-  net.send({ type: 'join', roomCode, name, profileId });
+
+  // Si todavía no hay conexión, `onOpen` reintentará la entrada con estos datos;
+  // mientras tanto hay que decirlo, o el botón parece roto.
+  if (!net.send({ type: 'join', roomCode, name, profileId })) {
+    joinError.textContent = 'Conectando con el servidor… entrarás en cuanto haya conexión.';
+  }
 });
 
 function showGameScreen(): void {

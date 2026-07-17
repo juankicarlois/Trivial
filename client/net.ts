@@ -47,10 +47,18 @@ export class Net {
     }, 1500);
   }
 
-  send(message: ClientMessage): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
-    }
+  /**
+   * @brief Envía un mensaje al servidor si hay conexión.
+   * @param message Mensaje a enviar.
+   * @return true si se envió; false si no había conexión y se ha descartado.
+   *
+   * Quien llama debe atender al `false`: descartar en silencio deja mandos que
+   * no responden y sin ninguna explicación para el jugador.
+   */
+  send(message: ClientMessage): boolean {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return false;
+    this.ws.send(JSON.stringify(message));
+    return true;
   }
 
   get isOpen(): boolean {
