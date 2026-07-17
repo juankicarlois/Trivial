@@ -10,9 +10,15 @@
 
 import { buildBoard } from '../shared/board.js';
 import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.js';
-import type { AchievementView, GameEvent, GameView } from '../shared/protocol.js';
+import type { AchievementView, GameEvent, GameView, PlayerView } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
+import {
+  achievementsSummary,
+  boardRadarSummary,
+  describeDirection,
+  wedgesSummary,
+} from './narration.js';
 
 const board = buildBoard();
 const sound = new SoundEngine();
@@ -339,25 +345,6 @@ function renderAchievements(): void {
   }
 }
 
-/** Resume los logros en una frase, incluyendo el que tienes más a mano. */
-function myAchievementsSummary(): string {
-  if (myAchievements.length === 0) return 'Todavía no se han cargado tus logros.';
-  const unlocked = myAchievements.filter((a) => a.unlocked);
-  const pending = myAchievements
-    .filter((a) => !a.unlocked)
-    .sort((a, b) => b.progress / b.target - a.progress / a.target);
-
-  const parts = [`Tienes ${unlocked.length} de ${myAchievements.length} logros.`];
-  if (unlocked.length > 0) parts.push(`Conseguidos: ${unlocked.map((a) => a.name).join(', ')}.`);
-  const next = pending[0];
-  if (next) {
-    parts.push(
-      `El más cerca: ${next.name}. ${next.description} Llevas ${Math.min(next.progress, next.target)} de ${next.target}.`,
-    );
-  }
-  return parts.join(' ');
-}
-
 /**
  * Panel propio con los seis quesos y su estado. A diferencia de los puntos de
  * color de la lista de jugadores, aquí cada categoría se nombra en texto y se
@@ -389,15 +376,9 @@ function renderMyWedges(state: GameView): void {
   }
 }
 
-/** Resume los quesos propios en una frase, para leerla por el atajo de teclado. */
-function myWedgesSummary(): string {
-  const me = lastState?.players.find((p) => p.id === myId);
-  if (!me) return 'Todavía no estás en una partida.';
-  const earned = me.wedges.map((id) => categoryById(id).name);
-  const missing = CATEGORIES.filter((c) => !me.wedges.includes(c.id)).map((c) => c.name);
-  if (earned.length === 0) return `No tienes ningún queso. Te faltan los seis: ${missing.join(', ')}.`;
-  if (missing.length === 0) return '¡Tienes los seis quesos! Vuelve al centro para ganar.';
-  return `Tienes ${earned.length} de ${CATEGORIES.length} quesos: ${earned.join(', ')}. Te faltan: ${missing.join(', ')}.`;
+/** El jugador que maneja este cliente, si ya está en la partida. */
+function me(): PlayerView | undefined {
+  return lastState?.players.find((p) => p.id === myId);
 }
 
 function renderStatus(state: GameView): void {
@@ -506,8 +487,11 @@ function renderActions(state: GameView): void {
     h.textContent = `Te quedan ${state.movement.remaining} paso(s). Elige dirección:`;
     const row = document.createElement('div');
     row.className = 'action-row';
+    const me = state.players.find((p) => p.id === myId);
+    const from = state.players[state.currentPlayerIndex]?.nodeId ?? '';
+    const steps = state.movement.remaining;
     state.movement.options.forEach((nodeId, i) => {
-      const label = board.nodes[nodeId]?.label ?? nodeId;
+      const label = describeDirection(board, from, nodeId, steps, me?.wedges ?? []);
       const btn = button(label, () => net.send({ type: 'move', toNodeId: nodeId }), 'secondary');
       if (i === 0) focusTarget = btn;
       row.append(btn);
@@ -573,6 +557,8 @@ function renderQuestion(
 }
 
 /**
+ * @brief Describe una dirección diciendo dónde acabarías si la tomas.
+/**
  * Mueve el foco al mando principal solo cuando cambia el conjunto de acciones,
  * para no robar el foco en cada actualización de estado.
  */
@@ -603,12 +589,16 @@ document.addEventListener('keydown', (ev) => {
   if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
 
   const key = ev.key.toLowerCase();
+  const player = me();
   if (key === 'q') {
     ev.preventDefault();
-    announce(myWedgesSummary());
+    announce(wedgesSummary(player));
   } else if (key === 'l') {
     ev.preventDefault();
-    announce(myAchievementsSummary());
+    announce(achievementsSummary(myAchievements));
+  } else if (key === 'b') {
+    ev.preventDefault();
+    announce(player ? boardRadarSummary(board, player) : 'Todavía no estás en una partida.');
   }
 });
 

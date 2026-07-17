@@ -3,13 +3,15 @@
  * funciones testeables que operan sobre el tablero y devuelven resultados.
  */
 
-import type { Board } from '../shared/board.js';
+import { forwardMoves, type Board } from '../shared/board.js';
 
 /**
  * @brief Calcula los nodos a los que se puede avanzar desde una casilla.
  *
- * Se excluye la casilla de la que se acaba de venir para no oscilar en el sitio,
- * salvo que sea la única salida (caso imposible en este tablero, pero seguro).
+ * Delega en `forwardMoves` (compartida con el cliente): la regla de por dónde se
+ * puede avanzar debe ser una sola. El cliente la necesita para adelantar al
+ * jugador dónde caería, y si hubiera dos implementaciones acabarían diciendo
+ * cosas distintas.
  *
  * @param board Tablero.
  * @param nodeId Nodo actual.
@@ -17,10 +19,7 @@ import type { Board } from '../shared/board.js';
  * @return Lista de ids de nodos adyacentes válidos.
  */
 export function legalMoves(board: Board, nodeId: string, cameFrom: string | null): string[] {
-  const node = board.nodes[nodeId];
-  if (!node) throw new Error(`Nodo desconocido: ${nodeId}`);
-  const filtered = node.neighbors.filter((n) => n !== cameFrom);
-  return filtered.length > 0 ? filtered : [...node.neighbors];
+  return forwardMoves(board, nodeId, cameFrom);
 }
 
 /** Resultado de tirar el dado: valor 1..6. */

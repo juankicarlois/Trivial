@@ -30,6 +30,40 @@ para dado, movimiento de ficha, logros, acierto/fallo, queso ganado.
   reflejan el mismo estado.
 - Sonidos como refuerzo, nunca como único canal de información: cada sonido tiene su
   anuncio textual equivalente.
+- Los avisos de una misma ráfaga (responder → revelar respuesta → cambio de turno)
+  se **agrupan en un solo anuncio**: escritos de uno en uno en la región aria-live,
+  cada uno pisaría al anterior y se perderían.
+- **Regla de fondo: si quien ve el tablero puede deducir algo de un vistazo, hay
+  que decirlo.** No basta con que el estado sea accesible; la *información que da
+  el tablero* también tiene que serlo.
+
+### Orientación: saber hacia dónde moverse
+
+El problema central de este juego: quien ve la rueda cuenta casillas y sabe al
+instante dónde caerá y dónde está cada sede. Con solo el nombre de la casilla de
+al lado ("Casilla de Historia"), quien no ve elige a ciegas.
+
+Dos piezas lo resuelven, ambas construidas sobre funciones puras del tablero
+(`previewMove` y `distancesFrom` en `shared/board.ts`):
+
+1. **Cada dirección dice su desenlace** (`describeDirection`): la casilla
+   inmediata, dónde se cae con los pasos que quedan y qué hay allí (queso que
+   falta, pregunta final, casilla libre). Si el camino se bifurca antes de gastar
+   los pasos, se dice en vez de prometer un destino que no está decidido.
+2. **Brújula** (tecla `B`, `boardRadarSummary`): posición actual y distancia a
+   cada sede pendiente, de más cerca a más lejos. Usa recorrido en anchura, así
+   que contempla el atajo por el centro (8 casillas cruzando, frente a 21 por el
+   anillo).
+
+La regla de por dónde se puede avanzar (`forwardMoves`) vive en `shared/` y el
+servidor la usa a través de `legalMoves`: **una sola implementación**. Si el
+cliente tuviera la suya para las previsiones, acabarían diciendo cosas distintas
+y el juego mentiría al jugador.
+
+Las frases están en `client/narration.ts`, **aparte del DOM y con tests**
+(`client/narration.test.ts`). Son lo único que tiene quien no ve: un "a 0
+casillas" o un plural mal puesto no es un detalle estético, y sin tests no se
+detecta.
 
 ## Modelo del tablero (rueda Pursuit)
 

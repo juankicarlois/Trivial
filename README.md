@@ -59,14 +59,33 @@ npm test               # tests del tablero y del motor
 
 | Tecla | Acción |
 |-------|--------|
-| `Q`   | Anuncia tus quesos (cuáles tienes y cuáles te faltan), en cualquier momento |
+| `Q`   | Anuncia tus quesos (cuáles tienes y cuáles te faltan) |
+| `B`   | Brújula: dónde estás y a qué distancia tienes cada sede que te falta |
 | `L`   | Anuncia tus logros y cuál tienes más a mano |
 | `Tab` / `Mayús+Tab` | Moverse entre los mandos |
 | `Intro` / `Espacio` | Activar el mando enfocado |
 
-El foco salta solo al mando principal cuando te toca actuar (tirar, elegir
-dirección o responder). También tienes tus quesos siempre visibles en el panel
-«Tus quesos».
+Funcionan en cualquier momento (salvo mientras escribes en un campo de texto). El
+foco salta solo al mando principal cuando te toca actuar (tirar, elegir dirección
+o responder).
+
+### Saber hacia dónde moverte sin ver el tablero
+
+Quien ve la rueda cuenta las casillas de un vistazo y sabe dónde va a caer. Para
+que esa información no se pierda, **cada dirección dice adónde te lleva**:
+
+> «Radio de Geografía. Caes en: Sede de Geografía. ¡Queso que te falta!»
+>
+> «Casilla de Historia. Llegas a Sede de Historia y eliges de nuevo con 2 pasos.»
+
+Es decir: la casilla de al lado, dónde acabarás con los pasos que te quedan y si
+allí hay algo que te interese (un queso que te falta, la pregunta final, o una
+casilla libre). Cuando el camino se bifurca antes de gastar los pasos, se dice —
+en vez de prometer un destino que no está decidido.
+
+La tecla `B` completa el mapa mental: te sitúa y te da la distancia a cada sede
+que te falta, de más cerca a más lejos. Tiene en cuenta el atajo por el centro
+(cruzar la rueda son 8 casillas, frente a 21 dando la vuelta por el anillo).
 
 ## Estructura
 

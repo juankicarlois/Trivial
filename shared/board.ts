@@ -33,6 +33,27 @@ export interface Board {
   startNodeId: string;
 }
 
+/**
+ * Resultado de asomarse a una dirección antes de moverse: dónde acabarías si
+ * gastases ahí todos los pasos que te quedan.
+ *
+ * Es la información que un jugador que ve obtiene de un vistazo contando
+ * casillas, y que sin esto un jugador ciego no tiene forma de conocer.
+ */
+export interface MovePreview {
+  /** Casilla inmediata en esa dirección. */
+  nextNodeId: string;
+  /**
+   * Casilla donde caerías, si el camino no se bifurca antes de gastar los pasos.
+   * `null` si antes llegas a un cruce y tendrás que volver a elegir.
+   */
+  landingNodeId: string | null;
+  /** Cruce donde tendrás que elegir de nuevo, si lo hay. */
+  junctionNodeId: string | null;
+  /** Pasos que te quedarían al llegar a ese cruce. */
+  stepsAtJunction: number;
+}
+
 export const HUB_ID = 'hub';
 export const RING_SIZE = 42;
 /** Casillas del anillo entre una sede y la siguiente (sin contar la sede). */
@@ -138,4 +159,87 @@ export function buildBoard(): Board {
   );
 
   return { nodes, startNodeId: HUB_ID_LOCAL };
+}
+
+/**
+ * @brief Casillas a las que se puede avanzar desde una, sin dar marcha atrás.
+ *
+ * Se excluye la casilla de la que se acaba de venir para no oscilar en el sitio,
+ * salvo que sea la única salida (caso imposible en este tablero, pero seguro).
+ *
+ * @param board Tablero.
+ * @param nodeId Casilla actual.
+ * @param cameFrom Casilla de la que se viene, o null en el primer paso del turno.
+ * @return Ids de las casillas a las que se puede avanzar.
+ * @throws Error si la casilla no existe.
+ */
+export function forwardMoves(board: Board, nodeId: string, cameFrom: string | null): string[] {
+  const node = board.nodes[nodeId];
+  if (!node) throw new Error(`Nodo desconocido: ${nodeId}`);
+  const filtered = node.neighbors.filter((n) => n !== cameFrom);
+  return filtered.length > 0 ? filtered : [...node.neighbors];
+}
+
+/**
+ * @brief Calcula dónde acabarías al tomar una dirección con los pasos dados.
+ *
+ * Recorre el camino sin dar marcha atrás. Los tramos sin desvío se recorren
+ * solos, así que el destino es único hasta que se llega a un cruce (una sede o
+ * el centro) con pasos de sobra: ahí habría que volver a elegir y el destino ya
+ * no está determinado.
+ *
+ * @param board Tablero.
+ * @param from Casilla actual.
+ * @param to Primera casilla de la dirección que se quiere sopesar.
+ * @param steps Pasos que quedan por gastar (contando el que lleva a `to`).
+ * @return Qué pasaría al tomar esa dirección.
+ */
+export function previewMove(board: Board, from: string, to: string, steps: number): MovePreview {
+  let previous = from;
+  let current = to;
+  let used = 1;
+
+  while (used < steps) {
+    const options = forwardMoves(board, current, previous);
+    if (options.length !== 1) {
+      return {
+        nextNodeId: to,
+        landingNodeId: null,
+        junctionNodeId: current,
+        stepsAtJunction: steps - used,
+      };
+    }
+    previous = current;
+    current = options[0];
+    used += 1;
+  }
+
+  return { nextNodeId: to, landingNodeId: current, junctionNodeId: null, stepsAtJunction: 0 };
+}
+
+/**
+ * @brief Distancia (en casillas) desde una casilla a todas las demás.
+ *
+ * Recorrido en anchura sobre el grafo. No aplica la regla de no dar marcha
+ * atrás: sirve para orientarse ("la sede de Ciencia está a 4"), no para validar
+ * un movimiento concreto.
+ *
+ * @param board Tablero.
+ * @param from Casilla de partida.
+ * @return Distancia mínima a cada casilla alcanzable, incluida `from` (0).
+ */
+export function distancesFrom(board: Board, from: string): Map<string, number> {
+  const distances = new Map<string, number>([[from, 0]]);
+  const queue: string[] = [from];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const distance = distances.get(current)!;
+    for (const neighbor of board.nodes[current].neighbors) {
+      if (distances.has(neighbor)) continue;
+      distances.set(neighbor, distance + 1);
+      queue.push(neighbor);
+    }
+  }
+  return distances;
 }
