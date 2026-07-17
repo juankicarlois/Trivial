@@ -72,6 +72,8 @@ export class Room {
   private winnerId: string | null = null;
   /** Packs temáticos activos en esta partida. */
   private enabledPacks = new Set<string>();
+  /** Preguntas ya planteadas en la partida, para no repetirlas. */
+  private askedThisGame = new Set<string>();
 
   constructor(
     code: string,
@@ -250,6 +252,7 @@ export class Room {
     this.movement = null;
     this.question = null;
     this.winnerId = null;
+    this.askedThisGame.clear();
     this.phase = 'awaitRoll';
     this.emit({ kind: 'gameStarted' });
     this.emit({ kind: 'turnChanged', playerId: this.current().id });
@@ -283,6 +286,7 @@ export class Room {
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
     const category = this.question.category;
+    const questionId = this.question.id;
     const correctText = this.question.options[this.question.answerIndex];
     const node = this.board.nodes[player.nodeId];
     this.question = null;
@@ -293,6 +297,10 @@ export class Room {
       profile.stats.correct[category] += 1;
       player.streak += 1;
       profile.stats.bestStreak = Math.max(profile.stats.bestStreak, player.streak);
+      // Acertada: se retira de su repertorio y no volverá a salirle.
+      if (!profile.masteredQuestions.includes(questionId)) {
+        profile.masteredQuestions.push(questionId);
+      }
     } else {
       player.streak = 0;
     }
@@ -445,7 +453,13 @@ export class Room {
   }
 
   private askQuestion(category: CategoryId, forWin: boolean): void {
-    const picked = this.repo.pick(category, [...this.enabledPacks]);
+    // Se evitan las que este jugador ya domina y las ya salidas en la partida.
+    const picked = this.repo.pick(category, {
+      packIds: [...this.enabledPacks],
+      mastered: new Set(this.profileOf(this.current()).masteredQuestions),
+      askedThisGame: this.askedThisGame,
+    });
+    this.askedThisGame.add(picked.id);
     this.question = { ...picked, forWin };
     this.phase = 'awaitAnswer';
     this.emit({

@@ -69,7 +69,7 @@ test('al barajar las opciones, la respuesta correcta sigue siéndolo', () => {
 
   for (const cat of CATEGORIES) {
     for (let i = 0; i < 50; i++) {
-      const picked = repo.pick(cat.id, packIds);
+      const picked = repo.pick(cat.id, { packIds });
       const original = byId.get(picked.id);
       assert.ok(original, `pregunta servida con id desconocido: ${picked.id}`);
       assert.equal(
@@ -111,4 +111,75 @@ test('sin packs activos no salen preguntas temáticas', () => {
       );
     }
   }
+});
+
+// --- No repetir preguntas ---------------------------------------------------
+
+/** Ids del banco base de una categoría. */
+function idsOf(category: string): string[] {
+  return base.questions.filter((q) => q.category === category).map((q) => q.id);
+}
+
+test('una pregunta ya acertada no vuelve a salir', () => {
+  const repo = createDefaultRepository();
+  const todas = idsOf('geografia');
+  const dominadas = new Set(todas.slice(0, todas.length - 1)); // todas menos una
+
+  for (let i = 0; i < 30; i++) {
+    const picked = repo.pick('geografia', { mastered: dominadas });
+    assert.ok(!dominadas.has(picked.id), `${picked.id}: ya estaba dominada`);
+  }
+});
+
+test('una pregunta ya salida en la partida no se repite', () => {
+  const repo = createDefaultRepository();
+  const todas = idsOf('historia');
+  const salidas = new Set(todas.slice(0, todas.length - 1));
+
+  for (let i = 0; i < 30; i++) {
+    const picked = repo.pick('historia', { askedThisGame: salidas });
+    assert.ok(!salidas.has(picked.id), `${picked.id}: ya había salido en esta partida`);
+  }
+});
+
+test('jugando una partida entera no se repite ninguna pregunta', () => {
+  const repo = createDefaultRepository();
+  const askedThisGame = new Set<string>();
+  const total = idsOf('arte').length;
+
+  for (let i = 0; i < total; i++) {
+    const picked = repo.pick('arte', { askedThisGame });
+    assert.ok(!askedThisGame.has(picked.id), `${picked.id} salió dos veces`);
+    askedThisGame.add(picked.id);
+  }
+  assert.equal(askedThisGame.size, total, 'deberían haber salido todas, sin repetir');
+});
+
+test('con todas dominadas se sigue ofreciendo pregunta, sin atascar la partida', () => {
+  // El banco es finito: si se tratara como condición y no como preferencia, aquí
+  // no habría pregunta que dar y la partida se quedaría clavada.
+  const repo = createDefaultRepository();
+  const todas = new Set(idsOf('ciencia'));
+
+  const picked = repo.pick('ciencia', { mastered: todas });
+  assert.ok(todas.has(picked.id), 'debe reutilizar una dominada antes que fallar');
+});
+
+test('con todas dominadas, se prefiere repetir una sabida antes que una de esta partida', () => {
+  const repo = createDefaultRepository();
+  const todas = idsOf('deportes');
+  const dominadas = new Set(todas);
+  const yaSalidas = new Set(todas.slice(0, 3));
+
+  for (let i = 0; i < 30; i++) {
+    const picked = repo.pick('deportes', { mastered: dominadas, askedThisGame: yaSalidas });
+    assert.ok(!yaSalidas.has(picked.id), `${picked.id}: repite una de esta partida habiendo otras`);
+  }
+});
+
+test('agotado todo, sigue sin lanzar', () => {
+  const repo = createDefaultRepository();
+  const todas = new Set(idsOf('cultura'));
+  const picked = repo.pick('cultura', { mastered: todas, askedThisGame: todas });
+  assert.ok(picked.id, 'antes repetir que dejar al jugador sin pregunta');
 });

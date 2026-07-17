@@ -23,6 +23,16 @@ function shuffle<T>(items: readonly T[]): T[] {
   return copy;
 }
 
+/** Qué packs entran en el sorteo y qué preguntas conviene no repetir. */
+export interface PickOptions {
+  /** Packs activos que se suman al banco base. */
+  packIds?: readonly string[];
+  /** Preguntas que el jugador ya ha acertado alguna vez. */
+  mastered?: ReadonlySet<string>;
+  /** Preguntas ya planteadas en la partida en curso. */
+  askedThisGame?: ReadonlySet<string>;
+}
+
 /** Agrupa preguntas por categoría. */
 function byCategory(questions: readonly Question[]): Map<CategoryId, Question[]> {
   const map = new Map<CategoryId, Question[]>();
@@ -77,20 +87,42 @@ export class QuestionRepository {
   /**
    * @brief Sortea una pregunta de la categoría, con las opciones barajadas y el
    *        índice de la respuesta correcta recalculado.
+   *
+   * Se evitan las preguntas que el jugador ya domina y las que ya han salido en
+   * la partida. Son **preferencias, no condiciones**: el banco es finito, y
+   * quedarse sin pregunta que ofrecer dejaría la partida atascada. Si no queda
+   * ninguna candidata se van relajando, primero volviendo a admitir las
+   * dominadas y en último extremo repitiendo alguna de la partida.
+   *
    * @param category Categoría solicitada.
-   * @param packIds Packs activos que se suman al banco base.
+   * @param options Packs activos y preguntas a evitar.
    * @return Pregunta lista para plantear.
-   * @throws Error si no hay ninguna pregunta de esa categoría.
+   * @throws Error si la categoría no tiene ninguna pregunta cargada.
    */
-  pick(category: CategoryId, packIds: readonly string[] = []): Question {
+  pick(category: CategoryId, options: PickOptions = {}): Question {
+    const { packIds = [], mastered, askedThisGame } = options;
     const pool = this.pool(category, packIds);
     if (pool.length === 0) throw new Error(`Sin preguntas para la categoría ${category}`);
 
-    const base = pool[Math.floor(Math.random() * pool.length)];
-    const correctText = base.options[base.answerIndex];
-    const options = shuffle(base.options);
-    return { ...base, options, answerIndex: options.indexOf(correctText) };
+    const fresh = pool.filter((q) => !mastered?.has(q.id) && !askedThisGame?.has(q.id));
+    // Si ya se dominan todas, mejor repetir una sabida que una de esta partida.
+    const unseenThisGame = pool.filter((q) => !askedThisGame?.has(q.id));
+    const candidates = pick(fresh, unseenThisGame, pool);
+
+    return shuffleOptions(candidates[Math.floor(Math.random() * candidates.length)]);
   }
+}
+
+/** Primera lista no vacía. */
+function pick(...lists: Question[][]): Question[] {
+  return lists.find((list) => list.length > 0) ?? [];
+}
+
+/** Baraja las opciones recalculando dónde queda la respuesta correcta. */
+function shuffleOptions(question: Question): Question {
+  const correctText = question.options[question.answerIndex];
+  const options = shuffle(question.options);
+  return { ...question, options, answerIndex: options.indexOf(correctText) };
 }
 
 /**

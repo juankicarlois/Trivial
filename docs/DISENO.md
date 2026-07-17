@@ -105,6 +105,25 @@ dentro); **hub** = 6 (un radio por categoría).
 múltiple (4 opciones, barajadas al plantearlas). Cada una lleva `difficulty` de
 1 a 3.
 
+### Qué pregunta sale
+
+Al plantear una pregunta se evitan dos conjuntos:
+
+- Las que **ese jugador ya ha acertado alguna vez** (`masteredQuestions` en su
+  perfil): lo que ya sabe no aporta. Las falladas **sí vuelven a salir**, hasta
+  que se las aprenda.
+- Las **ya salidas en la partida en curso**, se acertaran o no. En el Trivial de
+  mesa la carta usada no vuelve al montón.
+
+Son **preferencias, no condiciones**. El banco es finito: tratarlas como
+condiciones dejaría sin pregunta que ofrecer a quien domine una categoría entera,
+y la partida se quedaría clavada. Si no hay candidatas se relajan por orden:
+primero se readmiten las dominadas (mejor repetir una sabida que una de esta
+partida) y, en último extremo, cualquiera. Nunca se lanza excepción.
+
+El filtro es **por jugador**, no por sala: cada uno tiene su propio historial y la
+pregunta se sortea para quien la va a responder.
+
 Criterios al escribir preguntas:
 
 - **Datos estables y comprobables.** Nada que caduque en unos meses ni cuya
