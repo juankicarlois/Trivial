@@ -10,7 +10,7 @@
     "server": "tsx server/index.ts",
     "dev": "npm run build:client && tsx server/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test shared/board.test.ts server/engine.test.ts server/room.test.ts"
+    "test": "node --import tsx --test shared/board.test.ts server/engine.test.ts server/room.test.ts server/questions_repo.test.ts"
   },
   "dependencies": {
     "ws": "^8.18.0"

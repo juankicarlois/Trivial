@@ -65,6 +65,24 @@ dentro); **hub** = 6 (un radio por categoría).
 5. Deportes y Ocio
 6. Cultura y Tecnología (moderniza el clásico "Entretenimiento")
 
+### Banco de preguntas
+
+`content/questions.base.json`: **120 preguntas, 20 por categoría**, de opción
+múltiple (4 opciones, barajadas al plantearlas). Cada una lleva `difficulty` de
+1 a 3.
+
+Criterios al escribir preguntas:
+
+- **Datos estables y comprobables.** Nada que caduque en unos meses ni cuya
+  respuesta dependa de la interpretación (p. ej. "el río más largo del mundo",
+  con el eterno debate Nilo/Amazonas, no entra).
+- **Una sola respuesta indiscutible**, y tres distractores plausibles.
+- La integridad del banco la comprueba `server/questions_repo.test.ts`: ids
+  únicos, 4 opciones distintas y no vacías, `answerIndex` en rango, categoría
+  válida, mínimo por categoría y que la barajada conserve la respuesta correcta.
+  Un `answerIndex` mal puesto daría por buena una respuesta incorrecta sin que
+  nadie lo note, de ahí el test.
+
 ## Logros → packs temáticos
 
 - Se rastrean estadísticas por perfil (aciertos por categoría, partidas jugadas/

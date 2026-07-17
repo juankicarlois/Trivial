@@ -80,6 +80,28 @@ docs/      Documento de diseño
 
 ## Estado
 
-MVP en construcción (fase 1): salas en LAN, tablero, dado, movimiento por teclado,
-preguntas base, quesos y victoria, con accesibilidad y sonidos. Pendiente: perfiles
-+ logros + packs temáticos (fase 2); bots e internet (fase 3). Ver `docs/DISENO.md`.
+MVP jugable (fase 1): salas en LAN, tablero, dado, movimiento por teclado, **120
+preguntas base** (20 por categoría), quesos y victoria, con accesibilidad y sonidos.
+Pendiente: perfiles + logros + packs temáticos (fase 2); bots e internet (fase 3).
+Ver `docs/DISENO.md`.
+
+### Añadir preguntas
+
+Se editan en `content/questions.base.json` (no hace falta recompilar el servidor,
+solo reiniciarlo). Formato:
+
+```json
+{
+  "id": "geo-021",
+  "category": "geografia",
+  "text": "¿Cuál es la capital de Portugal?",
+  "options": ["Oporto", "Lisboa", "Braga", "Coímbra"],
+  "answerIndex": 1,
+  "difficulty": 1
+}
+```
+
+`answerIndex` es la posición (empezando en 0) de la opción correcta; el juego
+baraja las opciones al plantear la pregunta. Categorías válidas: `geografia`,
+`historia`, `arte`, `ciencia`, `deportes`, `cultura`. Ejecuta `npm test` después
+de tocar el banco: valida ids únicos, opciones y respuestas.
