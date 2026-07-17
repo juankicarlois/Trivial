@@ -1,16 +1,17 @@
 /**
- * Repositorio de preguntas: carga el banco desde JSON y sirve preguntas
- * aleatorias por categoría, barajando las opciones para que la posición de la
- * respuesta correcta no sea predecible.
+ * Repositorio de preguntas: banco base más packs temáticos.
+ *
+ * Cada sala elige qué packs tiene activos, así que el repositorio no guarda
+ * "el" conjunto de preguntas: al pedir una, se le indican los packs activos y
+ * se sortea entre el banco base y los de esos packs.
  */
 
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import type { CategoryId } from '../shared/categories.js';
 import type { Question, QuestionBank } from '../shared/questions.js';
-
-const here = dirname(fileURLToPath(import.meta.url));
+import type { PackDef } from '../shared/progress.js';
+import { CONTENT_DIR } from './content.js';
 
 /** Baraja una copia del array (Fisher–Yates). */
 function shuffle<T>(items: readonly T[]): T[] {
@@ -22,54 +23,84 @@ function shuffle<T>(items: readonly T[]): T[] {
   return copy;
 }
 
+/** Agrupa preguntas por categoría. */
+function byCategory(questions: readonly Question[]): Map<CategoryId, Question[]> {
+  const map = new Map<CategoryId, Question[]>();
+  for (const q of questions) {
+    const list = map.get(q.category) ?? [];
+    list.push(q);
+    map.set(q.category, list);
+  }
+  return map;
+}
+
 export class QuestionRepository {
-  private byCategory = new Map<CategoryId, Question[]>();
+  private base = new Map<CategoryId, Question[]>();
+  private packs = new Map<string, Map<CategoryId, Question[]>>();
 
   /**
-   * @brief Carga un banco de preguntas desde un archivo JSON.
-   * @param filePath Ruta al JSON con forma `{ questions: Question[] }`.
+   * @brief Carga el banco base desde un JSON `{ questions: [...] }`.
+   * @param filePath Ruta del fichero.
    */
-  loadFile(filePath: string): void {
-    const raw = readFileSync(filePath, 'utf-8');
-    const bank = JSON.parse(raw) as QuestionBank;
-    for (const q of bank.questions) {
-      const list = this.byCategory.get(q.category) ?? [];
-      list.push(q);
-      this.byCategory.set(q.category, list);
+  loadBaseFile(filePath: string): void {
+    const bank = JSON.parse(readFileSync(filePath, 'utf-8')) as QuestionBank;
+    for (const [category, list] of byCategory(bank.questions)) {
+      this.base.set(category, [...(this.base.get(category) ?? []), ...list]);
     }
   }
 
-  /** Número de preguntas cargadas para una categoría. */
-  count(category: CategoryId): number {
-    return this.byCategory.get(category)?.length ?? 0;
+  /** Registra un pack temático para poder activarlo en las salas. */
+  addPack(pack: PackDef): void {
+    this.packs.set(pack.id, byCategory(pack.questions));
   }
 
   /**
-   * @brief Devuelve una pregunta aleatoria de la categoría, con las opciones
-   *        barajadas y el índice de la respuesta correcta recalculado.
+   * @brief Preguntas disponibles de una categoría.
+   * @param category Categoría.
+   * @param packIds Packs activos que se suman al banco base.
+   * @return Lista combinada (no barajada).
+   */
+  private pool(category: CategoryId, packIds: readonly string[]): Question[] {
+    const pool = [...(this.base.get(category) ?? [])];
+    for (const packId of packIds) {
+      const pack = this.packs.get(packId);
+      if (pack) pool.push(...(pack.get(category) ?? []));
+    }
+    return pool;
+  }
+
+  /** Número de preguntas disponibles de una categoría con esos packs activos. */
+  count(category: CategoryId, packIds: readonly string[] = []): number {
+    return this.pool(category, packIds).length;
+  }
+
+  /**
+   * @brief Sortea una pregunta de la categoría, con las opciones barajadas y el
+   *        índice de la respuesta correcta recalculado.
    * @param category Categoría solicitada.
+   * @param packIds Packs activos que se suman al banco base.
    * @return Pregunta lista para plantear.
-   * @throws Error si no hay preguntas de esa categoría.
+   * @throws Error si no hay ninguna pregunta de esa categoría.
    */
-  pick(category: CategoryId): Question {
-    const list = this.byCategory.get(category);
-    if (!list || list.length === 0) {
-      throw new Error(`Sin preguntas para la categoría ${category}`);
-    }
-    const base = list[Math.floor(Math.random() * list.length)];
+  pick(category: CategoryId, packIds: readonly string[] = []): Question {
+    const pool = this.pool(category, packIds);
+    if (pool.length === 0) throw new Error(`Sin preguntas para la categoría ${category}`);
+
+    const base = pool[Math.floor(Math.random() * pool.length)];
     const correctText = base.options[base.answerIndex];
     const options = shuffle(base.options);
-    return {
-      ...base,
-      options,
-      answerIndex: options.indexOf(correctText),
-    };
+    return { ...base, options, answerIndex: options.indexOf(correctText) };
   }
 }
 
-/** Crea un repositorio cargado con el banco base incluido en `content/`. */
-export function createDefaultRepository(): QuestionRepository {
+/**
+ * @brief Crea un repositorio con el banco base y todos los packs registrados.
+ * @param packs Packs temáticos a registrar (por defecto, ninguno).
+ * @return Repositorio listo para usar.
+ */
+export function createDefaultRepository(packs: readonly PackDef[] = []): QuestionRepository {
   const repo = new QuestionRepository();
-  repo.loadFile(join(here, '..', 'content', 'questions.base.json'));
+  repo.loadBaseFile(join(CONTENT_DIR, 'questions.base.json'));
+  for (const pack of packs) repo.addPack(pack);
   return repo;
 }

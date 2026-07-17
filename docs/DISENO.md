@@ -85,21 +85,61 @@ Criterios al escribir preguntas:
 
 ## Logros → packs temáticos
 
-- Se rastrean estadísticas por perfil (aciertos por categoría, partidas jugadas/
-  ganadas, rachas, queseras completas).
-- Cada **pack temático** (Harry Potter, Disney, Camarón de la Isla…) es un JSON con
-  sus preguntas + una **condición de desbloqueo** basada en logros.
-- Al desbloquear un pack, sus preguntas entran en el repertorio (como categoría
-  extra o modo temático).
+### Perfiles
+
+La identidad persistente es un `profileId` que **genera el cliente** y guarda en
+`localStorage`; se envía al entrar en una sala. **No se usa el nombre como
+identidad**: así el progreso sobrevive a un cambio de nombre y dos personas que
+se llamen igual no comparten logros. El servidor guarda los perfiles en
+`data/profiles.json` (fuera de git), con escritura diferida.
+
+Si el fichero de perfiles no se puede leer, **se aparta una copia** antes de
+empezar de cero: sobrescribirlo destruiría el progreso de todos sin remedio. Si
+ni siquiera se puede apartar, el almacén queda en solo lectura.
+
+### Logros
+
+Un logro se mide contra una **estadística acumulada** (`stat`) y un **umbral**
+(`atLeast`). Modelo deliberadamente simple: añadir logros es editar
+`content/achievements.json`, sin tocar código.
+
+Estadísticas: `gamesPlayed`, `gamesWon`, `wedgesEarned`, `questionsAnswered`,
+`questionsCorrect`, `bestStreak`, `correct.<categoría>`.
+
+Se comprueban tras responder y al terminar la partida; los nuevos se anuncian
+(evento `achievementUnlocked`, con sonido propio).
+
+### Packs
+
+Cada pack (`content/packs/*.json`) lleva sus preguntas y el `unlockedBy` del
+logro que lo abre. **Las preguntas del pack se reparten entre las 6 categorías
+normales**, como en las ediciones temáticas del Trivial de mesa: así el tablero
+no cambia y basta con sumarlas al repertorio. Un pack **no** tiene por qué cubrir
+las 6 categorías.
+
+Un pack está disponible en una sala si **cualquiera de los presentes** lo tiene
+desbloqueado: quien se lo ganó lo trae a la mesa para todos. Se activa en el
+vestíbulo (nunca a media partida: cambiar el repertorio sería injusto para quien
+ya ha respondido). Al empezar se descartan los packs que ya nadie de la mesa
+tenga desbloqueado.
 
 ## Fases
 
 - **Fase 1 (MVP jugable):** salas en LAN, tablero+dado+movimiento por teclado,
   preguntas base desde JSON, quesos, condición de victoria. Accesibilidad completa
   + sonidos básicos.
-- **Fase 2:** perfiles + logros + desbloqueo de packs temáticos.
+- **Fase 2 (hecha):** perfiles persistentes + logros + desbloqueo y activación de
+  packs temáticos.
 - **Fase 3:** bots IA con dificultad; juego por internet (abrir puerto / túnel);
   más contenido y herramienta de autoría.
+
+## Pendiente / ideas
+
+- **Pregunta final del centro:** ahora la categoría es aleatoria; en el Trivial
+  clásico la eligen los rivales.
+- **Tablero visual** (rueda SVG) para quien ve: hoy la vista es funcional pero
+  mínima (texto y listas).
+- Bots, juego fuera de la LAN, más packs.
 
 ## Fuera de alcance por ahora
 

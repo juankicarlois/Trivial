@@ -3,6 +3,9 @@
  * autoridad — valida cada acción y difunde el estado resultante más eventos
  * puntuales (para sonidos y anuncios en el cliente).
  *
+ * También lleva el progreso de los jugadores: actualiza sus estadísticas,
+ * comprueba los logros y expone los packs temáticos que la mesa puede activar.
+ *
  * El transporte (envío por WebSocket) se inyecta para poder testear la lógica
  * sin red.
  */
@@ -10,9 +13,12 @@
 import { buildBoard, type Board } from '../shared/board.js';
 import { CATEGORIES, type CategoryId } from '../shared/categories.js';
 import type { Question } from '../shared/questions.js';
+import { earnedAchievements, statValue } from '../shared/progress.js';
 import type {
+  AchievementView,
   GameEvent,
   GameView,
+  PackView,
   PlayerView,
   PublicQuestion,
   ServerMessage,
@@ -20,18 +26,26 @@ import type {
 } from '../shared/protocol.js';
 import { legalMoves, rollDie } from './engine.js';
 import type { QuestionRepository } from './questions_repo.js';
+import type { GameContent } from './content.js';
+import type { Profile, ProfileStore } from './profiles.js';
 
-/** Difusor de mensajes a los clientes de la sala. */
+/** Envío de mensajes a los clientes de la sala. */
 export interface Transport {
   broadcast(message: ServerMessage): void;
+  /** Envía solo a un jugador (para datos suyos, como su progreso). */
+  sendTo(playerId: string, message: ServerMessage): void;
 }
 
 interface InternalPlayer {
   id: string;
   name: string;
+  /** Identidad persistente, para acumular estadísticas y logros. */
+  profileId: string;
   nodeId: string;
   wedges: CategoryId[];
   connected: boolean;
+  /** Aciertos seguidos en la partida en curso. */
+  streak: number;
 }
 
 interface Movement {
@@ -46,6 +60,8 @@ export class Room {
   readonly code: string;
   private readonly board: Board = buildBoard();
   private readonly repo: QuestionRepository;
+  private readonly content: GameContent;
+  private readonly profiles: ProfileStore;
   private readonly transport: Transport;
 
   private players: InternalPlayer[] = [];
@@ -54,10 +70,20 @@ export class Room {
   private movement: Movement | null = null;
   private question: (Question & { forWin: boolean }) | null = null;
   private winnerId: string | null = null;
+  /** Packs temáticos activos en esta partida. */
+  private enabledPacks = new Set<string>();
 
-  constructor(code: string, repo: QuestionRepository, transport: Transport) {
+  constructor(
+    code: string,
+    repo: QuestionRepository,
+    content: GameContent,
+    profiles: ProfileStore,
+    transport: Transport,
+  ) {
     this.code = code;
     this.repo = repo;
+    this.content = content;
+    this.profiles = profiles;
     this.transport = transport;
   }
 
@@ -73,28 +99,47 @@ export class Room {
 
   /**
    * @brief Añade un jugador o reconecta a uno que se había caído.
-   * @param name Nombre elegido (identifica al jugador para reconexión).
-   * @return Id del jugador, o null si la partida ya empezó y no es reconexión.
+   * @param name Nombre mostrado.
+   * @param profileId Identidad persistente del jugador.
+   * @return Id del jugador en la sala, o null si la partida ya empezó.
    */
-  addOrReattach(name: string): string | null {
-    const existing = this.players.find((p) => p.name === name);
+  addOrReattach(name: string, profileId: string): string | null {
+    const existing = this.players.find((p) => p.profileId === profileId);
     if (existing) {
       existing.connected = true;
+      existing.name = name;
       this.sync();
       return existing.id;
     }
     if (this.phase !== 'lobby') return null;
+
     const player: InternalPlayer = {
       id: crypto.randomUUID(),
       name,
+      profileId,
       nodeId: this.board.startNodeId,
       wedges: [],
       connected: true,
+      streak: 0,
     };
     this.players.push(player);
+    this.profiles.getOrCreate(profileId, name);
     this.emit({ kind: 'playerJoined', playerId: player.id, name });
     this.sync();
     return player.id;
+  }
+
+  /**
+   * @brief Envía a un jugador su progreso.
+   *
+   * Lo llama el servidor una vez ha asociado el socket al jugador: durante
+   * `addOrReattach` todavía no sabe a dónde mandarlo y el mensaje se perdería.
+   *
+   * @param playerId Jugador destinatario.
+   */
+  sendProfileTo(playerId: string): void {
+    const player = this.players.find((p) => p.id === playerId);
+    if (player) this.sendProfile(player);
   }
 
   markDisconnected(playerId: string): void {
@@ -113,7 +158,8 @@ export class Room {
     // En partida, si se va justo el jugador con el turno, hay que pasarlo o la
     // partida se queda clavada: nadie más podría tirar. Se descarta cualquier
     // acción a medias (movimiento o pregunta) y pasa al siguiente conectado.
-    const gameActive = this.phase === 'awaitRoll' || this.phase === 'moving' || this.phase === 'awaitAnswer';
+    const gameActive =
+      this.phase === 'awaitRoll' || this.phase === 'moving' || this.phase === 'awaitAnswer';
     if (gameActive && index === this.currentPlayerIndex && this.hasConnectedPlayers()) {
       this.movement = null;
       this.question = null;
@@ -121,6 +167,54 @@ export class Room {
       return;
     }
     this.sync();
+  }
+
+  // --- Packs temáticos ------------------------------------------------------
+
+  /**
+   * @brief Activa o desactiva un pack temático para las partidas de esta sala.
+   * @param packId Pack a cambiar.
+   * @param enabled true para activarlo.
+   *
+   * Solo se permite en el vestíbulo: cambiar el repertorio a mitad de partida
+   * sería injusto para quien ya ha respondido.
+   */
+  setPack(packId: string, enabled: boolean): void {
+    if (this.phase !== 'lobby' && this.phase !== 'gameOver') {
+      return this.reject('Los packs solo se cambian antes de empezar.');
+    }
+    const pack = this.content.packs.find((p) => p.id === packId);
+    if (!pack) return this.reject('Ese pack no existe.');
+    if (enabled && !this.unlockedInRoom().has(pack.unlockedBy)) {
+      return this.reject(`El pack "${pack.name}" todavía no está desbloqueado.`);
+    }
+    if (enabled) this.enabledPacks.add(packId);
+    else this.enabledPacks.delete(packId);
+    this.sync();
+  }
+
+  /** Logros conseguidos por cualquiera de los jugadores presentes. */
+  private unlockedInRoom(): Set<string> {
+    const ids = new Set<string>();
+    for (const player of this.players) {
+      for (const id of this.profileOf(player).achievements) ids.add(id);
+    }
+    return ids;
+  }
+
+  private packViews(): PackView[] {
+    const unlocked = this.unlockedInRoom();
+    return this.content.packs.map((pack) => {
+      const requirement = this.content.achievements.find((a) => a.id === pack.unlockedBy);
+      return {
+        id: pack.id,
+        name: pack.name,
+        description: pack.description,
+        unlocked: unlocked.has(pack.unlockedBy),
+        enabled: this.enabledPacks.has(pack.id),
+        requires: requirement?.name ?? pack.unlockedBy,
+      };
+    });
   }
 
   // --- Acciones -------------------------------------------------------------
@@ -139,9 +233,18 @@ export class Room {
     this.players = this.players.filter((p) => p.connected);
     if (this.players.length < 1) return this.reject('No hay jugadores conectados.');
 
+    // Quien desbloqueó un pack puede haberse ido: no se juega con packs que ya
+    // nadie de la mesa tiene.
+    const unlocked = this.unlockedInRoom();
+    for (const packId of [...this.enabledPacks]) {
+      const pack = this.content.packs.find((p) => p.id === packId);
+      if (!pack || !unlocked.has(pack.unlockedBy)) this.enabledPacks.delete(packId);
+    }
+
     for (const p of this.players) {
       p.nodeId = this.board.startNodeId;
       p.wedges = [];
+      p.streak = 0;
     }
     this.currentPlayerIndex = 0;
     this.movement = null;
@@ -176,14 +279,29 @@ export class Room {
     if (this.phase !== 'awaitAnswer' || !this.question) return this.reject('No hay pregunta activa.');
 
     const player = this.current();
+    const profile = this.profileOf(player);
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
+    const category = this.question.category;
     const correctText = this.question.options[this.question.answerIndex];
     const node = this.board.nodes[player.nodeId];
     this.question = null;
+
+    profile.stats.questionsAnswered += 1;
+    if (correct) {
+      profile.stats.questionsCorrect += 1;
+      profile.stats.correct[category] += 1;
+      player.streak += 1;
+      profile.stats.bestStreak = Math.max(profile.stats.bestStreak, player.streak);
+    } else {
+      player.streak = 0;
+    }
+
     this.emit({ kind: 'answered', playerId, correct, correctText });
 
     if (!correct) {
+      this.checkAchievements(player);
+      this.profiles.scheduleSave();
       this.nextTurn();
       return;
     }
@@ -191,7 +309,11 @@ export class Room {
     if (forWin) {
       this.winnerId = player.id;
       this.phase = 'gameOver';
+      for (const p of this.players) this.profileOf(p).stats.gamesPlayed += 1;
+      profile.stats.gamesWon += 1;
       this.emit({ kind: 'gameWon', playerId });
+      for (const p of this.players) this.checkAchievements(p);
+      this.profiles.scheduleSave();
       this.sync();
       return;
     }
@@ -199,11 +321,70 @@ export class Room {
     // Acertar en una sede otorga su queso (si aún no se tenía).
     if (node.kind === 'hq' && node.category && !player.wedges.includes(node.category)) {
       player.wedges.push(node.category);
+      profile.stats.wedgesEarned += 1;
       this.emit({ kind: 'wedgeEarned', playerId, category: node.category });
     }
+
+    this.checkAchievements(player);
+    this.profiles.scheduleSave();
     // Acertar da turno extra: el mismo jugador vuelve a tirar.
     this.phase = 'awaitRoll';
     this.sync();
+  }
+
+  // --- Progreso -------------------------------------------------------------
+
+  private profileOf(player: InternalPlayer): Profile {
+    return this.profiles.getOrCreate(player.profileId, player.name);
+  }
+
+  /**
+   * Comprueba si el jugador acaba de conseguir logros nuevos y, en tal caso,
+   * los anuncia junto con el pack que desbloqueen.
+   */
+  private checkAchievements(player: InternalPlayer): void {
+    const profile = this.profileOf(player);
+    const earned = earnedAchievements(profile.stats, this.content.achievements);
+    const fresh = earned.filter((id) => !profile.achievements.includes(id));
+    if (fresh.length === 0) return;
+
+    for (const id of fresh) {
+      profile.achievements.push(id);
+      const def = this.content.achievements.find((a) => a.id === id);
+      if (!def) continue;
+      this.emit({
+        kind: 'achievementUnlocked',
+        playerId: player.id,
+        name: def.name,
+        description: def.description,
+      });
+      const pack = this.content.packs.find((p) => p.unlockedBy === id);
+      if (pack) {
+        this.emit({ kind: 'packUnlocked', playerId: player.id, packName: pack.name });
+      }
+    }
+    this.sendProfile(player);
+  }
+
+  private achievementViews(profile: Profile): AchievementView[] {
+    return this.content.achievements.map((def) => ({
+      id: def.id,
+      name: def.name,
+      description: def.description,
+      unlocked: profile.achievements.includes(def.id),
+      progress: statValue(profile.stats, def.stat),
+      target: def.atLeast,
+    }));
+  }
+
+  /** Envía a un jugador su propio progreso (nadie más lo recibe). */
+  private sendProfile(player: InternalPlayer): void {
+    const profile = this.profileOf(player);
+    this.transport.sendTo(player.id, {
+      type: 'profile',
+      stats: profile.stats,
+      achievements: this.achievementViews(profile),
+    });
   }
 
   // --- Movimiento -----------------------------------------------------------
@@ -264,7 +445,7 @@ export class Room {
   }
 
   private askQuestion(category: CategoryId, forWin: boolean): void {
-    const picked = this.repo.pick(category);
+    const picked = this.repo.pick(category, [...this.enabledPacks]);
     this.question = { ...picked, forWin };
     this.phase = 'awaitAnswer';
     this.emit({
@@ -327,6 +508,7 @@ export class Room {
       phase: this.phase,
       players,
       currentPlayerIndex: this.currentPlayerIndex,
+      packs: this.packViews(),
     };
 
     if (this.phase === 'moving' && this.movement) {

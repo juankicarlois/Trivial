@@ -10,12 +10,34 @@
 
 import { buildBoard } from '../shared/board.js';
 import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.js';
-import type { GameEvent, GameView } from '../shared/protocol.js';
+import type { AchievementView, GameEvent, GameView } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
 
 const board = buildBoard();
 const sound = new SoundEngine();
+
+/**
+ * Identidad persistente del jugador. Se guarda en el navegador para que las
+ * estadísticas y los logros sobrevivan entre partidas, incluso si cambia de
+ * nombre. Si el navegador no deja guardar (modo privado, permisos), se usa una
+ * identidad de usar y tirar: se puede jugar, pero el progreso no se acumula.
+ */
+function loadProfileId(): string {
+  const KEY = 'trivial.profileId';
+  try {
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+const profileId = loadProfileId();
 
 // --- Elementos del DOM ------------------------------------------------------
 
@@ -39,6 +61,10 @@ const myWedgesList = $('my-wedges');
 const playersList = $('players');
 const boardPanel = $('board');
 const actions = $('actions');
+const packsSection = $('packs-section');
+const packsList = $('packs');
+const achievementsTitle = $('achievements-title');
+const achievementsList = $('achievements');
 
 // --- Estado local -----------------------------------------------------------
 
@@ -46,6 +72,8 @@ let myId: string | null = null;
 let roomCode = '';
 let myName = '';
 let lastState: GameView | null = null;
+/** Logros propios con su progreso; solo el servidor los conoce. */
+let myAchievements: AchievementView[] = [];
 let lastActionKey = '';
 /** Alterna un carácter invisible para forzar que el lector repita anuncios. */
 let announceToggle = false;
@@ -60,7 +88,7 @@ const ANNOUNCE_BATCH_MS = 150;
 const net = new Net({
   onOpen: () => {
     // Al (re)conectar, si ya elegimos sala y nombre, nos (re)unimos.
-    if (roomCode && myName) net.send({ type: 'join', roomCode, name: myName });
+    if (roomCode && myName) net.send({ type: 'join', roomCode, name: myName, profileId });
   },
   onMessage: (message) => {
     switch (message.type) {
@@ -71,6 +99,10 @@ const net = new Net({
       case 'state':
         lastState = message.state;
         render(message.state);
+        break;
+      case 'profile':
+        myAchievements = message.achievements;
+        renderAchievements();
         break;
       case 'event':
         handleEvent(message.event);
@@ -97,7 +129,7 @@ joinForm.addEventListener('submit', (ev) => {
   roomCode = code;
   myName = name;
   sound.unlock(); // gesto de usuario: habilita el audio
-  net.send({ type: 'join', roomCode, name });
+  net.send({ type: 'join', roomCode, name, profileId });
 });
 
 function showGameScreen(): void {
@@ -188,6 +220,21 @@ function handleEvent(event: GameEvent): void {
       sound.win();
       announce(`¡${nameOf(event.playerId)} gana la partida!`);
       break;
+    case 'achievementUnlocked':
+      sound.achievement();
+      announce(
+        event.playerId === myId
+          ? `¡Logro conseguido! ${event.name}. ${event.description}`
+          : `${nameOf(event.playerId)} consigue el logro ${event.name}.`,
+      );
+      break;
+    case 'packUnlocked':
+      announce(
+        event.playerId === myId
+          ? `¡Pack desbloqueado: ${event.packName}! Puedes activarlo antes de la próxima partida.`
+          : `${nameOf(event.playerId)} desbloquea el pack ${event.packName} para la mesa.`,
+      );
+      break;
   }
 }
 
@@ -210,9 +257,105 @@ function panForNode(nodeId: string): number {
 function render(state: GameView): void {
   renderStatus(state);
   renderMyWedges(state);
+  renderPacks(state);
   renderPlayers(state);
   renderBoard(state);
   renderActions(state);
+}
+
+/**
+ * Lista de packs temáticos con su casilla para activarlos. Un pack solo se
+ * puede activar si alguien de la sala lo ha desbloqueado, y solo antes de
+ * empezar (cambiar el repertorio a media partida sería injusto).
+ *
+ * Repintar la lista destruye las casillas, así que se devuelve el foco a la que
+ * lo tenía: si no, al marcar un pack el foco saltaría al principio de la página
+ * y quien navega por teclado se perdería.
+ */
+function renderPacks(state: GameView): void {
+  packsSection.hidden = state.packs.length === 0;
+  if (state.packs.length === 0) return;
+
+  const focusedId = document.activeElement instanceof HTMLElement ? document.activeElement.id : '';
+  const editable = state.phase === 'lobby' || state.phase === 'gameOver';
+  packsList.replaceChildren();
+
+  for (const pack of state.packs) {
+    const li = document.createElement('li');
+    li.className = 'pack' + (pack.unlocked ? '' : ' locked');
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = `pack-${pack.id}`;
+    checkbox.checked = pack.enabled;
+    checkbox.disabled = !pack.unlocked || !editable;
+    checkbox.addEventListener('change', () => {
+      net.send({ type: 'setPack', packId: pack.id, enabled: checkbox.checked });
+    });
+
+    const label = document.createElement('label');
+    label.htmlFor = checkbox.id;
+    label.textContent = pack.name;
+
+    const head = document.createElement('div');
+    head.className = 'pack-head';
+    head.append(checkbox, label);
+
+    const desc = document.createElement('p');
+    desc.className = 'pack-desc';
+    desc.textContent = pack.unlocked
+      ? pack.description
+      : `Bloqueado. Se consigue con el logro «${pack.requires}».`;
+
+    li.append(head, desc);
+    packsList.append(li);
+  }
+
+  if (focusedId) document.getElementById(focusedId)?.focus();
+}
+
+/** Panel de logros propios, con el progreso de los que faltan. */
+function renderAchievements(): void {
+  const unlocked = myAchievements.filter((a) => a.unlocked).length;
+  achievementsTitle.textContent = `Tus logros (${unlocked} de ${myAchievements.length})`;
+  achievementsList.replaceChildren();
+
+  for (const ach of myAchievements) {
+    const li = document.createElement('li');
+    li.className = 'achievement' + (ach.unlocked ? ' unlocked' : '');
+
+    const name = document.createElement('span');
+    name.className = 'ach-name';
+    name.textContent = ach.name;
+
+    const desc = document.createElement('span');
+    desc.className = 'ach-desc';
+    desc.textContent = ach.unlocked
+      ? `Conseguido. ${ach.description}`
+      : `${ach.description} Llevas ${Math.min(ach.progress, ach.target)} de ${ach.target}.`;
+
+    li.append(name, desc);
+    achievementsList.append(li);
+  }
+}
+
+/** Resume los logros en una frase, incluyendo el que tienes más a mano. */
+function myAchievementsSummary(): string {
+  if (myAchievements.length === 0) return 'Todavía no se han cargado tus logros.';
+  const unlocked = myAchievements.filter((a) => a.unlocked);
+  const pending = myAchievements
+    .filter((a) => !a.unlocked)
+    .sort((a, b) => b.progress / b.target - a.progress / a.target);
+
+  const parts = [`Tienes ${unlocked.length} de ${myAchievements.length} logros.`];
+  if (unlocked.length > 0) parts.push(`Conseguidos: ${unlocked.map((a) => a.name).join(', ')}.`);
+  const next = pending[0];
+  if (next) {
+    parts.push(
+      `El más cerca: ${next.name}. ${next.description} Llevas ${Math.min(next.progress, next.target)} de ${next.target}.`,
+    );
+  }
+  return parts.join(' ');
 }
 
 /**
@@ -450,16 +593,23 @@ function manageFocus(state: GameView, target: HTMLElement | null): void {
 // --- Atajos de teclado ------------------------------------------------------
 
 /**
- * Q anuncia tus quesos en cualquier momento. Se ignora mientras se escribe en
- * un campo de texto (si no, no se podría teclear una "q" en el nombre) y cuando
- * hay modificadores, para no pisar atajos del navegador o del lector.
+ * Q anuncia tus quesos y L tus logros, en cualquier momento. Se ignoran
+ * mientras se escribe en un campo de texto (si no, no se podría teclear una "q"
+ * en el nombre) y cuando hay modificadores, para no pisar atajos del navegador
+ * o del lector de pantalla.
  */
 document.addEventListener('keydown', (ev) => {
   if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
   if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
-  if (ev.key.toLowerCase() !== 'q') return;
-  ev.preventDefault();
-  announce(myWedgesSummary());
+
+  const key = ev.key.toLowerCase();
+  if (key === 'q') {
+    ev.preventDefault();
+    announce(myWedgesSummary());
+  } else if (key === 'l') {
+    ev.preventDefault();
+    announce(myAchievementsSummary());
+  }
 });
 
 function button(label: string, onClick: () => void, variant = ''): HTMLButtonElement {

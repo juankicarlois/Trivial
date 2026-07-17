@@ -1,0 +1,60 @@
+{
+  "achievements": [
+    {
+      "id": "primer-queso",
+      "name": "Primer queso",
+      "description": "Gana tu primer queso.",
+      "stat": "wedgesEarned",
+      "atLeast": 1
+    },
+    {
+      "id": "quesero",
+      "name": "Quesero",
+      "description": "Gana 10 quesos en total.",
+      "stat": "wedgesEarned",
+      "atLeast": 10
+    },
+    {
+      "id": "en-racha",
+      "name": "En racha",
+      "description": "Acierta 5 preguntas seguidas en una misma partida.",
+      "stat": "bestStreak",
+      "atLeast": 5
+    },
+    {
+      "id": "sabelotodo",
+      "name": "Sabelotodo",
+      "description": "Acierta 50 preguntas en total.",
+      "stat": "questionsCorrect",
+      "atLeast": 50
+    },
+    {
+      "id": "veterano",
+      "name": "Veterano",
+      "description": "Juega 5 partidas.",
+      "stat": "gamesPlayed",
+      "atLeast": 5
+    },
+    {
+      "id": "raton-de-biblioteca",
+      "name": "Ratón de biblioteca",
+      "description": "Acierta 10 preguntas de Arte y Literatura.",
+      "stat": "correct.arte",
+      "atLeast": 10
+    },
+    {
+      "id": "cinefilo",
+      "name": "Cinéfilo",
+      "description": "Acierta 10 preguntas de Cultura y Tecnología.",
+      "stat": "correct.cultura",
+      "atLeast": 10
+    },
+    {
+      "id": "duende",
+      "name": "Duende",
+      "description": "Gana tu primera partida.",
+      "stat": "gamesWon",
+      "atLeast": 1
+    }
+  ]
+}

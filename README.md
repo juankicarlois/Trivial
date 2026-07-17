@@ -60,6 +60,7 @@ npm test               # tests del tablero y del motor
 | Tecla | Acción |
 |-------|--------|
 | `Q`   | Anuncia tus quesos (cuáles tienes y cuáles te faltan), en cualquier momento |
+| `L`   | Anuncia tus logros y cuál tienes más a mano |
 | `Tab` / `Mayús+Tab` | Moverse entre los mandos |
 | `Intro` / `Espacio` | Activar el mando enfocado |
 
@@ -78,12 +79,51 @@ public/    HTML, estilos y cliente compilado (app.js)
 docs/      Documento de diseño
 ```
 
+## Logros y packs temáticos
+
+Tu progreso se guarda entre partidas (aciertos, quesos, rachas, victorias). Al
+alcanzar ciertas metas consigues **logros**, y algunos desbloquean **packs
+temáticos** de preguntas:
+
+| Pack | Se desbloquea con |
+|------|-------------------|
+| Harry Potter | **Ratón de biblioteca** — 10 aciertos de Arte y Literatura |
+| Disney | **Cinéfilo** — 10 aciertos de Cultura y Tecnología |
+| Camarón de la Isla | **Duende** — gana tu primera partida |
+
+Las preguntas de un pack están repartidas entre las 6 categorías (como las
+ediciones temáticas del Trivial de mesa), así que el tablero no cambia: al
+activarlo, sus preguntas se suman a las normales.
+
+Los packs se activan **en el vestíbulo**, antes de empezar. Basta con que **una
+persona de la sala** lo tenga desbloqueado para traerlo a la mesa: se juega con
+él para todos. Pulsa `L` para oír tus logros y lo que te falta.
+
+Tu identidad se guarda en el navegador, así que el progreso es por navegador y
+equipo. Las estadísticas viven en el servidor (`data/profiles.json`).
+
+### Añadir logros y packs
+
+Ambos son JSON en `content/` (`achievements.json` y `packs/*.json`), sin tocar
+código. Un logro se mide contra una estadística y un umbral:
+
+```json
+{ "id": "quesero", "name": "Quesero", "description": "Gana 10 quesos en total.",
+  "stat": "wedgesEarned", "atLeast": 10 }
+```
+
+Estadísticas disponibles: `gamesPlayed`, `gamesWon`, `wedgesEarned`,
+`questionsAnswered`, `questionsCorrect`, `bestStreak` y `correct.<categoría>`
+(por ejemplo `correct.ciencia`). Un pack añade `unlockedBy` con el id del logro
+que lo desbloquea, más sus `questions` en el mismo formato que el banco base.
+
 ## Estado
 
-MVP jugable (fase 1): salas en LAN, tablero, dado, movimiento por teclado, **120
-preguntas base** (20 por categoría), quesos y victoria, con accesibilidad y sonidos.
-Pendiente: perfiles + logros + packs temáticos (fase 2); bots e internet (fase 3).
-Ver `docs/DISENO.md`.
+Fases 1 y 2 completas: salas en LAN, tablero, dado, movimiento por teclado, **120
+preguntas base** (20 por categoría), quesos y victoria; perfiles persistentes,
+logros y packs temáticos (Harry Potter, Disney, Camarón de la Isla). Todo con
+accesibilidad y sonidos. Pendiente: bots e internet (fase 3), tablero visual y
+que los rivales elijan la categoría de la pregunta final. Ver `docs/DISENO.md`.
 
 ### Añadir preguntas
 

@@ -14,18 +14,25 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { ClientMessage, ServerMessage } from '../shared/protocol.js';
 import { Room, type Transport } from './room.js';
 import { createDefaultRepository } from './questions_repo.js';
+import { loadContent } from './content.js';
+import { ProfileStore } from './profiles.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(here, '..', 'public');
+const DATA_DIR = join(here, '..', 'data');
 const PORT = Number(process.env.PORT ?? 3000);
 
-const repo = createDefaultRepository();
+const content = loadContent();
+const repo = createDefaultRepository(content.packs);
+const profiles = new ProfileStore(join(DATA_DIR, 'profiles.json'));
 
 // --- Gestión de salas -------------------------------------------------------
 
 interface RoomEntry {
   room: Room;
   sockets: Set<WebSocket>;
+  /** Socket de cada jugador, para enviarle datos solo a él (su progreso). */
+  byPlayer: Map<string, WebSocket>;
 }
 
 const rooms = new Map<string, RoomEntry>();
@@ -34,6 +41,7 @@ function getOrCreateRoom(code: string): RoomEntry {
   let entry = rooms.get(code);
   if (!entry) {
     const sockets = new Set<WebSocket>();
+    const byPlayer = new Map<string, WebSocket>();
     const transport: Transport = {
       broadcast(message: ServerMessage): void {
         const data = JSON.stringify(message);
@@ -41,8 +49,14 @@ function getOrCreateRoom(code: string): RoomEntry {
           if (socket.readyState === WebSocket.OPEN) socket.send(data);
         }
       },
+      sendTo(playerId: string, message: ServerMessage): void {
+        const socket = byPlayer.get(playerId);
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(message));
+        }
+      },
     };
-    entry = { room: new Room(code, repo, transport), sockets };
+    entry = { room: new Room(code, repo, content, profiles, transport), sockets, byPlayer };
     rooms.set(code, entry);
   }
   return entry;
@@ -116,13 +130,14 @@ wss.on('connection', (socket: WebSocket) => {
     if (msg.type === 'join') {
       const code = msg.roomCode.trim().toUpperCase();
       const name = msg.name.trim();
-      if (!code || !name) {
+      const profileId = msg.profileId?.trim();
+      if (!code || !name || !profileId) {
         send({ type: 'error', message: 'Código de sala y nombre son obligatorios.' });
         return;
       }
       const entry = getOrCreateRoom(code);
       entry.sockets.add(socket);
-      const playerId = entry.room.addOrReattach(name);
+      const playerId = entry.room.addOrReattach(name, profileId);
       if (!playerId) {
         send({ type: 'error', message: 'La partida ya ha empezado; no se puede unir.' });
         entry.sockets.delete(socket);
@@ -130,9 +145,11 @@ wss.on('connection', (socket: WebSocket) => {
       }
       meta.roomCode = code;
       meta.playerId = playerId;
+      entry.byPlayer.set(playerId, socket);
       send({ type: 'joined', playerId });
-      // Envía el estado actual al recién llegado.
+      // Envía el estado actual y su progreso al recién llegado.
       send({ type: 'state', state: entry.room.toView() });
+      entry.room.sendProfileTo(playerId);
       return;
     }
 
@@ -156,6 +173,9 @@ wss.on('connection', (socket: WebSocket) => {
       case 'answer':
         room.answer(meta.playerId, msg.optionIndex);
         break;
+      case 'setPack':
+        room.setPack(msg.packId, msg.enabled);
+        break;
       default:
         send({ type: 'error', message: 'Acción desconocida.' });
     }
@@ -166,7 +186,10 @@ wss.on('connection', (socket: WebSocket) => {
     const entry = rooms.get(meta.roomCode);
     if (!entry) return;
     entry.sockets.delete(socket);
-    if (meta.playerId) entry.room.markDisconnected(meta.playerId);
+    if (meta.playerId) {
+      entry.byPlayer.delete(meta.playerId);
+      entry.room.markDisconnected(meta.playerId);
+    }
     // Recoge salas vacías.
     if (entry.sockets.size === 0 && !entry.room.hasConnectedPlayers()) {
       rooms.delete(meta.roomCode);

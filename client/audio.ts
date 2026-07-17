@@ -95,4 +95,10 @@ export class SoundEngine {
     const notes = [523, 659, 784, 1047];
     notes.forEach((f, i) => this.tone(f, 0.3, 'sine', 0, i * 0.18, 0.24));
   }
+
+  /** Logro conseguido: arpegio ascendente y brillante, distinto del queso. */
+  achievement(): void {
+    const notes = [784, 988, 1175, 1568];
+    notes.forEach((f, i) => this.tone(f, 0.22, 'triangle', 0, i * 0.09, 0.2));
+  }
 }

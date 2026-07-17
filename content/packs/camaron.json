@@ -1,0 +1,109 @@
+{
+  "id": "camaron",
+  "name": "Camarón de la Isla",
+  "description": "La vida, los discos y el compás del cantaor que cambió el flamenco.",
+  "unlockedBy": "duende",
+  "questions": [
+    {
+      "id": "cam-001",
+      "category": "arte",
+      "text": "¿Cómo se titula el álbum de 1979 con el que Camarón revolucionó el flamenco?",
+      "options": ["Soy caminante", "La leyenda del tiempo", "Como el agua", "Potro de rabia y miel"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-002",
+      "category": "arte",
+      "text": "¿De qué poeta son los versos que dan título a \"La leyenda del tiempo\"?",
+      "options": ["Antonio Machado", "Rafael Alberti", "Federico García Lorca", "Miguel Hernández"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-003",
+      "category": "arte",
+      "text": "¿Qué canción compuesta por Kiko Veneno popularizó Camarón?",
+      "options": ["Volando voy", "Como el agua", "La tarara", "Nana del caballo grande"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-004",
+      "category": "historia",
+      "text": "¿En qué año nació Camarón de la Isla?",
+      "options": ["1945", "1950", "1955", "1960"],
+      "answerIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "cam-005",
+      "category": "historia",
+      "text": "¿En qué año murió Camarón de la Isla?",
+      "options": ["1988", "1990", "1992", "1995"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-006",
+      "category": "geografia",
+      "text": "¿En qué localidad gaditana nació Camarón?",
+      "options": ["Jerez de la Frontera", "San Fernando", "Algeciras", "Chiclana"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-007",
+      "category": "geografia",
+      "text": "¿A qué provincia pertenece San Fernando, la cuna de Camarón?",
+      "options": ["Sevilla", "Málaga", "Cádiz", "Huelva"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "cam-008",
+      "category": "cultura",
+      "text": "¿Cuál era el nombre real de Camarón de la Isla?",
+      "options": ["Antonio Sánchez Pecino", "José Monje Cruz", "Manuel Ortega Juárez", "Agustín Castellón"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-009",
+      "category": "cultura",
+      "text": "¿Qué guitarrista algecireño acompañó a Camarón en sus primeros discos?",
+      "options": ["Sabicas", "Paco de Lucía", "Vicente Amigo", "Manolo Sanlúcar"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-010",
+      "category": "cultura",
+      "text": "¿Qué guitarrista almeriense acompañó a Camarón en su última etapa?",
+      "options": ["Tomatito", "Moraíto", "Gerardo Núñez", "Rafael Riqueni"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "cam-011",
+      "category": "cultura",
+      "text": "¿Por qué le pusieron de niño el apodo de \"Camarón\"?",
+      "options": [
+        "Por su afición a la pesca",
+        "Por ser rubio y de piel clara",
+        "Por su voz aguda",
+        "Por lo rápido que corría"
+      ],
+      "answerIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "cam-012",
+      "category": "deportes",
+      "text": "¿Cómo se llama el palo flamenco festero, típico de Jerez, que Camarón dominaba?",
+      "options": ["La seguiriya", "La bulería", "La soleá", "El martinete"],
+      "answerIndex": 1,
+      "difficulty": 2
+    }
+  ]
+}

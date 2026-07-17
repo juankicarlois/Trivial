@@ -1,0 +1,109 @@
+{
+  "id": "harry-potter",
+  "name": "Harry Potter",
+  "description": "El mundo mágico de Hogwarts: libros, criaturas, quidditch y películas.",
+  "unlockedBy": "raton-de-biblioteca",
+  "questions": [
+    {
+      "id": "hp-001",
+      "category": "arte",
+      "text": "¿Quién escribió los libros de Harry Potter?",
+      "options": ["J. R. R. Tolkien", "J. K. Rowling", "C. S. Lewis", "Philip Pullman"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-002",
+      "category": "arte",
+      "text": "¿Cómo se titula el primer libro de la saga de Harry Potter?",
+      "options": [
+        "Harry Potter y la cámara secreta",
+        "Harry Potter y el cáliz de fuego",
+        "Harry Potter y la piedra filosofal",
+        "Harry Potter y el prisionero de Azkaban"
+      ],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-003",
+      "category": "geografia",
+      "text": "¿Cómo se llama el colegio de magia al que asiste Harry Potter?",
+      "options": ["Beauxbatons", "Durmstrang", "Ilvermorny", "Hogwarts"],
+      "answerIndex": 3,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-004",
+      "category": "geografia",
+      "text": "¿Desde qué andén de la estación de King's Cross sale el tren a Hogwarts?",
+      "options": ["El 9 y ¾", "El 7 y ½", "El 10 y ¼", "El 8 y ¾"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-005",
+      "category": "deportes",
+      "text": "¿Cómo se llama el deporte que se juega montado en escobas voladoras?",
+      "options": ["Quidditch", "Gobstones", "Snitchball", "Bludgerball"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-006",
+      "category": "deportes",
+      "text": "En el quidditch, ¿qué pelota debe atrapar el buscador?",
+      "options": ["La quaffle", "La bludger", "La snitch dorada", "La grangerina"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "hp-007",
+      "category": "ciencia",
+      "text": "¿Qué tipo de animal es Hedwig, la mascota de Harry?",
+      "options": ["Un gato", "Una lechuza", "Un sapo", "Una rata"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-008",
+      "category": "ciencia",
+      "text": "¿Qué planta hay que arrancar con orejeras porque su grito resulta mortal?",
+      "options": ["El lazo del diablo", "La mandrágora", "El sauce boxeador", "La branquialgas"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "hp-009",
+      "category": "historia",
+      "text": "¿Qué mago tenebroso mató a los padres de Harry Potter?",
+      "options": ["Gellert Grindelwald", "Severus Snape", "Lord Voldemort", "Bellatrix Lestrange"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-010",
+      "category": "historia",
+      "text": "¿Quién es el director de Hogwarts durante la mayor parte de la saga?",
+      "options": ["Albus Dumbledore", "Minerva McGonagall", "Horace Slughorn", "Filius Flitwick"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-011",
+      "category": "cultura",
+      "text": "¿Qué actor interpretó a Harry Potter en las películas?",
+      "options": ["Rupert Grint", "Daniel Radcliffe", "Tom Felton", "Matthew Lewis"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "hp-012",
+      "category": "cultura",
+      "text": "¿Cuántas casas hay en el colegio Hogwarts?",
+      "options": ["3", "4", "5", "6"],
+      "answerIndex": 1,
+      "difficulty": 1
+    }
+  ]
+}

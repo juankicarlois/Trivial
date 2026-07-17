@@ -123,6 +123,34 @@ button.secondary { background: var(--panel-2); color: var(--text); }
 }
 .my-wedge.earned { border-color: var(--ok); color: var(--text); font-weight: 600; }
 
+/* Packs temáticos */
+.packs { list-style: none; padding: 0; margin: 0.5rem 0; display: grid; gap: 0.5rem; }
+.pack {
+  background: var(--panel);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+.pack.locked { opacity: 0.65; }
+.pack-head { display: flex; align-items: center; gap: 0.6rem; }
+.pack-head label { margin: 0; font-weight: 700; }
+.pack-head input { width: auto; }
+.pack-desc { margin: 0.25rem 0 0 1.9rem; color: var(--muted); font-size: 0.92rem; }
+
+/* Logros */
+.achievements { list-style: none; padding: 0; margin: 0.5rem 0; display: grid; gap: 0.4rem; }
+.achievement {
+  background: var(--panel);
+  border-left: 4px solid var(--panel-2);
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  display: grid;
+}
+.achievement.unlocked { border-left-color: var(--ok); }
+.ach-name { font-weight: 600; }
+.achievement.unlocked .ach-name::after { content: " ✔"; color: var(--ok); }
+.ach-desc { color: var(--muted); font-size: 0.9rem; }
+
 kbd {
   background: var(--panel-2);
   border-radius: 4px;

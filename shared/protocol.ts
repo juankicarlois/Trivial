@@ -7,6 +7,7 @@
  */
 
 import type { CategoryId } from './categories.js';
+import type { ProfileStats } from './progress.js';
 
 /** Pregunta tal como la ve el cliente: sin la respuesta correcta. */
 export interface PublicQuestion {
@@ -41,6 +42,34 @@ export interface PlayerView {
   connected: boolean;
 }
 
+/** Un pack temático tal como lo ve la sala. */
+export interface PackView {
+  id: string;
+  name: string;
+  description: string;
+  /**
+   * Lo ha desbloqueado alguien de la sala, así que puede activarse aquí: quien
+   * se lo ha ganado lo trae a la mesa para todos.
+   */
+  unlocked: boolean;
+  /** Está activo para esta partida. */
+  enabled: boolean;
+  /** Nombre del logro que hace falta para desbloquearlo. */
+  requires: string;
+}
+
+/** Un logro con el progreso del jugador que lo consulta. */
+export interface AchievementView {
+  id: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  /** Valor actual de la estadística medida. */
+  progress: number;
+  /** Valor necesario para conseguirlo. */
+  target: number;
+}
+
 /** Estado público de la sala que reciben todos los clientes. */
 export interface GameView {
   roomCode: string;
@@ -48,6 +77,8 @@ export interface GameView {
   players: PlayerView[];
   /** Índice del jugador cuyo turno es (en `players`). */
   currentPlayerIndex: number;
+  /** Packs temáticos y su estado en esta sala. */
+  packs: PackView[];
   /** Movimiento en curso, si `phase === 'moving'`. */
   movement?: {
     remaining: number;
@@ -70,19 +101,25 @@ export type GameEvent =
   | { kind: 'answered'; playerId: string; correct: boolean; correctText: string }
   | { kind: 'wedgeEarned'; playerId: string; category: CategoryId }
   | { kind: 'turnChanged'; playerId: string }
-  | { kind: 'gameWon'; playerId: string };
+  | { kind: 'gameWon'; playerId: string }
+  | { kind: 'achievementUnlocked'; playerId: string; name: string; description: string }
+  | { kind: 'packUnlocked'; playerId: string; packName: string };
 
 /** Mensajes que el cliente envía al servidor. */
 export type ClientMessage =
-  | { type: 'join'; roomCode: string; name: string }
+  /** `profileId` identifica al jugador entre partidas para guardar su progreso. */
+  | { type: 'join'; roomCode: string; name: string; profileId: string }
   | { type: 'start' }
   | { type: 'roll' }
   | { type: 'move'; toNodeId: string }
-  | { type: 'answer'; optionIndex: number };
+  | { type: 'answer'; optionIndex: number }
+  | { type: 'setPack'; packId: string; enabled: boolean };
 
 /** Mensajes que el servidor envía al cliente. */
 export type ServerMessage =
   | { type: 'joined'; playerId: string }
   | { type: 'state'; state: GameView }
+  /** Progreso propio; solo se envía a su dueño. */
+  | { type: 'profile'; stats: ProfileStats; achievements: AchievementView[] }
   | { type: 'event'; event: GameEvent }
   | { type: 'error'; message: string };

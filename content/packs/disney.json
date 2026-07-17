@@ -1,0 +1,104 @@
+{
+  "id": "disney",
+  "name": "Disney",
+  "description": "Clásicos, canciones, parques y personajes de la factoría Disney.",
+  "unlockedBy": "cinefilo",
+  "questions": [
+    {
+      "id": "dis-001",
+      "category": "arte",
+      "text": "¿Cuál fue el primer largometraje de animación de Disney?",
+      "options": ["Pinocho", "Blancanieves y los siete enanitos", "Fantasía", "Dumbo"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "dis-002",
+      "category": "arte",
+      "text": "¿Qué película de Disney adapta el cuento de Hans Christian Andersen sobre una sirena?",
+      "options": ["Moana", "La sirenita", "Pocahontas", "Encanto"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-003",
+      "category": "historia",
+      "text": "¿Quién fundó la compañía Disney junto a su hermano Roy?",
+      "options": ["Walt Disney", "Ub Iwerks", "Chuck Jones", "Hanna Barbera"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-004",
+      "category": "historia",
+      "text": "¿En qué año se estrenó \"Blancanieves y los siete enanitos\"?",
+      "options": ["1928", "1937", "1945", "1950"],
+      "answerIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "dis-005",
+      "category": "geografia",
+      "text": "¿En qué estado de Estados Unidos se encuentra Walt Disney World?",
+      "options": ["California", "Florida", "Texas", "Nueva York"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "dis-006",
+      "category": "geografia",
+      "text": "¿Cerca de qué capital europea está el parque Disneyland Resort Paris?",
+      "options": ["Londres", "Bruselas", "París", "Berlín"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-007",
+      "category": "ciencia",
+      "text": "¿Qué animal es Dumbo?",
+      "options": ["Un elefante", "Un ratón", "Un ciervo", "Un oso"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-008",
+      "category": "ciencia",
+      "text": "¿Qué animal es Simba, el protagonista de \"El rey león\"?",
+      "options": ["Un tigre", "Un león", "Un leopardo", "Un lobo"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-009",
+      "category": "cultura",
+      "text": "¿Cómo se llama el ratón que es el símbolo de Disney?",
+      "options": ["Mickey Mouse", "Jerry", "Speedy González", "Stuart Little"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-010",
+      "category": "cultura",
+      "text": "¿En qué año se estrenó la película \"El rey león\"?",
+      "options": ["1989", "1991", "1994", "1998"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "dis-011",
+      "category": "cultura",
+      "text": "¿Qué estudio de animación, comprado por Disney, creó \"Toy Story\"?",
+      "options": ["DreamWorks", "Pixar", "Blue Sky", "Illumination"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dis-012",
+      "category": "cultura",
+      "text": "¿Qué canción de \"Frozen\" se convirtió en un éxito mundial?",
+      "options": ["Bajo del mar", "Libre soy", "Hakuna Matata", "Un mundo ideal"],
+      "answerIndex": 1,
+      "difficulty": 1
+    }
+  ]
+}
