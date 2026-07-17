@@ -87,6 +87,19 @@ test('un fichero ilegible se aparta en vez de sobrescribirse', async () => {
   );
 });
 
+test('el perfil no guarda historial de preguntas', () => {
+  // Decisión consciente: los aciertos no retiran preguntas del repertorio. Si
+  // juegas hoy con alguien y mañana con otra persona, las mismas deben poder
+  // volver a salir; lo contrario solo encoge el banco partida tras partida.
+  const store = new ProfileStore(join(newDir(), 'profiles.json'));
+  const profile = store.getOrCreate('p1', 'Ana');
+  assert.deepEqual(
+    Object.keys(profile).sort(),
+    ['achievements', 'id', 'name', 'stats'],
+    'el perfil solo guarda identidad, estadísticas y logros',
+  );
+});
+
 test('un perfil antiguo al que le faltan campos no rompe', () => {
   const path = join(newDir(), 'profiles.json');
   // Perfil de una versión anterior: sin bestStreak ni algunas categorías.

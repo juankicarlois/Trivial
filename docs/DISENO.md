@@ -107,22 +107,20 @@ múltiple (4 opciones, barajadas al plantearlas). Cada una lleva `difficulty` de
 
 ### Qué pregunta sale
 
-Al plantear una pregunta se evitan dos conjuntos:
+No se repite ninguna pregunta **dentro de la partida en curso**, se acierte o no:
+como la carta usada del Trivial de mesa, no vuelve al montón. El historial vive
+en la sala (`askedThisGame`) y se vacía al empezar cada partida.
 
-- Las que **ese jugador ya ha acertado alguna vez** (`masteredQuestions` en su
-  perfil): lo que ya sabe no aporta. Las falladas **sí vuelven a salir**, hasta
-  que se las aprenda.
-- Las **ya salidas en la partida en curso**, se acertaran o no. En el Trivial de
-  mesa la carta usada no vuelve al montón.
+**El alcance acaba ahí, y es deliberado.** Se probó a retirar del perfil las
+preguntas acertadas, para siempre, y se descartó: el repertorio de cada jugador
+solo encogería, y no hay motivo para que quien juega hoy con una persona no pueda
+usar las mismas preguntas mañana con otra. Los perfiles guardan estadísticas y
+logros; el historial de preguntas, no.
 
-Son **preferencias, no condiciones**. El banco es finito: tratarlas como
-condiciones dejaría sin pregunta que ofrecer a quien domine una categoría entera,
-y la partida se quedaría clavada. Si no hay candidatas se relajan por orden:
-primero se readmiten las dominadas (mejor repetir una sabida que una de esta
-partida) y, en último extremo, cualquiera. Nunca se lanza excepción.
-
-El filtro es **por jugador**, no por sala: cada uno tiene su propio historial y la
-pregunta se sortea para quien la va a responder.
+Es una **preferencia, no una condición**. El banco es finito y una partida larga
+puede agotar una categoría; como condición, no habría pregunta que ofrecer y la
+partida se quedaría clavada. Si no quedan candidatas se repite antes que fallar.
+Nunca se lanza excepción.
 
 Criterios al escribir preguntas:
 

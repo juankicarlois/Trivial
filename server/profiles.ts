@@ -22,12 +22,6 @@ export interface Profile {
   stats: ProfileStats;
   /** Ids de logros ya conseguidos. */
   achievements: string[];
-  /**
-   * Ids de preguntas que este jugador ya ha acertado. Se retiran de su
-   * repertorio: las que ya sabe no aportan nada, y las falladas siguen saliendo
-   * hasta que se las aprenda.
-   */
-  masteredQuestions: string[];
 }
 
 /** Retardo de guardado: agrupa ráfagas de cambios en una sola escritura. */
@@ -93,7 +87,7 @@ export class ProfileStore {
   getOrCreate(id: string, name: string): Profile {
     let profile = this.profiles.get(id);
     if (!profile) {
-      profile = { id, name, stats: emptyStats(), achievements: [], masteredQuestions: [] };
+      profile = { id, name, stats: emptyStats(), achievements: [] };
       this.profiles.set(id, profile);
     }
     if (profile.name !== name) profile.name = name;
@@ -133,7 +127,6 @@ function normalize(profile: Profile): Profile {
     id: profile.id,
     name: profile.name ?? 'Jugador',
     achievements: profile.achievements ?? [],
-    masteredQuestions: profile.masteredQuestions ?? [],
     stats: {
       ...base,
       ...profile.stats,

@@ -27,8 +27,6 @@ function shuffle<T>(items: readonly T[]): T[] {
 export interface PickOptions {
   /** Packs activos que se suman al banco base. */
   packIds?: readonly string[];
-  /** Preguntas que el jugador ya ha acertado alguna vez. */
-  mastered?: ReadonlySet<string>;
   /** Preguntas ya planteadas en la partida en curso. */
   askedThisGame?: ReadonlySet<string>;
 }
@@ -88,34 +86,27 @@ export class QuestionRepository {
    * @brief Sortea una pregunta de la categoría, con las opciones barajadas y el
    *        índice de la respuesta correcta recalculado.
    *
-   * Se evitan las preguntas que el jugador ya domina y las que ya han salido en
-   * la partida. Son **preferencias, no condiciones**: el banco es finito, y
-   * quedarse sin pregunta que ofrecer dejaría la partida atascada. Si no queda
-   * ninguna candidata se van relajando, primero volviendo a admitir las
-   * dominadas y en último extremo repitiendo alguna de la partida.
+   * Se evitan las preguntas ya planteadas en la partida en curso: como la carta
+   * usada del Trivial de mesa, no vuelve al montón. Es una **preferencia, no una
+   * condición**: el banco es finito y una partida larga puede agotar una
+   * categoría; quedarse sin pregunta que ofrecer dejaría la partida atascada, así
+   * que llegado el caso se repite antes que fallar.
    *
    * @param category Categoría solicitada.
-   * @param options Packs activos y preguntas a evitar.
+   * @param options Packs activos y preguntas ya salidas en la partida.
    * @return Pregunta lista para plantear.
    * @throws Error si la categoría no tiene ninguna pregunta cargada.
    */
   pick(category: CategoryId, options: PickOptions = {}): Question {
-    const { packIds = [], mastered, askedThisGame } = options;
+    const { packIds = [], askedThisGame } = options;
     const pool = this.pool(category, packIds);
     if (pool.length === 0) throw new Error(`Sin preguntas para la categoría ${category}`);
 
-    const fresh = pool.filter((q) => !mastered?.has(q.id) && !askedThisGame?.has(q.id));
-    // Si ya se dominan todas, mejor repetir una sabida que una de esta partida.
-    const unseenThisGame = pool.filter((q) => !askedThisGame?.has(q.id));
-    const candidates = pick(fresh, unseenThisGame, pool);
+    const unseen = pool.filter((q) => !askedThisGame?.has(q.id));
+    const candidates = unseen.length > 0 ? unseen : pool;
 
     return shuffleOptions(candidates[Math.floor(Math.random() * candidates.length)]);
   }
-}
-
-/** Primera lista no vacía. */
-function pick(...lists: Question[][]): Question[] {
-  return lists.find((list) => list.length > 0) ?? [];
 }
 
 /** Baraja las opciones recalculando dónde queda la respuesta correcta. */

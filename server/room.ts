@@ -286,7 +286,6 @@ export class Room {
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
     const category = this.question.category;
-    const questionId = this.question.id;
     const correctText = this.question.options[this.question.answerIndex];
     const node = this.board.nodes[player.nodeId];
     this.question = null;
@@ -297,10 +296,6 @@ export class Room {
       profile.stats.correct[category] += 1;
       player.streak += 1;
       profile.stats.bestStreak = Math.max(profile.stats.bestStreak, player.streak);
-      // Acertada: se retira de su repertorio y no volverá a salirle.
-      if (!profile.masteredQuestions.includes(questionId)) {
-        profile.masteredQuestions.push(questionId);
-      }
     } else {
       player.streak = 0;
     }
@@ -453,10 +448,8 @@ export class Room {
   }
 
   private askQuestion(category: CategoryId, forWin: boolean): void {
-    // Se evitan las que este jugador ya domina y las ya salidas en la partida.
     const picked = this.repo.pick(category, {
       packIds: [...this.enabledPacks],
-      mastered: new Set(this.profileOf(this.current()).masteredQuestions),
       askedThisGame: this.askedThisGame,
     });
     this.askedThisGame.add(picked.id);

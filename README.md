@@ -54,9 +54,8 @@ npm test               # tests del tablero y del motor
 - Con los 6 quesos, vuelve al centro y acierta la pregunta final para **ganar**.
 - La pregunta la ve **toda la mesa**, pero solo contesta quien tiene el turno. Al
   fallar se revela la respuesta correcta.
-- Una pregunta **que aciertas no vuelve a salirte**, ni en esa partida ni en las
-  siguientes: el juego recuerda lo que ya sabes. Las que fallas siguen apareciendo
-  hasta que te las aprendas. Dentro de una misma partida no se repite ninguna.
+- Dentro de una partida **no se repite ninguna pregunta**, se acierte o no. Cada
+  partida nueva empieza con el montón entero.
 
 ### Teclas
 
