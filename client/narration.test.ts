@@ -75,6 +75,14 @@ test('con un solo paso, se cae en la casilla elegida', () => {
   assert.match(text, /Caes aquí/);
 });
 
+test('al caer dentro de un radio, origen y destino se distinguen', () => {
+  // El caso que sonaba raro: antes las casillas del radio se llamaban igual y
+  // salía "Radio de Geografía. Caes en: Radio de Geografía". Ahora el
+  // calificador de posición las diferencia.
+  const text = describeDirection(board, HUB_ID, 'spoke-geografia-3', 2, []);
+  assert.match(text, /Radio de Geografía, junto al centro\. Caes en: Radio de Geografía, a medio camino/);
+});
+
 test('el centro avisa de pregunta final solo si tienes los seis quesos', () => {
   const todos = CATEGORIES.map((c) => c.id);
   const conTodos = describeDirection(board, 'spoke-geografia-3', HUB_ID, 1, todos);

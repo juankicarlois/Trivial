@@ -55,7 +55,13 @@ Dos piezas lo resuelven, ambas construidas sobre funciones puras del tablero
    contempla el atajo por el centro (8 casillas cruzando, frente a 21 por el
    anillo).
 
-Estas consultas (situación, quesos, logros) se ofrecen como **botones**, no como
+Cada casilla tiene una **etiqueta única y orientativa**. Las tres casillas de un
+radio comparten categoría (coherencia de navegación) pero se distinguen por su
+posición —"junto a la sede", "a medio camino", "junto al centro"—; si no, las
+tres se llamarían igual y no se sabría en cuál se está.
+
+Las consultas (situación, rivales, quesos, logros) se ofrecen como **botones**,
+no como
 atajos de una tecla. Los lectores de pantalla en **modo exploración** capturan
 las teclas sueltas (`B`, `L`, `Q`, `H`…) como navegación rápida por la página, de
 modo que un atajo de una letra nunca les llega. Activar un botón (Intro/Espacio)

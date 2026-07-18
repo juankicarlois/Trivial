@@ -78,6 +78,19 @@ function hqId(categoryIndex: number): string {
 }
 
 /**
+ * Describe dónde está la casilla k (1..SPOKE_LENGTH) a lo largo del radio, para
+ * distinguirla de las demás del mismo radio y situar al jugador: k=1 pega con la
+ * sede, k=SPOKE_LENGTH pega con el centro.
+ */
+function spokePosition(k: number): string {
+  if (k === 1) return 'junto a la sede';
+  if (k === SPOKE_LENGTH) return 'junto al centro';
+  // Con SPOKE_LENGTH = 3 solo hay una casilla intermedia; si algún día hubiera
+  // más, se numeran desde la sede para que sigan siendo distinguibles.
+  return SPOKE_LENGTH === 3 ? 'a medio camino' : `a ${k} pasos de la sede`;
+}
+
+/**
  * @brief Construye el grafo completo del tablero.
  * @return Tablero con todos los nodos y adyacencias resueltas.
  */
@@ -143,12 +156,14 @@ export function buildBoard(): Board {
       // Todo el radio pertenece a la categoría de su sede: así, al elegir "Radio
       // de Geografía" desde un cruce, el jugador sabe que lleva a esa sede. La
       // coherencia de navegación es clave en un juego que se juega de oído.
+      // El calificador de posición distingue las casillas del radio entre sí (si
+      // no, las tres se llamarían igual) y sitúa al jugador a lo largo del radio.
       add({
         id: spokeId(seg, k),
         kind: 'spoke',
         category: CATEGORIES[seg].id,
         neighbors: [prev, next],
-        label: `Radio de ${CATEGORIES[seg].name}`,
+        label: `Radio de ${CATEGORIES[seg].name}, ${spokePosition(k)}`,
       });
     }
   }

@@ -38,3 +38,21 @@ test('el nodo de inicio es el hub', () => {
   const board = buildBoard();
   assert.equal(board.startNodeId, HUB_ID);
 });
+
+test('las casillas de un mismo radio tienen etiquetas distintas', () => {
+  const { nodes } = buildBoard();
+  // Antes las tres se llamaban igual ("Radio de Geografía") y no se distinguían.
+  for (const cat of CATEGORIES) {
+    const labels = [1, 2, 3].map((k) => nodes[`spoke-${cat.id}-${k}`].label);
+    assert.equal(new Set(labels).size, labels.length, `radio de ${cat.name} con etiquetas repetidas`);
+    for (const label of labels) {
+      assert.ok(label.includes(cat.name), `"${label}" debería nombrar su categoría`);
+    }
+  }
+});
+
+test('los extremos del radio se sitúan respecto a la sede y al centro', () => {
+  const { nodes } = buildBoard();
+  assert.match(nodes['spoke-geografia-1'].label, /junto a la sede/);
+  assert.match(nodes['spoke-geografia-3'].label, /junto al centro/);
+});
