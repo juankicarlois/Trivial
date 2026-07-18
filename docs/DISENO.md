@@ -109,6 +109,12 @@ dentro); **hub** = 6 (un radio por categoría).
   retroceder a la casilla de la que se viene) para evitar oscilar en el sitio.
 - Caer en una casilla → pregunta de su categoría. Acierto: sigues (regla clásica:
   turno extra al acertar). Fallo: pasa el turno.
+- **Tope de aciertos por turno** (`MAX_CORRECT_PER_TURN`, 3): al tercer acierto
+  seguido se cede la vez aunque se haya acertado. Sin tope, quien domina el juego
+  encadena turnos y el resto se aburre esperando. El contador es por turno (se
+  reinicia al cambiar de jugador) y no afecta a la racha de los logros, que sigue
+  contando aciertos seguidos a lo largo de la partida. La pregunta final para
+  ganar queda fuera del tope: si se acierta, se gana.
 - Caer en una **sede** y acertar → ganas el **queso** de esa categoría.
 - Con los 6 quesos, al llegar al **hub** se abre la fase `awaitFinalCategory`:
   cualquier **rival** elige la categoría de la pregunta final (el primero que la

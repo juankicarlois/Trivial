@@ -229,6 +229,13 @@ function handleEvent(event: GameEvent): void {
       sound.wedge();
       announce(`${nameOf(event.playerId)} gana el queso de ${categoryById(event.category).name}.`);
       break;
+    case 'turnLimitReached':
+      announce(
+        event.playerId === myId
+          ? `¡${event.limit} aciertos seguidos! Has llegado al tope del turno y cedes la vez.`
+          : `${nameOf(event.playerId)} encadena ${event.limit} aciertos y cede la vez.`,
+      );
+      break;
     case 'turnChanged':
       if (event.playerId === myId) sound.turn(); // aviso sonoro de que te toca
       announce(event.playerId === myId ? 'Es tu turno.' : `Turno de ${nameOf(event.playerId)}.`);

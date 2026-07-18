@@ -92,6 +92,8 @@ npm test               # tests del tablero y del motor
 - En los cruces eliges dirección; los tramos sin desvío se recorren solos.
 - Al caer en una casilla respondes una **pregunta** de su categoría (opción
   múltiple). Si aciertas, vuelves a tirar; si fallas, pasa el turno.
+- **Tope de 3 aciertos por turno:** al tercer acierto seguido cedes la vez aunque
+  hayas acertado, para que nadie acapare la partida.
 - Acertar en una **sede** de categoría te da su **queso**.
 - Con los 6 quesos, vuelve al centro: **tus rivales eligen la categoría** de la
   pregunta final (para ponértelo difícil) y, si aciertas, **ganas**.

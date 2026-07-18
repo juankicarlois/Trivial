@@ -111,6 +111,8 @@ export type GameEvent =
   | { kind: 'answered'; playerId: string; correct: boolean; correctText: string }
   | { kind: 'wedgeEarned'; playerId: string; category: CategoryId }
   | { kind: 'turnChanged'; playerId: string }
+  /** Ha alcanzado el tope de aciertos seguidos en un turno y cede la vez. */
+  | { kind: 'turnLimitReached'; playerId: string; limit: number }
   | { kind: 'gameWon'; playerId: string }
   /** `playerId` va a por la victoria; sus rivales deben elegir la categoría. */
   | { kind: 'awaitingFinalCategory'; playerId: string }

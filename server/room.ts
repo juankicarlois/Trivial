@@ -40,6 +40,13 @@ export type Scheduler = (action: () => void, delayMs: number) => () => void;
 /** Retardo de las acciones de los bots, para que la mesa las pueda seguir. */
 const BOT_DELAY_MS = 1100;
 
+/**
+ * Aciertos seguidos que puede encadenar un jugador en un mismo turno antes de
+ * ceder la vez. Sin tope, quien domina el juego puede acaparar la partida
+ * entera y el resto se aburre esperando.
+ */
+const MAX_CORRECT_PER_TURN = 3;
+
 /** Envío de mensajes a los clientes de la sala. */
 export interface Transport {
   broadcast(message: ServerMessage): void;
@@ -89,6 +96,8 @@ export class Room {
   private enabledPacks = new Set<string>();
   /** Preguntas ya planteadas en la partida, para no repetirlas. */
   private askedThisGame = new Set<string>();
+  /** Aciertos encadenados por el jugador en el turno actual (tope por turno). */
+  private correctThisTurn = 0;
   private readonly schedule: Scheduler;
   private readonly botDelayMs: number;
   /** Cancela la próxima acción de bot pendiente, si la hay. */
@@ -341,6 +350,7 @@ export class Room {
     this.question = null;
     this.winnerId = null;
     this.askedThisGame.clear();
+    this.correctThisTurn = 0;
     this.phase = 'awaitRoll';
     this.emit({ kind: 'gameStarted' });
     this.emit({ kind: 'turnChanged', playerId: this.current().id });
@@ -417,6 +427,16 @@ export class Room {
     }
 
     this.saveProgressOf(player);
+
+    // Tope de aciertos por turno: aun acertando, cede la vez para que no se
+    // acapare la partida.
+    this.correctThisTurn += 1;
+    if (this.correctThisTurn >= MAX_CORRECT_PER_TURN) {
+      this.emit({ kind: 'turnLimitReached', playerId, limit: MAX_CORRECT_PER_TURN });
+      this.nextTurn();
+      return;
+    }
+
     // Acertar da turno extra: el mismo jugador vuelve a tirar.
     this.phase = 'awaitRoll';
     this.sync();
@@ -609,6 +629,7 @@ export class Room {
       if (this.players[idx].connected) break;
     }
     this.currentPlayerIndex = idx;
+    this.correctThisTurn = 0; // el tope es por turno
     this.phase = 'awaitRoll';
     this.emit({ kind: 'turnChanged', playerId: this.current().id });
     this.sync();

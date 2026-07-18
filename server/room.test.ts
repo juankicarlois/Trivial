@@ -1,9 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { CATEGORIES } from '../shared/categories.js';
 import { Room, type Scheduler, type Transport } from './room.js';
-import { createDefaultRepository } from './questions_repo.js';
+import { createDefaultRepository, QuestionRepository } from './questions_repo.js';
 import { loadContent } from './content.js';
 import { ProfileStore } from './profiles.js';
 
@@ -120,6 +122,93 @@ test('un pack se desbloquea cuando alguien de la sala tiene su logro', () => {
   assert.ok(
     room.toView().packs.find((p) => p.id === pack.id)?.enabled,
     'el pack desbloqueado debe poder activarse',
+  );
+});
+
+// --- Tope de aciertos por turno --------------------------------------------
+
+/**
+ * Repositorio con una pregunta por categoría cuya respuesta correcta es siempre
+ * el texto "CORRECTA". Como el juego baraja las opciones, el test la localiza
+ * por su texto y puede acertar a propósito, de forma determinista.
+ */
+function stubRepository(): QuestionRepository {
+  const questions = CATEGORIES.map((cat) => ({
+    id: `stub-${cat.id}`,
+    category: cat.id,
+    text: `Pregunta de prueba de ${cat.name}`,
+    options: ['CORRECTA', 'MAL 1', 'MAL 2', 'MAL 3'],
+    answerIndex: 0,
+  }));
+  const path = join(tmpdir(), `trivial-stub-${crypto.randomUUID()}.json`);
+  writeFileSync(path, JSON.stringify({ questions }), 'utf-8');
+  const repo = new QuestionRepository();
+  repo.loadBaseFile(path);
+  return repo;
+}
+
+/** Avanza (tirando y moviendo) hasta que haya pregunta, y la acierta. */
+function aciertaUnaPregunta(room: Room, playerId: string): void {
+  for (let intentos = 0; intentos < 60; intentos++) {
+    const view = room.toView();
+    if (view.phase === 'awaitAnswer') break;
+    if (view.phase === 'awaitRoll') room.roll(playerId);
+    else if (view.phase === 'moving' && view.movement) {
+      room.move(playerId, view.movement.options[0]);
+    } else break;
+  }
+  const view = room.toView();
+  assert.equal(view.phase, 'awaitAnswer', 'debería haberse planteado una pregunta');
+  const correcta = view.question!.options.indexOf('CORRECTA');
+  assert.ok(correcta >= 0, 'la pregunta de prueba debe tener la opción CORRECTA');
+  room.answer(playerId, correcta);
+}
+
+test('al tercer acierto seguido, el turno pasa aunque se acierte', () => {
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+  assert.equal(room.toView().players[room.toView().currentPlayerIndex].id, ana);
+
+  aciertaUnaPregunta(room, ana);
+  assert.equal(
+    room.toView().players[room.toView().currentPlayerIndex].id,
+    ana,
+    'tras 1 acierto sigue siendo su turno',
+  );
+
+  aciertaUnaPregunta(room, ana);
+  assert.equal(
+    room.toView().players[room.toView().currentPlayerIndex].id,
+    ana,
+    'tras 2 aciertos sigue siendo su turno',
+  );
+
+  aciertaUnaPregunta(room, ana);
+  assert.equal(
+    room.toView().players[room.toView().currentPlayerIndex].id,
+    bea,
+    'al tercer acierto debe ceder la vez',
+  );
+});
+
+test('el tope se reinicia en el turno siguiente', () => {
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+
+  for (let i = 0; i < 3; i++) aciertaUnaPregunta(room, ana); // Ana agota su tope
+  assert.equal(room.toView().players[room.toView().currentPlayerIndex].id, bea);
+
+  // Bea empieza de cero: dos aciertos y sigue siendo suyo el turno.
+  aciertaUnaPregunta(room, bea);
+  aciertaUnaPregunta(room, bea);
+  assert.equal(
+    room.toView().players[room.toView().currentPlayerIndex].id,
+    bea,
+    'el contador no se arrastra de un turno a otro',
   );
 });
 
