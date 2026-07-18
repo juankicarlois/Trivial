@@ -95,13 +95,28 @@ que te falta, de más cerca a más lejos. Tiene en cuenta el atajo por el centro
 ## Estructura
 
 ```
-shared/    Tipos, tablero (grafo de la rueda), protocolo y categorías (cliente+servidor)
-server/    Servidor HTTP + WebSocket, salas, reglas del juego, banco de preguntas
-client/    Interfaz accesible (DOM), audio (Web Audio) y red
-content/   Preguntas y (futuro) packs temáticos y logros, en JSON autorable
-public/    HTML, estilos y cliente compilado (app.js)
-docs/      Documento de diseño
+shared/        Tipos, tablero (grafo de la rueda), protocolo y categorías (cliente+servidor)
+server/        Servidor HTTP + WebSocket, salas, reglas del juego, banco de preguntas
+client/        Interfaz accesible (DOM), audio (Web Audio) y red
+content/       Preguntas, packs temáticos y logros, en JSON autorable
+public/        HTML, estilos, cliente compilado (app.js) y sonidos
+public/sounds/ Muestras de audio (dado, pasos, acierto, queso, logro, victoria…)
+docs/          Documento de diseño
 ```
+
+### Sonidos
+
+El cliente reproduce muestras `.ogg` desde `public/sounds/` con la Web Audio API,
+con paneo estéreo en el movimiento de la ficha para reforzar la dirección. Cada
+sonido tiene su anuncio de texto equivalente: el juego funciona igual sin audio
+(si una muestra falta o el navegador no la decodifica, simplemente no suena).
+
+> ⚠️ **Procedencia y licencia.** Las muestras incluidas provienen de la
+> plataforma de audiojuegos **PlayPalace** y se usan aquí de forma provisional.
+> Antes de distribuir el juego públicamente hay que **verificar su licencia** o
+> sustituirlas por sonidos propios o de una biblioteca libre (p. ej. CC0). Para
+> cambiar un sonido, reemplaza el fichero en `public/sounds/` (mismos nombres) —
+> ver el mapa evento→fichero en `client/audio.ts`.
 
 ## Logros y packs temáticos
 

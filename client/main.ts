@@ -185,9 +185,13 @@ function nameOf(playerId: string): string {
 function handleEvent(event: GameEvent): void {
   switch (event.kind) {
     case 'playerJoined':
-      if (event.playerId !== myId) announce(`${event.name} se ha unido a la sala.`);
+      if (event.playerId !== myId) {
+        sound.join();
+        announce(`${event.name} se ha unido a la sala.`);
+      }
       break;
     case 'gameStarted':
+      sound.start();
       announce('¡Empieza la partida!');
       break;
     case 'diceRolled':
@@ -217,6 +221,7 @@ function handleEvent(event: GameEvent): void {
       announce(`${nameOf(event.playerId)} gana el queso de ${categoryById(event.category).name}.`);
       break;
     case 'turnChanged':
+      if (event.playerId === myId) sound.turn(); // aviso sonoro de que te toca
       announce(event.playerId === myId ? 'Es tu turno.' : `Turno de ${nameOf(event.playerId)}.`);
       break;
     case 'gameWon':

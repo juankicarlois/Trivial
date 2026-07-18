@@ -1,104 +1,124 @@
 /**
- * Motor de sonido del cliente. Los efectos se sintetizan con la Web Audio API
- * (sin ficheros de audio) para que funcionen desde el primer momento; más
- * adelante se pueden sustituir por muestras reales sin cambiar la interfaz.
+ * Motor de sonido del cliente: reproduce muestras de audio (`.ogg`) desde
+ * `public/sounds/` con la Web Audio API.
  *
  * El contexto de audio se crea tras un gesto del usuario (entrar en la sala)
- * para cumplir la política de autoplay de los navegadores.
+ * para cumplir la política de autoplay de los navegadores; ahí mismo se precargan
+ * y decodifican las muestras. Todo es best-effort: si una muestra no carga o el
+ * navegador no sabe decodificarla, ese sonido simplemente no suena, nunca rompe
+ * la partida (el juego no depende del audio: cada sonido tiene su anuncio de
+ * texto equivalente para el lector de pantalla).
  */
+
+/** Nombre lógico de cada efecto y el fichero que lo produce. */
+const SOUND_FILES = {
+  dice: 'dice.ogg',
+  step1: 'step1.ogg',
+  step2: 'step2.ogg',
+  step3: 'step3.ogg',
+  correct: 'correct.ogg',
+  wrong: 'wrong.ogg',
+  wedge: 'wedge.ogg',
+  achievement: 'achievement.ogg',
+  win: 'win.ogg',
+  join: 'join.ogg',
+  turn: 'turn.ogg',
+  start: 'start.ogg',
+} as const;
+
+type SoundName = keyof typeof SOUND_FILES;
 
 export class SoundEngine {
   private ctx: AudioContext | null = null;
+  private readonly buffers = new Map<SoundName, AudioBuffer>();
+  private stepIndex = 0;
 
   /** Debe llamarse desde un manejador de evento de usuario (clic/tecla). */
   unlock(): void {
-    if (!this.ctx) this.ctx = new AudioContext();
+    if (!this.ctx) {
+      this.ctx = new AudioContext();
+      void this.preload();
+    }
     if (this.ctx.state === 'suspended') void this.ctx.resume();
   }
 
-  private now(): number {
-    return this.ctx ? this.ctx.currentTime : 0;
+  /** Descarga y decodifica todas las muestras en paralelo. */
+  private async preload(): Promise<void> {
+    if (!this.ctx) return;
+    await Promise.all(
+      (Object.keys(SOUND_FILES) as SoundName[]).map(async (name) => {
+        try {
+          const response = await fetch(`sounds/${SOUND_FILES[name]}`);
+          const data = await response.arrayBuffer();
+          this.buffers.set(name, await this.ctx!.decodeAudioData(data));
+        } catch {
+          /* muestra no disponible o no decodificable: ese sonido no sonará */
+        }
+      }),
+    );
   }
 
   /**
-   * Reproduce un tono. `pan` va de -1 (izquierda) a 1 (derecha) para dar
-   * sensación de dirección al mover la ficha.
+   * Reproduce una muestra. `pan` va de -1 (izquierda) a 1 (derecha), para dar
+   * sensación de dirección al mover la ficha; `gain` ajusta el volumen relativo.
    */
-  private tone(
-    freq: number,
-    duration: number,
-    type: OscillatorType = 'sine',
-    pan = 0,
-    startAt = 0,
-    gain = 0.2,
-  ): void {
-    if (!this.ctx) return;
-    const t = this.now() + startAt;
-    const osc = this.ctx.createOscillator();
-    const amp = this.ctx.createGain();
-    const panner = this.ctx.createStereoPanner();
-    osc.type = type;
-    osc.frequency.value = freq;
-    panner.pan.value = Math.max(-1, Math.min(1, pan));
-    amp.gain.setValueAtTime(0.0001, t);
-    amp.gain.exponentialRampToValueAtTime(gain, t + 0.01);
-    amp.gain.exponentialRampToValueAtTime(0.0001, t + duration);
-    osc.connect(amp).connect(panner).connect(this.ctx.destination);
-    osc.start(t);
-    osc.stop(t + duration + 0.02);
-  }
-
-  /** Ráfaga de ruido corta, para el traqueteo del dado. */
-  private noise(duration: number, gain = 0.15): void {
-    if (!this.ctx) return;
-    const t = this.now();
-    const frames = Math.floor(this.ctx.sampleRate * duration);
-    const buffer = this.ctx.createBuffer(1, frames, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < frames; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
-    const src = this.ctx.createBufferSource();
+  private play(name: SoundName, pan = 0, gain = 1): void {
+    const buffer = this.buffers.get(name);
+    if (!this.ctx || !buffer) return;
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
     const amp = this.ctx.createGain();
     amp.gain.value = gain;
-    src.buffer = buffer;
-    src.connect(amp).connect(this.ctx.destination);
-    src.start(t);
+    const panner = this.ctx.createStereoPanner();
+    panner.pan.value = Math.max(-1, Math.min(1, pan));
+    source.connect(amp).connect(panner).connect(this.ctx.destination);
+    source.start();
   }
 
   dice(): void {
-    this.noise(0.35);
-    this.tone(180, 0.08, 'square', 0, 0.05, 0.12);
-    this.tone(140, 0.08, 'square', 0, 0.15, 0.12);
+    this.play('dice');
   }
 
-  /** Paso de ficha; `pan` sitúa el sonido según la dirección. */
+  /** Paso de ficha; `pan` sitúa el sonido según la dirección, y rota entre las
+   * tres variantes para que un recorrido largo no suene monótono. */
   move(pan = 0): void {
-    this.tone(520, 0.09, 'triangle', pan, 0, 0.15);
+    const variants: SoundName[] = ['step1', 'step2', 'step3'];
+    this.play(variants[this.stepIndex % variants.length], pan);
+    this.stepIndex += 1;
   }
 
   correct(): void {
-    this.tone(660, 0.12, 'sine', 0, 0, 0.22);
-    this.tone(880, 0.16, 'sine', 0, 0.1, 0.22);
+    this.play('correct');
   }
 
   wrong(): void {
-    this.tone(220, 0.18, 'sawtooth', 0, 0, 0.18);
-    this.tone(160, 0.24, 'sawtooth', 0, 0.12, 0.18);
+    this.play('wrong');
   }
 
   wedge(): void {
-    this.tone(523, 0.15, 'sine', 0, 0, 0.2);
-    this.tone(659, 0.15, 'sine', 0, 0.08, 0.2);
-    this.tone(784, 0.25, 'sine', 0, 0.16, 0.2);
+    this.play('wedge');
   }
 
   win(): void {
-    const notes = [523, 659, 784, 1047];
-    notes.forEach((f, i) => this.tone(f, 0.3, 'sine', 0, i * 0.18, 0.24));
+    this.play('win');
   }
 
-  /** Logro conseguido: arpegio ascendente y brillante, distinto del queso. */
   achievement(): void {
-    const notes = [784, 988, 1175, 1568];
-    notes.forEach((f, i) => this.tone(f, 0.22, 'triangle', 0, i * 0.09, 0.2));
+    this.play('achievement');
+  }
+
+  /** Otro jugador entra en la sala. */
+  join(): void {
+    this.play('join', 0, 0.7);
+  }
+
+  /** Empieza a ser tu turno. */
+  turn(): void {
+    this.play('turn', 0, 0.7);
+  }
+
+  /** Arranca la partida. */
+  start(): void {
+    this.play('start');
   }
 }
