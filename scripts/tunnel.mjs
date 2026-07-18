@@ -16,6 +16,8 @@ const URL_PATTERN = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/i;
 /** Si en este tiempo no aparece la URL, algo va mal (sin conexión, etc.). */
 const URL_TIMEOUT_MS = 30000;
 
+console.log('Arrancando el tunel, espera unos segundos a que aparezca la URL...');
+
 const child = spawn('cloudflared', ['tunnel', '--url', `http://localhost:${PORT}`], {
   stdio: ['ignore', 'pipe', 'pipe'],
 });

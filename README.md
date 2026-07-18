@@ -61,6 +61,11 @@ limpia y sin adornos, pensada para leerse con lector de pantalla. Tú sigues
 entrando por `http://localhost:3000`. Al cerrar el túnel (Ctrl+C) la URL
 desaparece.
 
+**Lanzador de un clic:** `scripts/jugar-online.bat` arranca el servidor y el
+túnel de una, cada uno en su ventana (crea un acceso directo a este .bat en el
+escritorio si quieres tenerlo a mano). La ventana del túnel muestra y copia la
+URL para compartir.
+
 **Ten en cuenta:**
 
 - Tu PC debe estar encendido y con el servidor corriendo mientras juguéis.
