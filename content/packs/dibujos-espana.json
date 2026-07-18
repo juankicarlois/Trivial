@@ -1,0 +1,114 @@
+{
+  "id": "dibujos-espana",
+  "name": "Dibujos de nuestra infancia",
+  "description": "Series de dibujos animados que marcaron a varias generaciones en la televisión de España.",
+  "unlockedBy": "historiador",
+  "questions": [
+    {
+      "id": "dib-001",
+      "category": "cultura",
+      "text": "En \"Bola de Dragón\", ¿cómo se llama el protagonista?",
+      "options": ["Vegeta", "Goku", "Krilin", "Piccolo"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-002",
+      "category": "ciencia",
+      "text": "En \"Bola de Dragón\", ¿cuántas esferas del dragón hay que reunir?",
+      "options": ["5", "7", "9", "12"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "dib-003",
+      "category": "ciencia",
+      "text": "¿Qué es Doraemon?",
+      "options": ["Un perro", "Un gato robot del futuro", "Un oso de peluche", "Un extraterrestre"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-004",
+      "category": "geografia",
+      "text": "¿En qué montañas vive Heidi con su abuelo?",
+      "options": ["Los Pirineos", "Los Alpes", "Los Andes", "Los Cárpatos"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-005",
+      "category": "deportes",
+      "text": "¿A qué deporte juegan Oliver y Benji?",
+      "options": ["Baloncesto", "Fútbol", "Béisbol", "Tenis"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-006",
+      "category": "cultura",
+      "text": "¿Cómo es Shin-chan, el protagonista de la serie que lleva su nombre?",
+      "options": [
+        "Un niño pequeño y travieso",
+        "Un anciano sabio",
+        "Un robot",
+        "Un perro parlante"
+      ],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-007",
+      "category": "ciencia",
+      "text": "¿Qué insecto es la protagonista de \"La abeja Maya\"?",
+      "options": ["Una mariposa", "Una abeja", "Una hormiga", "Una libélula"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-008",
+      "category": "cultura",
+      "text": "En la serie \"Marco\", ¿a quién busca el niño protagonista?",
+      "options": ["A su madre", "A su perro", "A un tesoro", "A su hermano"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "dib-009",
+      "category": "historia",
+      "text": "¿A qué pueblo pertenece Vickie, el niño listo de \"Vickie el vikingo\"?",
+      "options": ["Los romanos", "Los vikingos", "Los egipcios", "Los piratas"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "dib-010",
+      "category": "cultura",
+      "text": "¿Qué son los personajes de la serie española \"Los Fruittis\"?",
+      "options": ["Frutas", "Verduras", "Animales", "Robots"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "dib-011",
+      "category": "historia",
+      "text": "¿Sobre qué trata la serie educativa \"Érase una vez... el hombre\"?",
+      "options": [
+        "La historia de la humanidad",
+        "El cuerpo humano",
+        "Los animales",
+        "El espacio"
+      ],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "dib-012",
+      "category": "deportes",
+      "text": "¿A qué deporte se dedica el protagonista de \"Chicho Terremoto\"?",
+      "options": ["Fútbol", "Baloncesto", "Boxeo", "Atletismo"],
+      "answerIndex": 1,
+      "difficulty": 2
+    }
+  ]
+}

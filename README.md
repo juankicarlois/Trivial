@@ -142,6 +142,13 @@ temáticos** de preguntas:
 | Harry Potter | **Ratón de biblioteca** — 10 aciertos de Arte y Literatura |
 | Disney | **Cinéfilo** — 10 aciertos de Cultura y Tecnología |
 | Camarón de la Isla | **Duende** — gana tu primera partida |
+| Star Wars | **Trotamundos** — 10 aciertos de Geografía |
+| El Señor de los Anillos | **Aventurero** — gana 3 partidas |
+| Los Simpson | **Maratoniano** — juega 10 partidas |
+| Videojuegos clásicos | **Reflejos** — 8 aciertos seguidos en una partida |
+| La Rueda del Tiempo | **Erudito** — 100 aciertos en total |
+| Tiflotecnología | **Científico** — 10 aciertos de Ciencia y Naturaleza |
+| Dibujos de nuestra infancia | **Historiador** — 10 aciertos de Historia |
 
 Las preguntas de un pack están repartidas entre las 6 categorías (como las
 ediciones temáticas del Trivial de mesa), así que el tablero no cambia: al

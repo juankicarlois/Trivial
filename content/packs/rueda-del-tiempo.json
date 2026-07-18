@@ -1,0 +1,104 @@
+{
+  "id": "rueda-del-tiempo",
+  "name": "La Rueda del Tiempo",
+  "description": "La saga de fantasía de Robert Jordan: el Poder Único, las Aes Sedai y el Dragón Renacido.",
+  "unlockedBy": "erudito",
+  "questions": [
+    {
+      "id": "wot-001",
+      "category": "arte",
+      "text": "¿Quién es el autor de la saga \"La Rueda del Tiempo\"?",
+      "options": ["Brandon Sanderson", "Robert Jordan", "George R. R. Martin", "Patrick Rothfuss"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "wot-002",
+      "category": "arte",
+      "text": "Tras la muerte de Robert Jordan, ¿qué autor completó la saga con sus notas?",
+      "options": ["Brandon Sanderson", "Joe Abercrombie", "Terry Brooks", "Ursula K. Le Guin"],
+      "answerIndex": 0,
+      "difficulty": 3
+    },
+    {
+      "id": "wot-003",
+      "category": "cultura",
+      "text": "¿Cómo se conoce a Rand al'Thor, el protagonista de la saga?",
+      "options": ["El Rey Brujo", "El Dragón Renacido", "El Señor del Caos", "El Lobo Blanco"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "wot-004",
+      "category": "ciencia",
+      "text": "¿Cómo se llama la fuerza mágica que mueve la Rueda del Tiempo?",
+      "options": ["El Poder Único", "La Chispa", "El Maná", "La Niebla"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "wot-005",
+      "category": "cultura",
+      "text": "¿Cómo se llama la mitad femenina del Poder Único?",
+      "options": ["Saidin", "Saidar", "Tel'aran'rhiod", "Angreal"],
+      "answerIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "wot-006",
+      "category": "cultura",
+      "text": "¿Cómo se llaman las mujeres capaces de encauzar el Poder Único?",
+      "options": ["Las Aes Sedai", "Las Doncellas", "Las Sabias", "Las Videntes"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "wot-007",
+      "category": "arte",
+      "text": "¿Cómo se titula el primer libro de la saga?",
+      "options": ["La Gran Cacería", "El Ojo del Mundo", "El Dragón Renacido", "El Fuego del Cielo"],
+      "answerIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "wot-008",
+      "category": "historia",
+      "text": "¿De cuántos libros consta la saga principal de \"La Rueda del Tiempo\"?",
+      "options": ["7", "10", "14", "20"],
+      "answerIndex": 2,
+      "difficulty": 3
+    },
+    {
+      "id": "wot-009",
+      "category": "cultura",
+      "text": "¿En qué plataforma se estrenó la serie de televisión de \"La Rueda del Tiempo\"?",
+      "options": ["Netflix", "Amazon Prime Video", "HBO", "Disney+"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "wot-010",
+      "category": "geografia",
+      "text": "¿Cómo se llama la fortaleza de las Aes Sedai en la ciudad de Tar Valon?",
+      "options": ["La Torre Blanca", "El Ojo del Mundo", "La Piedra de Tear", "El Campo de Emond"],
+      "answerIndex": 0,
+      "difficulty": 3
+    },
+    {
+      "id": "wot-011",
+      "category": "cultura",
+      "text": "¿Cómo se llama la Aes Sedai que guía a los protagonistas al principio de la historia?",
+      "options": ["Moiraine", "Egwene", "Nynaeve", "Elayne"],
+      "answerIndex": 0,
+      "difficulty": 3
+    },
+    {
+      "id": "wot-012",
+      "category": "cultura",
+      "text": "¿Quién es el gran enemigo, el mal encerrado que amenaza el mundo?",
+      "options": ["El Oscuro", "Ba'alzamon", "El Amo del Terror", "El Sin Nombre"],
+      "answerIndex": 0,
+      "difficulty": 2
+    }
+  ]
+}

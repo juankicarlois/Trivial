@@ -1,0 +1,109 @@
+{
+  "id": "los-simpson",
+  "name": "Los Simpson",
+  "description": "Springfield y la familia amarilla más famosa de la televisión.",
+  "unlockedBy": "maratoniano",
+  "questions": [
+    {
+      "id": "sim-001",
+      "category": "geografia",
+      "text": "¿En qué ciudad viven los Simpson?",
+      "options": ["Shelbyville", "Springfield", "Ogdenville", "Capital City"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sim-002",
+      "category": "cultura",
+      "text": "¿Dónde trabaja Homer Simpson?",
+      "options": [
+        "En la taberna de Moe",
+        "En la central nuclear",
+        "En la escuela",
+        "En la tienda de Apu"
+      ],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sim-003",
+      "category": "arte",
+      "text": "¿Quién es el creador de Los Simpson?",
+      "options": ["Seth MacFarlane", "Matt Groening", "Trey Parker", "Mike Judge"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sim-004",
+      "category": "ciencia",
+      "text": "¿Cuántos hijos tienen Homer y Marge?",
+      "options": ["2", "3", "4", "5"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sim-005",
+      "category": "arte",
+      "text": "¿Qué instrumento toca Lisa Simpson?",
+      "options": ["El piano", "El saxofón", "La guitarra", "La trompeta"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sim-006",
+      "category": "cultura",
+      "text": "¿Cómo se llama el jefe de Homer, el dueño de la central nuclear?",
+      "options": ["El señor Burns", "Ned Flanders", "Moe Szyslak", "Barney"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "sim-007",
+      "category": "cultura",
+      "text": "¿Quién regenta la taberna a la que va Homer?",
+      "options": ["Apu", "Moe", "Barney", "Carl"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sim-008",
+      "category": "ciencia",
+      "text": "¿Qué tipo de animal es Ayudante de Santa Claus, la mascota de los Simpson?",
+      "options": ["Un gato", "Un perro", "Un caballo", "Un cerdo"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sim-009",
+      "category": "arte",
+      "text": "¿De qué color son los Simpson?",
+      "options": ["Verde", "Amarillo", "Naranja", "Rosa"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sim-010",
+      "category": "cultura",
+      "text": "¿Cuál es la marca de cerveza favorita de Homer?",
+      "options": ["Duff", "Pawtucket", "Alamo", "Buzz"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "sim-011",
+      "category": "cultura",
+      "text": "¿Cómo se llama el vecino muy religioso de los Simpson?",
+      "options": ["Ned Flanders", "Seymour Skinner", "Timothy Lovejoy", "Kirk Van Houten"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "sim-012",
+      "category": "cultura",
+      "text": "¿Cómo se llama el bebé de la familia Simpson?",
+      "options": ["Lisa", "Maggie", "Bart", "Marge"],
+      "answerIndex": 1,
+      "difficulty": 1
+    }
+  ]
+}

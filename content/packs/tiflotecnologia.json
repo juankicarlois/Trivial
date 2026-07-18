@@ -1,0 +1,114 @@
+{
+  "id": "tiflotecnologia",
+  "name": "Tiflotecnología",
+  "description": "Tecnología y recursos de accesibilidad para personas ciegas: lectores de pantalla, braille y más.",
+  "unlockedBy": "cientifico",
+  "questions": [
+    {
+      "id": "tif-001",
+      "category": "historia",
+      "text": "¿Quién inventó el sistema de lectura y escritura para ciegos que lleva su nombre?",
+      "options": ["Louis Braille", "Alexander Graham Bell", "Thomas Edison", "Samuel Morse"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "tif-002",
+      "category": "ciencia",
+      "text": "¿Con cuántos puntos se forma cada carácter del sistema braille?",
+      "options": ["4", "6", "8", "10"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-003",
+      "category": "geografia",
+      "text": "¿De qué país era Louis Braille, el inventor del braille?",
+      "options": ["Reino Unido", "Alemania", "Francia", "Italia"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-004",
+      "category": "cultura",
+      "text": "¿Qué es NVDA?",
+      "options": [
+        "Un lector de pantalla gratuito y de código abierto",
+        "Una marca de línea braille",
+        "Un tipo de bastón",
+        "Una raza de perro guía"
+      ],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-005",
+      "category": "cultura",
+      "text": "¿Qué es JAWS en el mundo de la accesibilidad?",
+      "options": ["Un lector de pantalla", "Un navegador web", "Un teclado braille", "Una app de mapas"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-006",
+      "category": "cultura",
+      "text": "¿Cómo se llama el lector de pantalla que incluyen de serie los dispositivos de Apple?",
+      "options": ["TalkBack", "VoiceOver", "Narrador", "Orca"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-007",
+      "category": "cultura",
+      "text": "¿Cómo se llama el lector de pantalla que incluye Android?",
+      "options": ["VoiceOver", "TalkBack", "JAWS", "NVDA"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-008",
+      "category": "arte",
+      "text": "¿Qué hace un lector de pantalla?",
+      "options": [
+        "Amplía el texto en pantalla",
+        "Lee en voz alta lo que aparece en la pantalla",
+        "Traduce páginas web",
+        "Imprime en braille"
+      ],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "tif-009",
+      "category": "cultura",
+      "text": "¿Qué organización en España es conocida por su labor con las personas ciegas y su cupón?",
+      "options": ["Cruz Roja", "la ONCE", "Cáritas", "la SGAE"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "tif-010",
+      "category": "ciencia",
+      "text": "¿Cómo se llama el dispositivo que muestra texto en braille mediante puntos que suben y bajan?",
+      "options": ["Línea braille", "Lupa electrónica", "Sintetizador de voz", "Pantalla táctil"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "tif-011",
+      "category": "deportes",
+      "text": "¿Qué animal se adiestra para ayudar a desplazarse a muchas personas ciegas?",
+      "options": ["El gato", "El caballo", "El perro", "El halcón"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "tif-012",
+      "category": "arte",
+      "text": "¿De qué color suele ser el bastón que usan las personas ciegas para desplazarse?",
+      "options": ["Negro", "Blanco", "Rojo", "Azul"],
+      "answerIndex": 1,
+      "difficulty": 1
+    }
+  ]
+}

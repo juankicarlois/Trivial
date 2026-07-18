@@ -1,0 +1,104 @@
+{
+  "id": "star-wars",
+  "name": "Star Wars",
+  "description": "La galaxia muy, muy lejana: películas, personajes, naves y planetas.",
+  "unlockedBy": "trotamundos",
+  "questions": [
+    {
+      "id": "sw-001",
+      "category": "geografia",
+      "text": "¿En qué planeta desértico se cría Luke Skywalker?",
+      "options": ["Endor", "Tatooine", "Hoth", "Naboo"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sw-002",
+      "category": "cultura",
+      "text": "¿Cuál es el verdadero nombre de Darth Vader?",
+      "options": ["Obi-Wan Kenobi", "Anakin Skywalker", "Han Solo", "Lando Calrissian"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sw-003",
+      "category": "historia",
+      "text": "¿En qué año se estrenó la primera película de Star Wars?",
+      "options": ["1971", "1977", "1983", "1991"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sw-004",
+      "category": "cultura",
+      "text": "¿Cómo se llama la nave de Han Solo?",
+      "options": ["El Halcón Milenario", "El Ala-X", "La Estrella de la Muerte", "El Destructor Estelar"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "sw-005",
+      "category": "arte",
+      "text": "¿Quién creó y dirigió la primera trilogía de Star Wars?",
+      "options": ["Steven Spielberg", "George Lucas", "James Cameron", "Ridley Scott"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sw-006",
+      "category": "cultura",
+      "text": "¿Cómo se llama la energía mística que usan los Jedi?",
+      "options": ["El Aura", "La Fuerza", "El Éter", "La Chispa"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sw-007",
+      "category": "cultura",
+      "text": "¿Cuál es el arma característica de los Jedi?",
+      "options": ["El blaster", "El sable de luz", "El bastón", "La ballesta"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sw-008",
+      "category": "ciencia",
+      "text": "¿De qué especie es Chewbacca?",
+      "options": ["Ewok", "Wookiee", "Hutt", "Gungan"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sw-009",
+      "category": "arte",
+      "text": "¿Qué actriz interpretó a la princesa Leia en la trilogía original?",
+      "options": ["Natalie Portman", "Carrie Fisher", "Sigourney Weaver", "Daisy Ridley"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "sw-010",
+      "category": "ciencia",
+      "text": "¿De qué color es la piel del maestro Yoda?",
+      "options": ["Azul", "Verde", "Gris", "Marrón"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "sw-011",
+      "category": "cultura",
+      "text": "¿Cuál de estos es un androide (droide) de Star Wars?",
+      "options": ["R2-D2", "Jabba", "Wicket", "Greedo"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "sw-012",
+      "category": "geografia",
+      "text": "¿Cómo se llama la estación espacial capaz de destruir planetas?",
+      "options": ["La Ciudadela", "La Estrella de la Muerte", "Starkiller", "El Halcón"],
+      "answerIndex": 1,
+      "difficulty": 1
+    }
+  ]
+}

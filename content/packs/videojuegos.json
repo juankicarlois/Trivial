@@ -1,0 +1,104 @@
+{
+  "id": "videojuegos",
+  "name": "Videojuegos clásicos",
+  "description": "Los hitos y personajes que marcaron la historia del videojuego.",
+  "unlockedBy": "reflejos",
+  "questions": [
+    {
+      "id": "vg-001",
+      "category": "cultura",
+      "text": "¿Qué compañía creó al fontanero Mario?",
+      "options": ["Sega", "Nintendo", "Sony", "Atari"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "vg-002",
+      "category": "cultura",
+      "text": "¿Cómo se llama el hermano de Mario?",
+      "options": ["Wario", "Luigi", "Toad", "Yoshi"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "vg-003",
+      "category": "cultura",
+      "text": "¿Cuál es la profesión de Mario en sus juegos?",
+      "options": ["Fontanero", "Cartero", "Bombero", "Cocinero"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "vg-004",
+      "category": "geografia",
+      "text": "¿En qué país se creó el videojuego Tetris?",
+      "options": ["Japón", "Estados Unidos", "Rusia", "Corea del Sur"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "vg-005",
+      "category": "cultura",
+      "text": "¿Cómo se llama el protagonista de la saga The Legend of Zelda?",
+      "options": ["Zelda", "Link", "Ganon", "Navi"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "vg-006",
+      "category": "cultura",
+      "text": "¿De qué compañía es la mascota Sonic, el erizo azul?",
+      "options": ["Nintendo", "Sega", "Microsoft", "Namco"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "vg-007",
+      "category": "ciencia",
+      "text": "¿Cuántos cuadraditos forman cada pieza del Tetris?",
+      "options": ["3", "4", "5", "6"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "vg-008",
+      "category": "arte",
+      "text": "En el clásico Pac-Man, ¿de qué debe huir el protagonista?",
+      "options": ["De unos fantasmas", "De unos zombis", "De unos perros", "De unos aliens"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "vg-009",
+      "category": "cultura",
+      "text": "¿Qué famoso lema acompaña a la saga Pokémon?",
+      "options": ["\"Hazlos tuyos\"", "\"¡Hazte con todos!\"", "\"Atrápalos ya\"", "\"Todos a jugar\""],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "vg-010",
+      "category": "ciencia",
+      "text": "¿Qué tipo de animal es Donkey Kong?",
+      "options": ["Un gorila", "Un oso", "Un dinosaurio", "Un erizo"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "vg-011",
+      "category": "cultura",
+      "text": "¿Qué videoconsola portátil lanzó Nintendo en 1989?",
+      "options": ["La PSP", "La Game Boy", "La Nintendo DS", "La Game Gear"],
+      "answerIndex": 1,
+      "difficulty": 3
+    },
+    {
+      "id": "vg-012",
+      "category": "arte",
+      "text": "En Super Mario, ¿a qué princesa suele rescatar Mario?",
+      "options": ["La princesa Daisy", "La princesa Peach", "La princesa Zelda", "La princesa Rosalina"],
+      "answerIndex": 1,
+      "difficulty": 2
+    }
+  ]
+}

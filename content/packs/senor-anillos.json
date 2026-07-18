@@ -1,0 +1,104 @@
+{
+  "id": "senor-anillos",
+  "name": "El Señor de los Anillos",
+  "description": "La Tierra Media de Tolkien: la Comunidad, el Anillo Único y sus pueblos.",
+  "unlockedBy": "aventurero",
+  "questions": [
+    {
+      "id": "lotr-001",
+      "category": "arte",
+      "text": "¿Quién escribió \"El Señor de los Anillos\"?",
+      "options": ["C. S. Lewis", "J. R. R. Tolkien", "George R. R. Martin", "Terry Pratchett"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "lotr-002",
+      "category": "geografia",
+      "text": "¿En qué montaña hay que destruir el Anillo Único?",
+      "options": ["El Monte del Destino", "Las Montañas Nubladas", "El Caradhras", "La Cima de los Vientos"],
+      "answerIndex": 0,
+      "difficulty": 2
+    },
+    {
+      "id": "lotr-003",
+      "category": "ciencia",
+      "text": "¿A qué pueblo pertenece Frodo Bolsón?",
+      "options": ["Los elfos", "Los enanos", "Los hobbits", "Los orcos"],
+      "answerIndex": 2,
+      "difficulty": 1
+    },
+    {
+      "id": "lotr-004",
+      "category": "cultura",
+      "text": "¿Qué es Gandalf?",
+      "options": ["Un mago", "Un rey", "Un enano", "Un orco"],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "lotr-005",
+      "category": "geografia",
+      "text": "¿Cómo se llama la región donde viven los hobbits?",
+      "options": ["Rohan", "Gondor", "La Comarca", "Mordor"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "lotr-006",
+      "category": "cultura",
+      "text": "¿Cómo llama Gollum al Anillo Único?",
+      "options": ["\"mi tesoro\"", "\"mi joya\"", "\"el aro\"", "\"el amo\""],
+      "answerIndex": 0,
+      "difficulty": 1
+    },
+    {
+      "id": "lotr-007",
+      "category": "arte",
+      "text": "¿Quién dirigió la trilogía de películas de \"El Señor de los Anillos\"?",
+      "options": ["Guillermo del Toro", "Peter Jackson", "James Cameron", "Christopher Nolan"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "lotr-008",
+      "category": "ciencia",
+      "text": "¿A qué pueblo pertenece el arquero Legolas?",
+      "options": ["Los enanos", "Los elfos", "Los hombres", "Los ents"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "lotr-009",
+      "category": "cultura",
+      "text": "¿Cómo se llama el señor oscuro que creó el Anillo Único?",
+      "options": ["Saruman", "Sauron", "Smaug", "Denethor"],
+      "answerIndex": 1,
+      "difficulty": 1
+    },
+    {
+      "id": "lotr-010",
+      "category": "historia",
+      "text": "¿Quién es el heredero al trono de Gondor que empuña la espada Andúril?",
+      "options": ["Boromir", "Aragorn", "Faramir", "Éomer"],
+      "answerIndex": 1,
+      "difficulty": 2
+    },
+    {
+      "id": "lotr-011",
+      "category": "cultura",
+      "text": "¿Cómo se llama el fiel jardinero que acompaña a Frodo hasta el final?",
+      "options": ["Merry", "Pippin", "Sam", "Bilbo"],
+      "answerIndex": 2,
+      "difficulty": 2
+    },
+    {
+      "id": "lotr-012",
+      "category": "arte",
+      "text": "\"Un anillo para gobernarlos a...\" ¿a cuántos, según el verso?",
+      "options": ["a todos", "a nueve", "a tres", "a siete"],
+      "answerIndex": 0,
+      "difficulty": 2
+    }
+  ]
+}

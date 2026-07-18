@@ -55,6 +55,55 @@
       "description": "Gana tu primera partida.",
       "stat": "gamesWon",
       "atLeast": 1
+    },
+    {
+      "id": "trotamundos",
+      "name": "Trotamundos",
+      "description": "Acierta 10 preguntas de Geografía.",
+      "stat": "correct.geografia",
+      "atLeast": 10
+    },
+    {
+      "id": "aventurero",
+      "name": "Aventurero",
+      "description": "Gana 3 partidas.",
+      "stat": "gamesWon",
+      "atLeast": 3
+    },
+    {
+      "id": "maratoniano",
+      "name": "Maratoniano",
+      "description": "Juega 10 partidas.",
+      "stat": "gamesPlayed",
+      "atLeast": 10
+    },
+    {
+      "id": "reflejos",
+      "name": "Reflejos",
+      "description": "Acierta 8 preguntas seguidas en una misma partida.",
+      "stat": "bestStreak",
+      "atLeast": 8
+    },
+    {
+      "id": "erudito",
+      "name": "Erudito",
+      "description": "Acierta 100 preguntas en total.",
+      "stat": "questionsCorrect",
+      "atLeast": 100
+    },
+    {
+      "id": "cientifico",
+      "name": "Científico",
+      "description": "Acierta 10 preguntas de Ciencia y Naturaleza.",
+      "stat": "correct.ciencia",
+      "atLeast": 10
+    },
+    {
+      "id": "historiador",
+      "name": "Historiador",
+      "description": "Acierta 10 preguntas de Historia.",
+      "stat": "correct.historia",
+      "atLeast": 10
     }
   ]
 }
