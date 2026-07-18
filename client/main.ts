@@ -200,7 +200,10 @@ function handleEvent(event: GameEvent): void {
       announce(`${nameOf(event.playerId)} saca un ${event.value}.`);
       break;
     case 'moved':
-      sound.move(panForNode(event.toNodeId));
+      {
+        const pos = board.nodes[event.toNodeId]?.position;
+        sound.move(pos?.x ?? 0, pos?.y ?? 0);
+      }
       break;
     case 'landed': {
       const label = board.nodes[event.nodeId]?.label ?? 'una casilla';
@@ -245,20 +248,6 @@ function handleEvent(event: GameEvent): void {
       );
       break;
   }
-}
-
-/** Paneo estéreo (-1 izquierda … 1 derecha) según la posición de la casilla. */
-function panForNode(nodeId: string): number {
-  if (nodeId.startsWith('ring-')) {
-    const pos = Number(nodeId.slice('ring-'.length));
-    return Math.sin((2 * Math.PI * pos) / 42);
-  }
-  if (nodeId.startsWith('hq-')) {
-    const cat = nodeId.slice('hq-'.length);
-    const seg = CATEGORIES.findIndex((c) => c.id === cat);
-    return seg >= 0 ? Math.sin((2 * Math.PI * (seg * 7)) / 42) : 0;
-  }
-  return 0; // radios y centro: sin paneo
 }
 
 // --- Render -----------------------------------------------------------------

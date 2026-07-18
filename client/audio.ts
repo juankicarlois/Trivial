@@ -74,15 +74,55 @@ export class SoundEngine {
     source.start();
   }
 
+  /**
+   * Reproduce una muestra situada en un punto del plano de la rueda, con el
+   * oyente en el centro. Usa un `PannerNode` con HRTF: el eje X va a los lados y
+   * el plano del tablero se mapea a delante/detrás, de modo que al moverse la
+   * ficha el sonido orbita alrededor del oyente (recorrido por el anillo) o se
+   * acerca y aleja (entrada y salida del centro).
+   *
+   * Es refuerzo, no el canal principal: el texto ya dice la casilla exacta. El
+   * HRTF de la web distingue bien izquierda/derecha y la distancia; el
+   * delante/detrás es más flojo (limitación conocida sin audio biaural dedicado).
+   *
+   * @param name Muestra a reproducir.
+   * @param x Coordenada horizontal de la casilla (centro 0, anillo ±1).
+   * @param y Coordenada vertical de la casilla (norte +1, sur −1).
+   */
+  private playPositioned(name: SoundName, x: number, y: number): void {
+    const buffer = this.buffers.get(name);
+    if (!this.ctx || !buffer) return;
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const panner = this.ctx.createPanner();
+    panner.panningModel = 'HRTF';
+    panner.distanceModel = 'inverse';
+    panner.refDistance = 0.6; // dentro de este radio, sin apenas atenuación
+    panner.maxDistance = 3;
+    panner.rolloffFactor = 0.8; // atenuación suave: el aviso principal es la dirección
+    // Plano del tablero → espacio del oyente: x a la derecha, "norte" (y) al
+    // frente (en Web Audio el frente es −Z).
+    panner.positionX.value = x;
+    panner.positionY.value = 0;
+    panner.positionZ.value = -y;
+
+    source.connect(panner).connect(this.ctx.destination);
+    source.start();
+  }
+
   dice(): void {
     this.play('dice');
   }
 
-  /** Paso de ficha; `pan` sitúa el sonido según la dirección, y alterna dos
-   * variantes (como pisadas) para que un recorrido largo no suene monótono. */
-  move(pan = 0): void {
+  /**
+   * Paso de ficha situado en la casilla de destino `(x, y)` del tablero (oyente
+   * en el centro). Alterna dos variantes (como pisadas) para que un recorrido
+   * largo no suene monótono.
+   */
+  move(x = 0, y = 0): void {
     const variants: SoundName[] = ['step1', 'step2'];
-    this.play(variants[this.stepIndex % variants.length], pan);
+    this.playPositioned(variants[this.stepIndex % variants.length], x, y);
     this.stepIndex += 1;
   }
 

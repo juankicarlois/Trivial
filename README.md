@@ -106,10 +106,13 @@ docs/          Documento de diseño
 
 ### Sonidos
 
-El cliente reproduce muestras `.ogg` desde `public/sounds/` con la Web Audio API,
-con paneo estéreo en el movimiento de la ficha para reforzar la dirección. Cada
-sonido tiene su anuncio de texto equivalente: el juego funciona igual sin audio
-(si una muestra falta o el navegador no la decodifica, simplemente no suena).
+El cliente reproduce muestras `.ogg` desde `public/sounds/` con la Web Audio API.
+El **paso de la ficha es posicional** (`PannerNode` con HRTF, oyente en el centro
+de la rueda): al moverse, el sonido orbita a tu alrededor si recorres el anillo, o
+se acerca y aleja si entras o sales del centro — y como suena para el movimiento
+de todos, también oyes por dónde van los rivales. Es refuerzo, no el canal
+principal: cada sonido tiene su anuncio de texto equivalente y el juego funciona
+igual sin audio (si una muestra falta o el navegador no la decodifica, no suena).
 
 Las muestras están **niveladas** para que ninguna retumbe ni desaparezca: los
 sonidos con cuerpo se normalizaron por loudness a ~-17 LUFS (ffmpeg `loudnorm`) y

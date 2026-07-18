@@ -30,6 +30,15 @@ para dado, movimiento de ficha, logros, acierto/fallo, queso ganado.
   reflejan el mismo estado.
 - Sonidos como refuerzo, nunca como único canal de información: cada sonido tiene su
   anuncio textual equivalente.
+- **Audio posicional del movimiento** (`PannerNode` HRTF, oyente en el centro de la
+  rueda): el sonido del paso suena en la posición de la casilla, así que orbita al
+  moverse por el anillo y se acerca/aleja al entrar o salir del centro; también
+  sitúa a los rivales al moverse. La geometría vive en `shared/board.ts`
+  (`BoardNode.position`, centro en el origen, anillo a radio 1) y servirá también
+  para el tablero visual. Limitación conocida: el HRTF de la web distingue bien
+  izquierda/derecha y distancia, pero el delante/detrás es flojo (radios opuestos
+  se proyectan al mismo lado); por eso es refuerzo y el texto sigue dando la
+  posición exacta.
 - Los avisos de una misma ráfaga (responder → revelar respuesta → cambio de turno)
   se **agrupan en un solo anuncio**: escritos de uno en uno en la región aria-live,
   cada uno pisaría al anterior y se perderían.

@@ -15,6 +15,17 @@ import { CATEGORIES, type CategoryId } from './categories.js';
 
 export type NodeKind = 'hub' | 'ring' | 'hq' | 'spoke';
 
+/**
+ * Posición de una casilla en el plano de la rueda. Normalizada: el centro es
+ * (0, 0) y el anillo queda a radio 1. `x` crece a la derecha, `y` hacia arriba
+ * ("norte"). La usa el audio posicional (oyente en el centro) y servirá para el
+ * futuro tablero visual.
+ */
+export interface BoardPosition {
+  x: number;
+  y: number;
+}
+
 export interface BoardNode {
   /** Identificador estable del nodo (p. ej. 'hub', 'ring-7', 'hq-geografia'). */
   id: string;
@@ -25,6 +36,8 @@ export interface BoardNode {
   neighbors: string[];
   /** Etiqueta accesible ("Sede de Geografía", "Casilla de Historia"…). */
   label: string;
+  /** Posición en el plano de la rueda (centro en el origen, anillo a radio 1). */
+  position: BoardPosition;
 }
 
 export interface Board {
@@ -78,6 +91,16 @@ function hqId(categoryIndex: number): string {
 }
 
 /**
+ * Punto en el plano de la rueda a partir de una posición angular del anillo
+ * (0..RING_SIZE) y un radio (1 = anillo, 0 = centro). `x` a la derecha, `y`
+ * hacia arriba; la posición 0 del anillo queda arriba ("norte").
+ */
+function polar(ringPosition: number, radius: number): BoardPosition {
+  const angle = (2 * Math.PI * ringPosition) / RING_SIZE;
+  return { x: radius * Math.sin(angle), y: radius * Math.cos(angle) };
+}
+
+/**
  * Describe dónde está la casilla k (1..SPOKE_LENGTH) a lo largo del radio, para
  * distinguirla de las demás del mismo radio y situar al jugador: k=1 pega con la
  * sede, k=SPOKE_LENGTH pega con el centro.
@@ -102,7 +125,13 @@ export function buildBoard(): Board {
   };
 
   // Hub central. Sus vecinos (los extremos de los radios) se añaden abajo.
-  add({ id: HUB_ID_LOCAL, kind: 'hub', neighbors: [], label: 'Centro de la rueda' });
+  add({
+    id: HUB_ID_LOCAL,
+    kind: 'hub',
+    neighbors: [],
+    label: 'Centro de la rueda',
+    position: { x: 0, y: 0 },
+  });
 
   // Anillo exterior: 42 casillas en ciclo. Las posiciones múltiplo de SEGMENT_LENGTH
   // son sedes de categoría; el resto, casillas normales.
@@ -125,6 +154,7 @@ export function buildBoard(): Board {
         category,
         neighbors,
         label: `Sede de ${CATEGORIES[segmentIndex].name}`,
+        position: polar(pos, 1),
       });
     } else {
       add({
@@ -133,6 +163,7 @@ export function buildBoard(): Board {
         category,
         neighbors,
         label: `Casilla de ${CATEGORIES[pos % CATEGORIES.length].name}`,
+        position: polar(pos, 1),
       });
     }
   }
@@ -158,12 +189,16 @@ export function buildBoard(): Board {
       // coherencia de navegación es clave en un juego que se juega de oído.
       // El calificador de posición distingue las casillas del radio entre sí (si
       // no, las tres se llamarían igual) y sitúa al jugador a lo largo del radio.
+      // El radio va de la sede (radio 1) al centro (radio 0): k=1 pega con la
+      // sede, k=SPOKE_LENGTH con el centro. Se reparte en tramos iguales.
+      const spokeRadius = (SPOKE_LENGTH + 1 - k) / (SPOKE_LENGTH + 1);
       add({
         id: spokeId(seg, k),
         kind: 'spoke',
         category: CATEGORIES[seg].id,
         neighbors: [prev, next],
         label: `Radio de ${CATEGORIES[seg].name}, ${spokePosition(k)}`,
+        position: polar(seg * SEGMENT_LENGTH, spokeRadius),
       });
     }
   }
