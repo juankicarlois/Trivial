@@ -320,9 +320,11 @@ function handleEvent(event: GameEvent): void {
       );
       break;
     case 'packUnlocked':
+      // Se dice cuándo podrá activarse: durante la partida la casilla está
+      // apagada a propósito, y prometer "puedes activarlo" ahora confunde.
       announce(
         event.playerId === myId
-          ? `¡Pack desbloqueado: ${event.packName}! Puedes activarlo antes de la próxima partida.`
+          ? `¡Pack desbloqueado: ${event.packName}! Al acabar esta partida podrás activarlo para la siguiente.`
           : `${nameOf(event.playerId)} desbloquea el pack ${event.packName} para la mesa.`,
       );
       break;
@@ -380,9 +382,23 @@ function renderPacks(state: GameView): void {
 
     const desc = document.createElement('p');
     desc.className = 'pack-desc';
-    desc.textContent = pack.unlocked
-      ? pack.description
-      : `Bloqueado. Se consigue con el logro «${pack.requires}».`;
+    if (!pack.unlocked) {
+      desc.textContent = `Bloqueado. Se consigue con el logro «${pack.requires}».`;
+    } else if (!editable) {
+      // Desbloqueado pero con la partida en marcha: la casilla está apagada a
+      // propósito (el repertorio no se cambia a mitad). Sin decirlo, parece rota.
+      desc.textContent = `${pack.description} Desbloqueado: podrás activarlo al acabar esta partida.`;
+    } else {
+      desc.textContent = pack.description;
+    }
+    // El motivo también en el mando, para quien navega por casillas con lector.
+    if (checkbox.disabled) {
+      checkbox.setAttribute(
+        'aria-describedby',
+        `${checkbox.id}-motivo`,
+      );
+      desc.id = `${checkbox.id}-motivo`;
+    }
 
     li.append(head, desc);
     packsList.append(li);

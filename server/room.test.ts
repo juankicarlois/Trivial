@@ -227,6 +227,23 @@ test('el tope se reinicia en el turno siguiente', () => {
   );
 });
 
+test('al conseguir el logro en plena partida, su pack queda desbloqueado', () => {
+  const store = newStore();
+  // A un acierto de "Erudito" (100 aciertos), que desbloquea La Rueda del Tiempo.
+  store.getOrCreate('perfil-ana', 'Ana').stats.questionsCorrect = 99;
+
+  const room = new Room('TEST', stubRepository(), content, store, silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.start();
+
+  const pack = () => room.toView().packs.find((p) => p.id === 'rueda-del-tiempo')!;
+  assert.equal(pack().unlocked, false, 'empieza bloqueado');
+
+  aciertaUnaPregunta(room, ana); // acierto número 100
+
+  assert.equal(pack().unlocked, true, 'tras el logro debe figurar como desbloqueado');
+});
+
 // --- Modo por equipos -------------------------------------------------------
 
 test('solo quien crea la sala puede cambiar el modo', () => {
