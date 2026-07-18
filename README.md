@@ -59,9 +59,9 @@ npm test               # tests del tablero y del motor
 
 ### Teclas
 
-Durante la partida hay tres **botones de consulta** siempre disponibles —«Dónde
-tengo cada sede», «Mis quesos» y «Mis logros»— que anuncian tu situación por el
-lector. Son botones (y no atajos de una tecla) a propósito: los lectores de
+Durante la partida hay cuatro **botones de consulta** siempre disponibles —«Dónde
+tengo cada sede», «Dónde están los rivales», «Mis quesos» y «Mis logros»— que
+anuncian tu situación por el lector. Son botones (y no atajos de una tecla) a propósito: los lectores de
 pantalla en modo exploración capturan las teclas sueltas como navegación rápida,
 así que un atajo de una letra nunca les llegaría. Activar un botón sí funciona.
 
@@ -69,7 +69,7 @@ así que un atajo de una letra nunca les llegaría. Activar un botón sí funcio
 |-------|--------|
 | `Tab` / `Mayús+Tab` | Moverse entre los mandos |
 | `Intro` / `Espacio` | Activar el mando o botón enfocado |
-| `B` · `Q` · `L` | Sedes · quesos · logros (**vía secundaria**: solo con el lector en modo foco o sin lector) |
+| `B` · `R` · `Q` · `L` | Sedes · rivales · quesos · logros (**vía secundaria**: solo con el lector en modo foco o sin lector) |
 
 El foco salta solo al mando principal cuando te toca actuar (tirar, elegir
 dirección o responder).

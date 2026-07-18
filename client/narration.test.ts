@@ -8,6 +8,7 @@ import {
   boardRadarSummary,
   describeDirection,
   distanceText,
+  rivalsSummary,
   wedgesSummary,
 } from './narration.js';
 
@@ -15,6 +16,17 @@ const board = buildBoard();
 
 function player(nodeId: string, wedges: CategoryId[] = []): PlayerView {
   return { id: 'p1', name: 'Ana', nodeId, wedges, connected: true };
+}
+
+/** Jugador con id y nombre concretos, para las pruebas de rivales. */
+function named(
+  id: string,
+  name: string,
+  nodeId: string,
+  wedges: CategoryId[] = [],
+  connected = true,
+): PlayerView {
+  return { id, name, nodeId, wedges, connected };
 }
 
 // --- Distancias -------------------------------------------------------------
@@ -113,6 +125,40 @@ test('con los seis quesos, la brújula manda al centro', () => {
   const text = boardRadarSummary(board, player('hq-geografia', todos));
   assert.match(text, /el centro está a 4 casillas/);
   assert.match(text, /Ve a ganar/);
+});
+
+// --- Rivales ----------------------------------------------------------------
+
+test('los rivales se anuncian con su posición y sus quesos, y me excluyen a mí', () => {
+  const players = [
+    named('yo', 'Ana', HUB_ID),
+    named('p2', 'Bea', 'hq-historia', ['historia', 'geografia']),
+    named('p3', 'Solrac', 'ring-3'),
+  ];
+  const text = rivalsSummary(board, players, 'yo');
+  assert.doesNotMatch(text, /Ana/, 'no debe incluirme a mí');
+  assert.match(text, /Bea, en Sede de Historia, 2 quesos/);
+  assert.match(text, /Solrac, en Casilla de .*, sin quesos/);
+});
+
+test('un rival con un solo queso usa el singular', () => {
+  const players = [named('yo', 'Ana', HUB_ID), named('p2', 'Bea', HUB_ID, ['arte'])];
+  assert.match(rivalsSummary(board, players, 'yo'), /Bea,.*, 1 queso\b/);
+});
+
+test('avisa del rival al que le falta un queso para ir a ganar', () => {
+  const cinco = CATEGORIES.slice(0, 5).map((c) => c.id);
+  const players = [named('yo', 'Ana', HUB_ID), named('p2', 'Bea', 'hq-cultura', cinco)];
+  assert.match(rivalsSummary(board, players, 'yo'), /le falta un queso para ir a ganar/);
+});
+
+test('un rival desconectado se marca como tal', () => {
+  const players = [named('yo', 'Ana', HUB_ID), named('p2', 'Bea', HUB_ID, [], false)];
+  assert.match(rivalsSummary(board, players, 'yo'), /Bea,.*desconectado/);
+});
+
+test('sin rivales, lo dice en vez de dar una lista vacía', () => {
+  assert.match(rivalsSummary(board, [named('yo', 'Ana', HUB_ID)], 'yo'), /No hay más jugadores/);
 });
 
 // --- Quesos y logros --------------------------------------------------------

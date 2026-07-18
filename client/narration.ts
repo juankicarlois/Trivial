@@ -99,6 +99,40 @@ export function boardRadarSummary(board: Board, player: PlayerView): string {
   return parts.join(' ');
 }
 
+/**
+ * @brief Resume dónde está cada rival y cómo va, para no depender de ver el
+ *        tablero. Un vidente lo capta de un vistazo: posición de cada ficha,
+ *        quesos conseguidos y quién amenaza con ganar.
+ *
+ * Se conserva el orden de la partida (el mismo de la lista de jugadores y de los
+ * turnos), para que el jugador construya un mapa mental estable.
+ *
+ * @param board Tablero, para nombrar la casilla de cada rival.
+ * @param players Todos los jugadores de la partida.
+ * @param myId Id propio, para excluirse.
+ * @return Frase con cada rival, o aviso si no hay ninguno.
+ */
+export function rivalsSummary(
+  board: Board,
+  players: readonly PlayerView[],
+  myId: string | null,
+): string {
+  const rivals = players.filter((p) => p.id !== myId);
+  if (rivals.length === 0) return 'No hay más jugadores en la sala.';
+
+  const parts = rivals.map((rival) => {
+    const where = board.nodes[rival.nodeId]?.label ?? 'una casilla';
+    const count = rival.wedges.length;
+    const wedges =
+      count === 0 ? 'sin quesos' : count === 1 ? '1 queso' : `${count} quesos`;
+    const nearWin =
+      count === CATEGORIES.length - 1 ? ', ¡le falta un queso para ir a ganar!' : '';
+    const disconnected = rival.connected ? '' : ', desconectado';
+    return `${rival.name}, en ${where}, ${wedges}${nearWin}${disconnected}`;
+  });
+  return `Rivales: ${parts.join('. ')}.`;
+}
+
 /** @brief Resume los quesos propios: cuáles tienes y cuáles te faltan. */
 export function wedgesSummary(player: PlayerView | undefined): string {
   if (!player) return 'Todavía no estás en una partida.';

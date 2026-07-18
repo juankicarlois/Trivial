@@ -18,6 +18,7 @@ import {
   achievementsSummary,
   boardRadarSummary,
   describeDirection,
+  rivalsSummary,
   wedgesSummary,
 } from './narration.js';
 
@@ -586,6 +587,11 @@ function announceRadar(): void {
   announce(player ? boardRadarSummary(board, player) : 'Todavía no estás en una partida.');
 }
 
+/** Anuncia dónde está cada rival y cómo va. */
+function announceRivals(): void {
+  announce(lastState ? rivalsSummary(board, lastState.players, myId) : 'Todavía no estás en una partida.');
+}
+
 /** Anuncia los quesos que tienes y los que te faltan. */
 function announceWedges(): void {
   announce(wedgesSummary(me()));
@@ -599,14 +605,16 @@ function announceAchievements(): void {
 // Botones de consulta: la vía principal. Funcionan con el lector en modo
 // exploración, donde las teclas sueltas se las queda el propio lector.
 $<HTMLButtonElement>('btn-radar').addEventListener('click', announceRadar);
+$<HTMLButtonElement>('btn-rivals').addEventListener('click', announceRivals);
 $<HTMLButtonElement>('btn-wedges').addEventListener('click', announceWedges);
 $<HTMLButtonElement>('btn-achievements').addEventListener('click', announceAchievements);
 
 /**
- * Atajos de teclado como vía secundaria: B situación, Q quesos, L logros. Solo
- * llegan con el lector en modo foco o sin lector; en modo exploración los
- * intercepta el lector (por eso los botones de arriba son lo principal). Se
- * ignoran al escribir en un campo y con modificadores, para no pisar nada.
+ * Atajos de teclado como vía secundaria: B situación, R rivales, Q quesos, L
+ * logros. Solo llegan con el lector en modo foco o sin lector; en modo
+ * exploración los intercepta el lector (por eso los botones de arriba son lo
+ * principal). Se ignoran al escribir en un campo y con modificadores, para no
+ * pisar nada.
  */
 document.addEventListener('keydown', (ev) => {
   if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
@@ -622,6 +630,9 @@ document.addEventListener('keydown', (ev) => {
   } else if (key === 'b') {
     ev.preventDefault();
     announceRadar();
+  } else if (key === 'r') {
+    ev.preventDefault();
+    announceRivals();
   }
 });
 
