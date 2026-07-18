@@ -27,6 +27,11 @@ export type TurnPhase =
   | 'awaitRoll'
   /** Movimiento en curso: el jugador elige dirección paso a paso. */
   | 'moving'
+  /**
+   * El jugador actual ha llegado al centro con los seis quesos: se espera a que
+   * un rival elija la categoría de la pregunta final.
+   */
+  | 'awaitFinalCategory'
   /** Pregunta planteada: se espera respuesta del jugador actual. */
   | 'awaitAnswer'
   /** Partida terminada. */
@@ -102,6 +107,10 @@ export type GameEvent =
   | { kind: 'wedgeEarned'; playerId: string; category: CategoryId }
   | { kind: 'turnChanged'; playerId: string }
   | { kind: 'gameWon'; playerId: string }
+  /** `playerId` va a por la victoria; sus rivales deben elegir la categoría. */
+  | { kind: 'awaitingFinalCategory'; playerId: string }
+  /** Un rival ha elegido la categoría de la pregunta final. */
+  | { kind: 'finalCategoryChosen'; byPlayerId: string; category: CategoryId }
   | { kind: 'achievementUnlocked'; playerId: string; name: string; description: string }
   | { kind: 'packUnlocked'; playerId: string; packName: string };
 
@@ -113,6 +122,8 @@ export type ClientMessage =
   | { type: 'roll' }
   | { type: 'move'; toNodeId: string }
   | { type: 'answer'; optionIndex: number }
+  /** Un rival elige la categoría de la pregunta final del jugador actual. */
+  | { type: 'chooseFinalCategory'; category: CategoryId }
   | { type: 'setPack'; packId: string; enabled: boolean };
 
 /** Mensajes que el servidor envía al cliente. */

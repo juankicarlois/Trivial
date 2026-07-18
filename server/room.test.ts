@@ -98,6 +98,24 @@ test('un pack se desbloquea cuando alguien de la sala tiene su logro', () => {
   );
 });
 
+test('no se puede elegir la categoría final si no toca', () => {
+  const msgs: { type: string; message?: string }[] = [];
+  const room = new Room('TEST', createDefaultRepository(content.packs), content, newStore(), {
+    broadcast: (m) => msgs.push(m as { type: string; message?: string }),
+    sendTo: () => {},
+  });
+  room.addOrReattach('Ana', 'perfil-ana');
+  const bea = room.addOrReattach('Bea', 'perfil-bea');
+  room.start();
+
+  // Nadie está a punto de ganar: elegir categoría final debe rechazarse.
+  room.chooseFinalCategory(bea!, 'ciencia');
+  assert.ok(
+    msgs.some((m) => m.type === 'error' && /pregunta final/.test(m.message ?? '')),
+    'debería rechazar la elección fuera de la fase de pregunta final',
+  );
+});
+
 test('los packs no se pueden cambiar con la partida en curso', () => {
   const store = newStore();
   const pack = content.packs[0];

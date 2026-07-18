@@ -173,6 +173,9 @@ wss.on('connection', (socket: WebSocket) => {
       case 'answer':
         room.answer(meta.playerId, msg.optionIndex);
         break;
+      case 'chooseFinalCategory':
+        room.chooseFinalCategory(meta.playerId, msg.category);
+        break;
       case 'setPack':
         room.setPack(msg.packId, msg.enabled);
         break;

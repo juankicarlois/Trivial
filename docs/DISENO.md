@@ -110,8 +110,10 @@ dentro); **hub** = 6 (un radio por categoría).
 - Caer en una casilla → pregunta de su categoría. Acierto: sigues (regla clásica:
   turno extra al acertar). Fallo: pasa el turno.
 - Caer en una **sede** y acertar → ganas el **queso** de esa categoría.
-- Con los 6 quesos, al llegar al **hub** respondes una pregunta de categoría elegida
-  por los rivales; si aciertas, ganas.
+- Con los 6 quesos, al llegar al **hub** se abre la fase `awaitFinalCategory`:
+  cualquier **rival** elige la categoría de la pregunta final (el primero que la
+  elige la fija). Si aciertas, ganas. Sin rivales conectados (solitario o todos
+  caídos) se elige al azar, para no atascar la partida esperando a nadie.
 
 ## Categorías base (2026)
 
@@ -209,10 +211,8 @@ tenga desbloqueado.
 
 ## Pendiente / ideas
 
-- **Pregunta final del centro:** ahora la categoría es aleatoria; en el Trivial
-  clásico la eligen los rivales.
 - **Tablero visual** (rueda SVG) para quien ve: hoy la vista es funcional pero
-  mínima (texto y listas).
+  mínima (texto y listas). Ya hay geometría de casillas (`BoardNode.position`).
 - Bots, juego fuera de la LAN, más packs.
 
 ## Fuera de alcance por ahora

@@ -232,6 +232,16 @@ function handleEvent(event: GameEvent): void {
       sound.win();
       announce(`¡${nameOf(event.playerId)} gana la partida!`);
       break;
+    case 'awaitingFinalCategory':
+      announce(
+        event.playerId === myId
+          ? '¡Tienes los seis quesos y llegas al centro! Tus rivales van a elegir la categoría de tu pregunta final.'
+          : `${nameOf(event.playerId)} llega al centro con los seis quesos. Elegid la categoría de su pregunta final.`,
+      );
+      break;
+    case 'finalCategoryChosen':
+      announce(`${nameOf(event.byPlayerId)} elige ${categoryById(event.category).name} para la pregunta final.`);
+      break;
     case 'achievementUnlocked':
       sound.achievement();
       announce(
@@ -464,6 +474,28 @@ function renderActions(state: GameView): void {
     focusTarget = again;
   } else if (state.phase === 'awaitAnswer' && state.question) {
     renderQuestion(state, iAmCurrent, (btn) => (focusTarget = btn));
+  } else if (state.phase === 'awaitFinalCategory') {
+    // La categoría de la pregunta final la eligen los rivales, no quien va a
+    // ganar: por eso este caso va antes del "esperando" genérico de no-turno.
+    const winner = state.players[state.currentPlayerIndex];
+    if (iAmCurrent) {
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = 'Tienes los seis quesos. Tus rivales eligen la categoría de tu pregunta final…';
+      actions.append(hint);
+    } else {
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = `${winner?.name ?? 'El líder'} va a por la victoria. Elige la categoría de su pregunta final:`;
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      CATEGORIES.forEach((cat, i) => {
+        const btn = button(cat.name, () => net.send({ type: 'chooseFinalCategory', category: cat.id }));
+        if (i === 0) focusTarget = btn;
+        opts.append(btn);
+      });
+      actions.append(hint, opts);
+    }
   } else if (!iAmCurrent) {
     const wait = document.createElement('p');
     wait.className = 'hint';

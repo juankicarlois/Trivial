@@ -51,7 +51,8 @@ npm test               # tests del tablero y del motor
 - Al caer en una casilla respondes una **pregunta** de su categoría (opción
   múltiple). Si aciertas, vuelves a tirar; si fallas, pasa el turno.
 - Acertar en una **sede** de categoría te da su **queso**.
-- Con los 6 quesos, vuelve al centro y acierta la pregunta final para **ganar**.
+- Con los 6 quesos, vuelve al centro: **tus rivales eligen la categoría** de la
+  pregunta final (para ponértelo difícil) y, si aciertas, **ganas**.
 - La pregunta la ve **toda la mesa**, pero solo contesta quien tiene el turno. Al
   fallar se revela la respuesta correcta.
 - Dentro de una partida **no se repite ninguna pregunta**, se acierte o no. Cada

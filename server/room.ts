@@ -158,14 +158,25 @@ export class Room {
     }
 
     // En partida, si se va justo el jugador con el turno, hay que pasarlo o la
-    // partida se queda clavada: nadie más podría tirar. Se descarta cualquier
+    // partida se queda clavada: nadie más podría actuar. Se descarta cualquier
     // acción a medias (movimiento o pregunta) y pasa al siguiente conectado.
     const gameActive =
-      this.phase === 'awaitRoll' || this.phase === 'moving' || this.phase === 'awaitAnswer';
+      this.phase === 'awaitRoll' ||
+      this.phase === 'moving' ||
+      this.phase === 'awaitAnswer' ||
+      this.phase === 'awaitFinalCategory';
     if (gameActive && index === this.currentPlayerIndex && this.hasConnectedPlayers()) {
       this.movement = null;
       this.question = null;
       this.nextTurn();
+      return;
+    }
+
+    // Si se cae un rival mientras elegía la categoría de la pregunta final y ya
+    // no queda ningún rival que pueda elegir, se resuelve al azar para que el
+    // líder (que sigue conectado) pueda jugar su turno de victoria.
+    if (this.phase === 'awaitFinalCategory' && this.connectedRivals().length === 0) {
+      this.askQuestion(this.randomCategory(), true);
       return;
     }
     this.sync();
@@ -433,9 +444,7 @@ export class Room {
 
     if (node.kind === 'hub') {
       if (player.wedges.length === CATEGORIES.length) {
-        // Pregunta final: en el futuro la categoría la elegirán los rivales.
-        const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)].id;
-        this.askQuestion(category, true);
+        this.beginFinalQuestion();
       } else {
         // Centro sin todos los quesos: casilla libre, se vuelve a tirar.
         this.phase = 'awaitRoll';
@@ -445,6 +454,50 @@ export class Room {
     }
 
     this.askQuestion(node.category!, false);
+  }
+
+  /**
+   * Arranca la pregunta final. Como en el Trivial de mesa, la categoría la
+   * eligen los rivales (para poner difícil al líder). Si no hay rivales
+   * conectados —partida en solitario o todos caídos— se elige al azar, para no
+   * dejar la partida atascada esperando una elección que nadie puede hacer.
+   */
+  private beginFinalQuestion(): void {
+    if (this.connectedRivals().length === 0) {
+      this.askQuestion(this.randomCategory(), true);
+      return;
+    }
+    this.phase = 'awaitFinalCategory';
+    this.emit({ kind: 'awaitingFinalCategory', playerId: this.current().id });
+    this.sync();
+  }
+
+  /**
+   * @brief Un rival elige la categoría de la pregunta final.
+   * @param playerId Rival que elige.
+   * @param category Categoría elegida.
+   *
+   * La elige quien NO va a por la victoria: el jugador del turno no puede
+   * escoger su propia pregunta.
+   */
+  chooseFinalCategory(playerId: string, category: CategoryId): void {
+    if (this.phase !== 'awaitFinalCategory') return this.reject('No hay pregunta final pendiente.');
+    if (this.isCurrent(playerId)) return this.reject('La categoría la eligen tus rivales, no tú.');
+    const chooser = this.players.find((p) => p.id === playerId);
+    if (!chooser || !chooser.connected) return this.reject('No puedes elegir ahora.');
+    if (!CATEGORIES.some((c) => c.id === category)) return this.reject('Categoría desconocida.');
+
+    this.emit({ kind: 'finalCategoryChosen', byPlayerId: playerId, category });
+    this.askQuestion(category, true);
+  }
+
+  /** Rivales del jugador del turno que siguen conectados. */
+  private connectedRivals(): InternalPlayer[] {
+    return this.players.filter((p, index) => index !== this.currentPlayerIndex && p.connected);
+  }
+
+  private randomCategory(): CategoryId {
+    return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)].id;
   }
 
   private askQuestion(category: CategoryId, forWin: boolean): void {
