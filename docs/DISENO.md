@@ -209,11 +209,21 @@ tenga desbloqueado.
 - **Fase 3:** bots IA con dificultad; juego por internet (abrir puerto / túnel);
   más contenido y herramienta de autoría.
 
+## Tablero visual
+
+`client/board_view.ts` dibuja la rueda como un **SVG** a partir de
+`BoardNode.position` (mismo origen que el audio posicional): anillo, radios,
+sedes con el color de su categoría y su nombre, y las fichas de los jugadores
+(inicial + color; la propia resaltada, la del turno con halo; las que comparten
+casilla se reparten alrededor del punto). Es **complemento para quien ve** y se
+marca `aria-hidden`: la misma información llega al lector por los anuncios, la
+lista de jugadores y las consultas.
+
 ## Pendiente / ideas
 
-- **Tablero visual** (rueda SVG) para quien ve: hoy la vista es funcional pero
-  mínima (texto y listas). Ya hay geometría de casillas (`BoardNode.position`).
 - Bots, juego fuera de la LAN, más packs.
+- Que el tablero visual permita también **hacer clic** para elegir dirección
+  (hoy la interacción es solo por los botones de texto).
 
 ## Fuera de alcance por ahora
 

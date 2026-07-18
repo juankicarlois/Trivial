@@ -13,6 +13,7 @@ import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.
 import type { AchievementView, GameEvent, GameView, PlayerView } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
+import { BoardView } from './board_view.js';
 import { loadProfileId } from './identity.js';
 import {
   achievementsSummary,
@@ -58,6 +59,9 @@ const packsSection = $('packs-section');
 const packsList = $('packs');
 const achievementsTitle = $('achievements-title');
 const achievementsList = $('achievements');
+
+/** Tablero visual (rueda SVG); complemento para quien ve, oculto al lector. */
+const boardView = new BoardView(boardPanel, board);
 
 // --- Estado local -----------------------------------------------------------
 
@@ -448,10 +452,7 @@ function buildWedges(earned: CategoryId[]): HTMLElement {
 }
 
 function renderBoard(state: GameView): void {
-  const current = state.players[state.currentPlayerIndex];
-  boardPanel.textContent = current
-    ? `Ficha en juego: ${current.name} en ${board.nodes[current.nodeId]?.label ?? ''}.`
-    : '';
+  boardView.update(state, myId);
 }
 
 // --- Acciones ---------------------------------------------------------------

@@ -98,7 +98,7 @@ que te falta, de más cerca a más lejos. Tiene en cuenta el atajo por el centro
 ```
 shared/        Tipos, tablero (grafo de la rueda), protocolo y categorías (cliente+servidor)
 server/        Servidor HTTP + WebSocket, salas, reglas del juego, banco de preguntas
-client/        Interfaz accesible (DOM), audio (Web Audio) y red
+client/        Interfaz accesible (DOM), tablero visual (SVG), audio (Web Audio) y red
 content/       Preguntas, packs temáticos y logros, en JSON autorable
 public/        HTML, estilos, cliente compilado (app.js) y sonidos
 public/sounds/ Muestras de audio (dado, pasos, acierto, queso, logro, victoria…)

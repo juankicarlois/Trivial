@@ -166,6 +166,26 @@ kbd {
 
 .board { margin: 1rem 0; }
 
+/* Tablero visual (rueda SVG). Complemento para quien ve; el lector lo ignora. */
+.board-svg {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  margin: 0 auto;
+}
+.board-ring { fill: none; stroke: var(--panel-2); stroke-width: 2; }
+.board-spoke { stroke: var(--panel-2); stroke-width: 2; }
+.board-node { stroke: var(--bg); stroke-width: 1; }
+.board-hq { stroke: var(--text); stroke-width: 1.5; }
+.board-hub { fill: var(--muted); stroke: var(--text); stroke-width: 1.5; }
+.board-label { fill: var(--muted); font-size: 11px; font-weight: 600; }
+.board-token-dot { stroke: #ffffff; stroke-width: 1.5; }
+.board-token-dot.me { stroke-width: 3; }
+.board-token-dot.offline { opacity: 0.4; }
+.board-token-halo { fill: none; stroke: var(--focus); stroke-width: 2.5; }
+.board-token-label { fill: #ffffff; font-size: 9px; font-weight: 700; }
+
 #actions { display: grid; gap: 0.6rem; margin-top: 0.5rem; }
 .action-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .question-text { font-size: 1.2rem; font-weight: 600; }
