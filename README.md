@@ -37,8 +37,33 @@ En el vestíbulo puedes **añadir bots** (fácil, normal o difícil) para rellen
 mesa o jugar en solitario: el servidor los conduce (tiran, se mueven y responden
 solos, a un ritmo seguible). La dificultad marca su probabilidad de acertar.
 
-> Para que juegue alguien **fuera** de tu red harían falta pasos extra (abrir puerto
-> del router o un túnel tipo tailscale/ngrok). Es una fase posterior.
+### Jugar por internet (fuera de tu red)
+
+Sin desplegar nada en ningún servidor: tu PC sigue siendo el servidor y un **túnel**
+le da una URL pública temporal. Se usa [`cloudflared`](https://github.com/cloudflare/cloudflared)
+(gratis, sin registro para el modo rápido):
+
+```bash
+winget install Cloudflare.cloudflared   # instalar una sola vez
+```
+
+Después, cada vez que quieras jugar por internet, con el servidor ya levantado
+(`npm run dev`), en **otra terminal**:
+
+```bash
+npm run tunnel
+```
+
+Imprime una URL tipo `https://algo-random.trycloudflare.com`: esa es la que
+compartes (en privado) con quien vaya a jugar. Tú sigues entrando por
+`http://localhost:3000`. Al cerrar el túnel (Ctrl+C) la URL desaparece.
+
+**Ten en cuenta:**
+
+- Tu PC debe estar encendido y con el servidor corriendo mientras juguéis.
+- No hay login: cualquiera con la URL puede entrar. La URL es aleatoria e
+  imposible de adivinar, pero **compártela solo con quien quieras**.
+- En el modo rápido la URL cambia cada vez que arrancas el túnel.
 
 ### Otros comandos
 
