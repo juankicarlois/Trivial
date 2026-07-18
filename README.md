@@ -111,6 +111,11 @@ con paneo estéreo en el movimiento de la ficha para reforzar la dirección. Cad
 sonido tiene su anuncio de texto equivalente: el juego funciona igual sin audio
 (si una muestra falta o el navegador no la decodifica, simplemente no suena).
 
+Las muestras están **niveladas** para que ninguna retumbe ni desaparezca: los
+sonidos con cuerpo se normalizaron por loudness a ~-17 LUFS (ffmpeg `loudnorm`) y
+los muy cortos por pico a -1,5 dBFS. Si añades o sustituyes un sonido, conviene
+nivelarlo igual.
+
 > ⚠️ **Procedencia y licencia.** Las muestras incluidas provienen de la
 > plataforma de audiojuegos **PlayPalace** y se usan aquí de forma provisional.
 > Antes de distribuir el juego públicamente hay que **verificar su licencia** o

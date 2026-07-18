@@ -15,7 +15,6 @@ const SOUND_FILES = {
   dice: 'dice.ogg',
   step1: 'step1.ogg',
   step2: 'step2.ogg',
-  step3: 'step3.ogg',
   correct: 'correct.ogg',
   wrong: 'wrong.ogg',
   wedge: 'wedge.ogg',
@@ -79,10 +78,10 @@ export class SoundEngine {
     this.play('dice');
   }
 
-  /** Paso de ficha; `pan` sitúa el sonido según la dirección, y rota entre las
-   * tres variantes para que un recorrido largo no suene monótono. */
+  /** Paso de ficha; `pan` sitúa el sonido según la dirección, y alterna dos
+   * variantes (como pisadas) para que un recorrido largo no suene monótono. */
   move(pan = 0): void {
-    const variants: SoundName[] = ['step1', 'step2', 'step3'];
+    const variants: SoundName[] = ['step1', 'step2'];
     this.play(variants[this.stepIndex % variants.length], pan);
     this.stepIndex += 1;
   }
