@@ -54,9 +54,12 @@ Después, cada vez que quieras jugar por internet, con el servidor ya levantado
 npm run tunnel
 ```
 
-Imprime una URL tipo `https://algo-random.trycloudflare.com`: esa es la que
-compartes (en privado) con quien vaya a jugar. Tú sigues entrando por
-`http://localhost:3000`. Al cerrar el túnel (Ctrl+C) la URL desaparece.
+Imprime una URL tipo `https://algo-random.trycloudflare.com` y **la copia al
+portapapeles** (solo tienes que pegarla con `Ctrl+V` a quien vaya a jugar; que la
+abra en su navegador y entre con el mismo código de sala que tú). La salida es
+limpia y sin adornos, pensada para leerse con lector de pantalla. Tú sigues
+entrando por `http://localhost:3000`. Al cerrar el túnel (Ctrl+C) la URL
+desaparece.
 
 **Ten en cuenta:**
 
