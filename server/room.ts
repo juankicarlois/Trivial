@@ -424,6 +424,11 @@ export class Room {
       player.wedges.push(node.category);
       if (!player.isBot) this.profileOf(player).stats.wedgesEarned += 1;
       this.emit({ kind: 'wedgeEarned', playerId, category: node.category });
+      // Completar los seis cambia el objetivo (ahora hay que volver al centro):
+      // hay que decirlo, o el jugador sigue sin saber que ya va a por la victoria.
+      if (player.wedges.length === CATEGORIES.length) {
+        this.emit({ kind: 'allWedgesEarned', playerId });
+      }
     }
 
     this.saveProgressOf(player);

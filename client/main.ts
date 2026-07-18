@@ -229,6 +229,13 @@ function handleEvent(event: GameEvent): void {
       sound.wedge();
       announce(`${nameOf(event.playerId)} gana el queso de ${categoryById(event.category).name}.`);
       break;
+    case 'allWedgesEarned':
+      announce(
+        event.playerId === myId
+          ? '¡Ya tienes los seis quesos! Ahora vuelve al centro de la rueda: al caer justo en él te harán la pregunta final para ganar.'
+          : `${nameOf(event.playerId)} ya tiene los seis quesos y va camino del centro a por la victoria.`,
+      );
+      break;
     case 'turnLimitReached':
       announce(
         event.playerId === myId
@@ -236,10 +243,19 @@ function handleEvent(event: GameEvent): void {
           : `${nameOf(event.playerId)} encadena ${event.limit} aciertos y cede la vez.`,
       );
       break;
-    case 'turnChanged':
+    case 'turnChanged': {
       if (event.playerId === myId) sound.turn(); // aviso sonoro de que te toca
-      announce(event.playerId === myId ? 'Es tu turno.' : `Turno de ${nameOf(event.playerId)}.`);
+      if (event.playerId !== myId) {
+        announce(`Turno de ${nameOf(event.playerId)}.`);
+        break;
+      }
+      // Con los seis quesos se recuerda el objetivo en cada turno: sin el
+      // tablero a la vista es fácil olvidar que ya solo falta llegar al centro.
+      const yo = me();
+      const conTodos = yo != null && yo.wedges.length === CATEGORIES.length;
+      announce(conTodos ? 'Es tu turno. Tienes los seis quesos: ve al centro.' : 'Es tu turno.');
       break;
+    }
     case 'gameWon':
       sound.win();
       announce(`¡${nameOf(event.playerId)} gana la partida!`);
@@ -405,10 +421,21 @@ function renderStatus(state: GameView): void {
     case 'gameOver':
       text = state.winnerId ? `Fin de la partida. Gana ${nameOf(state.winnerId)}.` : 'Fin de la partida.';
       break;
-    default:
-      text = current
-        ? `Turno de ${current.id === myId ? 'ti' : current.name}.`
-        : 'Partida en curso.';
+    default: {
+      if (!current) {
+        text = 'Partida en curso.';
+        break;
+      }
+      text = `Turno de ${current.id === myId ? 'ti' : current.name}.`;
+      // Quien tiene los seis quesos ya va a por la victoria: se indica aquí para
+      // que el objetivo esté siempre a la vista, no solo en el aviso del momento.
+      if (current.wedges.length === CATEGORIES.length) {
+        text +=
+          current.id === myId
+            ? ' Tienes los seis quesos: ve al centro para la pregunta final.'
+            : ' ¡Tiene los seis quesos y va a por la victoria!';
+      }
+    }
   }
   statusLine.textContent = text;
 }

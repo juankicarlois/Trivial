@@ -110,6 +110,8 @@ export type GameEvent =
   /** `correctText` permite a la mesa saber cuál era la respuesta buena. */
   | { kind: 'answered'; playerId: string; correct: boolean; correctText: string }
   | { kind: 'wedgeEarned'; playerId: string; category: CategoryId }
+  /** Ha completado los seis quesos: su objetivo pasa a ser volver al centro. */
+  | { kind: 'allWedgesEarned'; playerId: string }
   | { kind: 'turnChanged'; playerId: string }
   /** Ha alcanzado el tope de aciertos seguidos en un turno y cede la vez. */
   | { kind: 'turnLimitReached'; playerId: string; limit: number }
