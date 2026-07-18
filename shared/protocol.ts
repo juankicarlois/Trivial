@@ -8,6 +8,7 @@
 
 import type { CategoryId } from './categories.js';
 import type { ProfileStats } from './progress.js';
+import type { BotDifficulty } from './bot.js';
 
 /** Pregunta tal como la ve el cliente: sin la respuesta correcta. */
 export interface PublicQuestion {
@@ -45,6 +46,10 @@ export interface PlayerView {
   /** Categorías cuyo queso ya ha ganado. */
   wedges: CategoryId[];
   connected: boolean;
+  /** true si lo maneja el servidor (no es una persona). */
+  isBot: boolean;
+  /** Dificultad, solo si es bot. */
+  difficulty?: BotDifficulty;
 }
 
 /** Un pack temático tal como lo ve la sala. */
@@ -124,6 +129,10 @@ export type ClientMessage =
   | { type: 'answer'; optionIndex: number }
   /** Un rival elige la categoría de la pregunta final del jugador actual. */
   | { type: 'chooseFinalCategory'; category: CategoryId }
+  /** Añade un bot a la sala (solo en el vestíbulo). */
+  | { type: 'addBot'; difficulty: BotDifficulty }
+  /** Quita un bot de la sala (solo en el vestíbulo). */
+  | { type: 'removeBot'; playerId: string }
   | { type: 'setPack'; packId: string; enabled: boolean };
 
 /** Mensajes que el servidor envía al cliente. */

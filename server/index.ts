@@ -176,6 +176,12 @@ wss.on('connection', (socket: WebSocket) => {
       case 'chooseFinalCategory':
         room.chooseFinalCategory(meta.playerId, msg.category);
         break;
+      case 'addBot':
+        room.addBot(msg.difficulty);
+        break;
+      case 'removeBot':
+        room.removeBot(msg.playerId);
+        break;
       case 'setPack':
         room.setPack(msg.packId, msg.enabled);
         break;
@@ -193,8 +199,11 @@ wss.on('connection', (socket: WebSocket) => {
       entry.byPlayer.delete(meta.playerId);
       entry.room.markDisconnected(meta.playerId);
     }
-    // Recoge salas vacías.
-    if (entry.sockets.size === 0 && !entry.room.hasConnectedPlayers()) {
+    // Recoge salas sin nadie: sin sockets y sin personas conectadas (los bots no
+    // cuentan, o una sala llena de bots no se recogería nunca). Se descartan sus
+    // temporizadores pendientes.
+    if (entry.sockets.size === 0 && !entry.room.hasConnectedHumans()) {
+      entry.room.dispose();
       rooms.delete(meta.roomCode);
     }
   });

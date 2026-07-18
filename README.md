@@ -33,6 +33,10 @@ Desde la red local:   http://192.168.1.50:3000
 Para jugar juntos, ambos escribís **el mismo código de sala** (por ejemplo `CASA`)
 y vuestro nombre. El primero que pulse «Empezar partida» arranca la ronda.
 
+En el vestíbulo puedes **añadir bots** (fácil, normal o difícil) para rellenar
+mesa o jugar en solitario: el servidor los conduce (tiran, se mueven y responden
+solos, a un ritmo seguible). La dificultad marca su probabilidad de acertar.
+
 > Para que juegue alguien **fuera** de tu red harían falta pasos extra (abrir puerto
 > del router o un túnel tipo tailscale/ngrok). Es una fase posterior.
 

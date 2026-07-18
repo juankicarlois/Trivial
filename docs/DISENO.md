@@ -219,9 +219,31 @@ casilla se reparten alrededor del punto). Es **complemento para quien ve** y se
 marca `aria-hidden`: la misma información llega al lector por los anuncios, la
 lista de jugadores y las consultas.
 
+## Bots
+
+El servidor es la autoridad, así que un **bot es un jugador que el propio
+servidor conduce**. En el vestíbulo se añaden/quitan (`addBot`/`removeBot`, solo
+antes de empezar). Cada bot es un `InternalPlayer` con `isBot` y `difficulty`,
+sin socket ni perfil (no acumula estadísticas ni logros).
+
+- **Decisiones** en `server/bot.ts` (puras y testeables): a qué dirección mover
+  (prioriza coger un queso que falta, si no se acerca a la sede que falta más
+  cercana, y va al centro con los seis), qué responder (acierta con probabilidad
+  `botAccuracy(difficulty)` — fácil 0.4, normal 0.65, difícil 0.9) y qué
+  categoría elegir en la pregunta final.
+- **Ritmo:** la sala programa la acción del bot con un retardo (`Scheduler`
+  inyectable, `setTimeout` por defecto) para que la mesa pueda seguirlo. Cada
+  estado ya asentado (`sync`) es un punto de decisión: si le toca a un bot, se
+  programa. Se recalcula al dispararse, por si el estado cambió (una desconexión).
+- **Presencia:** los bots no cuentan como personas (`hasConnectedHumans`), así
+  que una sala que se queda solo con bots se recoge igual (y se descartan sus
+  temporizadores con `dispose`).
+- En la pregunta final, si todos los rivales son bots, elige un bot; si hay algún
+  rival humano, se le deja elegir a él.
+
 ## Pendiente / ideas
 
-- Bots, juego fuera de la LAN, más packs.
+- Juego fuera de la LAN (abrir puerto / túnel), más packs.
 - Que el tablero visual permita también **hacer clic** para elegir dirección
   (hoy la interacción es solo por los botones de texto).
 

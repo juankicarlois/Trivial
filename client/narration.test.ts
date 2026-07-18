@@ -15,7 +15,7 @@ import {
 const board = buildBoard();
 
 function player(nodeId: string, wedges: CategoryId[] = []): PlayerView {
-  return { id: 'p1', name: 'Ana', nodeId, wedges, connected: true };
+  return { id: 'p1', name: 'Ana', nodeId, wedges, connected: true, isBot: false };
 }
 
 /** Jugador con id y nombre concretos, para las pruebas de rivales. */
@@ -26,7 +26,7 @@ function named(
   wedges: CategoryId[] = [],
   connected = true,
 ): PlayerView {
-  return { id, name, nodeId, wedges, connected };
+  return { id, name, nodeId, wedges, connected, isBot: false };
 }
 
 // --- Distancias -------------------------------------------------------------

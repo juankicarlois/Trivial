@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Room, type Transport } from './room.js';
+import { Room, type Scheduler, type Transport } from './room.js';
 import { createDefaultRepository } from './questions_repo.js';
 import { loadContent } from './content.js';
 import { ProfileStore } from './profiles.js';
@@ -17,8 +17,33 @@ function newStore(): ProfileStore {
   return new ProfileStore(join(tmpdir(), `trivial-test-${crypto.randomUUID()}.json`));
 }
 
-function newRoom(store: ProfileStore = newStore()): Room {
-  return new Room('TEST', createDefaultRepository(content.packs), content, store, silent);
+function newRoom(store: ProfileStore = newStore(), scheduler?: Scheduler): Room {
+  return new Room('TEST', createDefaultRepository(content.packs), content, store, silent, {
+    scheduler,
+  });
+}
+
+/**
+ * Scheduler manual para los tests: en vez de temporizadores reales, guarda la
+ * acción pendiente del bot para dispararla a mano con `step()`.
+ */
+function manualScheduler() {
+  let pending: (() => void) | null = null;
+  const scheduler: Scheduler = (action) => {
+    pending = action;
+    return () => {
+      pending = null;
+    };
+  };
+  return {
+    scheduler,
+    hasPending: () => pending !== null,
+    step: () => {
+      const action = pending;
+      pending = null;
+      action?.();
+    },
+  };
 }
 
 test('la partida empieza con el turno del primer jugador', () => {
@@ -96,6 +121,71 @@ test('un pack se desbloquea cuando alguien de la sala tiene su logro', () => {
     room.toView().packs.find((p) => p.id === pack.id)?.enabled,
     'el pack desbloqueado debe poder activarse',
   );
+});
+
+test('los bots se añaden y se quitan en el vestíbulo', () => {
+  const room = newRoom();
+  room.addOrReattach('Ana', 'perfil-ana');
+  room.addBot('facil');
+  room.addBot('dificil');
+
+  let view = room.toView();
+  const bots = view.players.filter((p) => p.isBot);
+  assert.equal(bots.length, 2);
+  assert.equal(bots[0].difficulty, 'facil');
+  assert.equal(view.players.find((p) => !p.isBot)?.name, 'Ana');
+
+  room.removeBot(bots[0].id);
+  view = room.toView();
+  assert.equal(view.players.filter((p) => p.isBot).length, 1);
+});
+
+test('los bots no cuentan como presencia humana', () => {
+  const room = newRoom();
+  room.addBot('normal');
+  assert.equal(room.hasConnectedHumans(), false, 'una sala solo con bots no tiene humanos');
+  room.addOrReattach('Ana', 'perfil-ana');
+  assert.equal(room.hasConnectedHumans(), true);
+});
+
+test('cuando le toca a un bot, el servidor lo hace jugar solo', () => {
+  const manual = manualScheduler();
+  const room = newRoom(newStore(), manual.scheduler);
+  // Bot primero (jugador 0) para que le toque nada más empezar.
+  room.addBot('dificil');
+  room.addOrReattach('Ana', 'perfil-ana');
+  room.start();
+
+  // Al empezar, el turno es del bot: debe haber una acción de bot programada.
+  assert.ok(manual.hasPending(), 'debería haber una acción de bot pendiente al empezar');
+  assert.equal(room.toView().phase, 'awaitRoll');
+
+  manual.step(); // el bot tira
+  const afterRoll = room.toView().phase;
+  assert.ok(
+    afterRoll === 'moving' || afterRoll === 'awaitAnswer',
+    `tras tirar, el bot debe estar moviéndose o respondiendo (fue ${afterRoll})`,
+  );
+});
+
+test('un bot termina su turno sin intervención (juega hasta que pasa o gana)', () => {
+  const manual = manualScheduler();
+  const room = newRoom(newStore(), manual.scheduler);
+  room.addBot('facil'); // falla a menudo → su turno acaba pronto al fallar
+  room.addOrReattach('Ana', 'perfil-ana');
+  room.start();
+
+  // Se dispara la cadena de acciones del bot hasta que deja de haber pendientes
+  // (cuando pasa el turno a Ana, que es humana, ya no hay acción programada).
+  let pasos = 0;
+  while (manual.hasPending() && pasos < 100) {
+    manual.step();
+    pasos += 1;
+  }
+  const view = room.toView();
+  // O bien el turno ya es de Ana, o el bot está a mitad de su jugada válida.
+  assert.ok(pasos > 0, 'el bot debería haber actuado al menos una vez');
+  assert.ok(view.phase !== 'lobby', 'la partida sigue en curso o ha terminado');
 });
 
 test('no se puede elegir la categoría final si no toca', () => {

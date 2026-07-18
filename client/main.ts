@@ -10,6 +10,7 @@
 
 import { buildBoard } from '../shared/board.js';
 import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.js';
+import { BOT_DIFFICULTIES, type BotDifficulty } from '../shared/bot.js';
 import type { AchievementView, GameEvent, GameView, PlayerView } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
@@ -413,7 +414,12 @@ function renderPlayers(state: GameView): void {
 
     const name = document.createElement('span');
     name.className = 'name';
-    name.textContent = player.name + (player.id === myId ? ' (tú)' : '');
+    const botTag = player.isBot
+      ? ` (bot${player.difficulty ? ', ' + difficultyLabel(player.difficulty) : ''})`
+      : player.id === myId
+        ? ' (tú)'
+        : '';
+    name.textContent = player.name + botTag;
 
     const meta = document.createElement('span');
     meta.className = 'meta';
@@ -421,8 +427,21 @@ function renderPlayers(state: GameView): void {
     meta.textContent = `${player.connected ? '' : 'desconectado · '}${nodeLabel}`;
 
     li.append(name, meta, buildWedges(player.wedges));
+
+    // En el vestíbulo, los bots se pueden quitar.
+    if (player.isBot && state.phase === 'lobby') {
+      const remove = button('Quitar', () => net.send({ type: 'removeBot', playerId: player.id }), 'secondary');
+      remove.setAttribute('aria-label', `Quitar ${player.name}`);
+      li.append(remove);
+    }
+
     playersList.append(li);
   });
+}
+
+/** Nombre de una dificultad de bot. */
+function difficultyLabel(id: BotDifficulty): string {
+  return BOT_DIFFICULTIES.find((d) => d.id === id)?.label ?? id;
 }
 
 /** Puntos de color por categoría, con etiqueta accesible del recuento. */
@@ -458,6 +477,9 @@ function renderBoard(state: GameView): void {
 // --- Acciones ---------------------------------------------------------------
 
 function renderActions(state: GameView): void {
+  // Repintar destruye los mandos: se recuerda cuál tenía el foco para devolvérselo
+  // si el conjunto de acciones no cambia (p. ej. al añadir un bot en el vestíbulo).
+  const focusedId = document.activeElement instanceof HTMLElement ? document.activeElement.id : '';
   actions.replaceChildren();
   const iAmCurrent = state.players[state.currentPlayerIndex]?.id === myId;
   let focusTarget: HTMLElement | null = null;
@@ -465,9 +487,20 @@ function renderActions(state: GameView): void {
   if (state.phase === 'lobby') {
     const hint = document.createElement('p');
     hint.className = 'hint';
-    hint.textContent = 'Comparte el código de la sala. Cuando estéis todos, pulsa Empezar.';
+    hint.textContent = 'Comparte el código de la sala. Añade bots para rellenar mesa o jugar en solitario. Cuando estéis todos, pulsa Empezar.';
+
+    const bots = document.createElement('div');
+    bots.className = 'action-row';
+    bots.setAttribute('role', 'group');
+    bots.setAttribute('aria-label', 'Añadir bot');
+    for (const diff of BOT_DIFFICULTIES) {
+      const botBtn = button(`Añadir bot ${diff.label.toLowerCase()}`, () => net.send({ type: 'addBot', difficulty: diff.id }), 'secondary');
+      botBtn.id = `add-bot-${diff.id}`; // id estable para devolver el foco al repintar
+      bots.append(botBtn);
+    }
+
     const startBtn = button('Empezar partida', () => net.send({ type: 'start' }));
-    actions.append(hint, startBtn);
+    actions.append(hint, bots, startBtn);
     focusTarget = startBtn;
   } else if (state.phase === 'gameOver') {
     const again = button('Jugar otra vez', () => net.send({ type: 'start' }));
@@ -524,7 +557,7 @@ function renderActions(state: GameView): void {
     actions.append(h, row);
   }
 
-  manageFocus(state, focusTarget);
+  manageFocus(state, focusTarget, focusedId);
 }
 
 /**
@@ -587,7 +620,7 @@ function renderQuestion(
  * Mueve el foco al mando principal solo cuando cambia el conjunto de acciones,
  * para no robar el foco en cada actualización de estado.
  */
-function manageFocus(state: GameView, target: HTMLElement | null): void {
+function manageFocus(state: GameView, target: HTMLElement | null, previousFocusId: string): void {
   const key = [
     state.phase,
     state.players[state.currentPlayerIndex]?.id ?? '',
@@ -597,6 +630,10 @@ function manageFocus(state: GameView, target: HTMLElement | null): void {
   ].join('|');
   if (key !== lastActionKey && target) {
     target.focus();
+  } else if (key === lastActionKey && previousFocusId) {
+    // Mismo conjunto de acciones (p. ej. se añadió un bot): devolver el foco al
+    // mando que lo tenía, que el repintado ha destruido.
+    document.getElementById(previousFocusId)?.focus();
   }
   lastActionKey = key;
 }

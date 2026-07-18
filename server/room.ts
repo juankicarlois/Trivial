@@ -25,9 +25,20 @@ import type {
   TurnPhase,
 } from '../shared/protocol.js';
 import { legalMoves, rollDie } from './engine.js';
+import { botAnswerIndex, chooseBotFinalCategory, chooseBotMove } from './bot.js';
 import type { QuestionRepository } from './questions_repo.js';
 import type { GameContent } from './content.js';
 import type { Profile, ProfileStore } from './profiles.js';
+import type { BotDifficulty } from '../shared/bot.js';
+
+/**
+ * Programa una acción diferida y devuelve una función para cancelarla (por
+ * defecto, con setTimeout). Inyectable para test.
+ */
+export type Scheduler = (action: () => void, delayMs: number) => () => void;
+
+/** Retardo de las acciones de los bots, para que la mesa las pueda seguir. */
+const BOT_DELAY_MS = 1100;
 
 /** Envío de mensajes a los clientes de la sala. */
 export interface Transport {
@@ -46,6 +57,10 @@ interface InternalPlayer {
   connected: boolean;
   /** Aciertos seguidos en la partida en curso. */
   streak: number;
+  /** true si lo maneja el servidor (bot); los bots no tienen perfil ni logros. */
+  isBot: boolean;
+  /** Dificultad, solo si es bot. */
+  difficulty?: BotDifficulty;
 }
 
 interface Movement {
@@ -74,6 +89,11 @@ export class Room {
   private enabledPacks = new Set<string>();
   /** Preguntas ya planteadas en la partida, para no repetirlas. */
   private askedThisGame = new Set<string>();
+  private readonly schedule: Scheduler;
+  private readonly botDelayMs: number;
+  /** Cancela la próxima acción de bot pendiente, si la hay. */
+  private cancelBot: (() => void) | null = null;
+  private botCounter = 0;
 
   constructor(
     code: string,
@@ -81,12 +101,28 @@ export class Room {
     content: GameContent,
     profiles: ProfileStore,
     transport: Transport,
+    options: { scheduler?: Scheduler; botDelayMs?: number } = {},
   ) {
     this.code = code;
     this.repo = repo;
     this.content = content;
     this.profiles = profiles;
     this.transport = transport;
+    this.schedule =
+      options.scheduler ??
+      ((action, delayMs) => {
+        const handle = setTimeout(action, delayMs);
+        return () => clearTimeout(handle);
+      });
+    this.botDelayMs = options.botDelayMs ?? BOT_DELAY_MS;
+  }
+
+  /** Libera recursos al descartar la sala (temporizadores pendientes). */
+  dispose(): void {
+    if (this.cancelBot) {
+      this.cancelBot();
+      this.cancelBot = null;
+    }
   }
 
   // --- Gestión de jugadores -------------------------------------------------
@@ -97,6 +133,11 @@ export class Room {
 
   hasConnectedPlayers(): boolean {
     return this.players.some((p) => p.connected);
+  }
+
+  /** Personas conectadas (los bots no cuentan como presencia real). */
+  hasConnectedHumans(): boolean {
+    return this.players.some((p) => p.connected && !p.isBot);
   }
 
   /**
@@ -123,6 +164,7 @@ export class Room {
       wedges: [],
       connected: true,
       streak: 0,
+      isBot: false,
     };
     this.players.push(player);
     this.profiles.getOrCreate(profileId, name);
@@ -142,6 +184,41 @@ export class Room {
   sendProfileTo(playerId: string): void {
     const player = this.players.find((p) => p.id === playerId);
     if (player) this.sendProfile(player);
+  }
+
+  /**
+   * @brief Añade un bot a la sala. Solo en el vestíbulo.
+   * @param difficulty Dificultad del bot (afecta a su acierto).
+   */
+  addBot(difficulty: BotDifficulty): void {
+    if (this.phase !== 'lobby') return this.reject('Los bots se añaden antes de empezar.');
+    this.botCounter += 1;
+    const player: InternalPlayer = {
+      id: crypto.randomUUID(),
+      name: `Bot ${this.botCounter}`,
+      profileId: `bot:${crypto.randomUUID()}`,
+      nodeId: this.board.startNodeId,
+      wedges: [],
+      connected: true,
+      streak: 0,
+      isBot: true,
+      difficulty,
+    };
+    this.players.push(player);
+    this.emit({ kind: 'playerJoined', playerId: player.id, name: player.name });
+    this.sync();
+  }
+
+  /**
+   * @brief Quita un bot de la sala. Solo en el vestíbulo.
+   * @param playerId Bot a quitar.
+   */
+  removeBot(playerId: string): void {
+    if (this.phase !== 'lobby') return this.reject('Los bots se quitan antes de empezar.');
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player || !player.isBot) return this.reject('Ese jugador no es un bot.');
+    this.players = this.players.filter((p) => p.id !== playerId);
+    this.sync();
   }
 
   markDisconnected(playerId: string): void {
@@ -293,7 +370,6 @@ export class Room {
     if (this.phase !== 'awaitAnswer' || !this.question) return this.reject('No hay pregunta activa.');
 
     const player = this.current();
-    const profile = this.profileOf(player);
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
     const category = this.question.category;
@@ -301,21 +377,22 @@ export class Room {
     const node = this.board.nodes[player.nodeId];
     this.question = null;
 
-    profile.stats.questionsAnswered += 1;
-    if (correct) {
-      profile.stats.questionsCorrect += 1;
-      profile.stats.correct[category] += 1;
-      player.streak += 1;
-      profile.stats.bestStreak = Math.max(profile.stats.bestStreak, player.streak);
-    } else {
-      player.streak = 0;
+    player.streak = correct ? player.streak + 1 : 0;
+    // Estadísticas y racha se guardan solo para personas: los bots no tienen perfil.
+    if (!player.isBot) {
+      const profile = this.profileOf(player);
+      profile.stats.questionsAnswered += 1;
+      if (correct) {
+        profile.stats.questionsCorrect += 1;
+        profile.stats.correct[category] += 1;
+        profile.stats.bestStreak = Math.max(profile.stats.bestStreak, player.streak);
+      }
     }
 
     this.emit({ kind: 'answered', playerId, correct, correctText });
 
     if (!correct) {
-      this.checkAchievements(player);
-      this.profiles.scheduleSave();
+      this.saveProgressOf(player);
       this.nextTurn();
       return;
     }
@@ -323,27 +400,33 @@ export class Room {
     if (forWin) {
       this.winnerId = player.id;
       this.phase = 'gameOver';
-      for (const p of this.players) this.profileOf(p).stats.gamesPlayed += 1;
-      profile.stats.gamesWon += 1;
+      for (const p of this.players) if (!p.isBot) this.profileOf(p).stats.gamesPlayed += 1;
+      if (!player.isBot) this.profileOf(player).stats.gamesWon += 1;
       this.emit({ kind: 'gameWon', playerId });
-      for (const p of this.players) this.checkAchievements(p);
+      for (const p of this.players) if (!p.isBot) this.checkAchievements(p);
       this.profiles.scheduleSave();
       this.sync();
       return;
     }
 
-    // Acertar en una sede otorga su queso (si aún no se tenía).
+    // Acertar en una sede otorga su queso (aplica también a los bots).
     if (node.kind === 'hq' && node.category && !player.wedges.includes(node.category)) {
       player.wedges.push(node.category);
-      profile.stats.wedgesEarned += 1;
+      if (!player.isBot) this.profileOf(player).stats.wedgesEarned += 1;
       this.emit({ kind: 'wedgeEarned', playerId, category: node.category });
     }
 
-    this.checkAchievements(player);
-    this.profiles.scheduleSave();
+    this.saveProgressOf(player);
     // Acertar da turno extra: el mismo jugador vuelve a tirar.
     this.phase = 'awaitRoll';
     this.sync();
+  }
+
+  /** Comprueba logros y guarda, solo si el jugador es una persona. */
+  private saveProgressOf(player: InternalPlayer): void {
+    if (player.isBot) return;
+    this.checkAchievements(player);
+    this.profiles.scheduleSave();
   }
 
   // --- Progreso -------------------------------------------------------------
@@ -551,6 +634,68 @@ export class Room {
 
   private sync(): void {
     this.transport.broadcast({ type: 'state', state: this.toView() });
+    // Cada estado ya asentado es un punto de decisión: si le toca a un bot,
+    // se programa su acción.
+    this.maybeDriveBot();
+  }
+
+  // --- Bots -----------------------------------------------------------------
+
+  /**
+   * Programa la próxima acción de bot, si el estado actual la requiere. Se
+   * recalcula al dispararse (el estado puede cambiar por una desconexión), así
+   * que solo se guarda el temporizador.
+   */
+  private maybeDriveBot(): void {
+    if (this.cancelBot) {
+      this.cancelBot();
+      this.cancelBot = null;
+    }
+    if (!this.botAction()) return;
+    this.cancelBot = this.schedule(() => {
+      this.cancelBot = null;
+      const action = this.botAction();
+      if (action) action();
+    }, this.botDelayMs);
+  }
+
+  /**
+   * Devuelve la acción que debe ejecutar un bot en el estado actual, o null si
+   * no toca ninguna (turno de una persona, vestíbulo, fin de partida…).
+   */
+  private botAction(): (() => void) | null {
+    const current = this.current();
+
+    if (this.phase === 'awaitRoll' && current?.isBot) {
+      return () => this.roll(current.id);
+    }
+    if (this.phase === 'moving' && current?.isBot && this.movement) {
+      const options = this.movement.options;
+      const steps = this.movement.remaining;
+      return () => {
+        const to = chooseBotMove(this.board, current.nodeId, options, steps, current.wedges);
+        this.move(current.id, to);
+      };
+    }
+    if (this.phase === 'awaitAnswer' && current?.isBot && this.question) {
+      const question = this.question;
+      const difficulty = current.difficulty ?? 'normal';
+      return () => this.answer(current.id, botAnswerIndex(question, difficulty));
+    }
+    if (this.phase === 'awaitFinalCategory') {
+      // La categoría la eligen los rivales. Si hay algún rival humano conectado,
+      // se le deja elegir; si solo hay bots, elige un bot.
+      const humanRival = this.players.some(
+        (p, i) => i !== this.currentPlayerIndex && p.connected && !p.isBot,
+      );
+      if (!humanRival) {
+        const botRival = this.players.find(
+          (p, i) => i !== this.currentPlayerIndex && p.connected && p.isBot,
+        );
+        if (botRival) return () => this.chooseFinalCategory(botRival.id, chooseBotFinalCategory());
+      }
+    }
+    return null;
   }
 
   /** Proyecta el estado interno a la vista pública (sin datos secretos). */
@@ -561,6 +706,8 @@ export class Room {
       nodeId: p.nodeId,
       wedges: [...p.wedges],
       connected: p.connected,
+      isBot: p.isBot,
+      ...(p.difficulty ? { difficulty: p.difficulty } : {}),
     }));
 
     const view: GameView = {
