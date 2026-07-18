@@ -4,6 +4,9 @@ public/app.js.map
 data/
 *.log
 
+# Grafo de conocimiento generado por graphify (se reconstruye en local).
+graphify-out/
+
 # Muestras de audio de terceros (PlayPalace): fuera del repo hasta verificar su
 # licencia o sustituirlas por sonidos propios/libres. Ver README (sección Sonidos).
 public/sounds/*.ogg
