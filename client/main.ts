@@ -573,29 +573,50 @@ function manageFocus(state: GameView, target: HTMLElement | null): void {
   lastActionKey = key;
 }
 
-// --- Atajos de teclado ------------------------------------------------------
+// --- Consultas rápidas (situación, quesos, logros) --------------------------
+
+/** Anuncia dónde tienes cada sede que te falta. */
+function announceRadar(): void {
+  const player = me();
+  announce(player ? boardRadarSummary(board, player) : 'Todavía no estás en una partida.');
+}
+
+/** Anuncia los quesos que tienes y los que te faltan. */
+function announceWedges(): void {
+  announce(wedgesSummary(me()));
+}
+
+/** Anuncia tus logros y el que tienes más a mano. */
+function announceAchievements(): void {
+  announce(achievementsSummary(myAchievements));
+}
+
+// Botones de consulta: la vía principal. Funcionan con el lector en modo
+// exploración, donde las teclas sueltas se las queda el propio lector.
+$<HTMLButtonElement>('btn-radar').addEventListener('click', announceRadar);
+$<HTMLButtonElement>('btn-wedges').addEventListener('click', announceWedges);
+$<HTMLButtonElement>('btn-achievements').addEventListener('click', announceAchievements);
 
 /**
- * Q anuncia tus quesos y L tus logros, en cualquier momento. Se ignoran
- * mientras se escribe en un campo de texto (si no, no se podría teclear una "q"
- * en el nombre) y cuando hay modificadores, para no pisar atajos del navegador
- * o del lector de pantalla.
+ * Atajos de teclado como vía secundaria: B situación, Q quesos, L logros. Solo
+ * llegan con el lector en modo foco o sin lector; en modo exploración los
+ * intercepta el lector (por eso los botones de arriba son lo principal). Se
+ * ignoran al escribir en un campo y con modificadores, para no pisar nada.
  */
 document.addEventListener('keydown', (ev) => {
   if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
   if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
 
   const key = ev.key.toLowerCase();
-  const player = me();
   if (key === 'q') {
     ev.preventDefault();
-    announce(wedgesSummary(player));
+    announceWedges();
   } else if (key === 'l') {
     ev.preventDefault();
-    announce(achievementsSummary(myAchievements));
+    announceAchievements();
   } else if (key === 'b') {
     ev.preventDefault();
-    announce(player ? boardRadarSummary(board, player) : 'Todavía no estás en una partida.');
+    announceRadar();
   }
 });
 

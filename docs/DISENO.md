@@ -50,10 +50,18 @@ Dos piezas lo resuelven, ambas construidas sobre funciones puras del tablero
    inmediata, dónde se cae con los pasos que quedan y qué hay allí (queso que
    falta, pregunta final, casilla libre). Si el camino se bifurca antes de gastar
    los pasos, se dice en vez de prometer un destino que no está decidido.
-2. **Brújula** (tecla `B`, `boardRadarSummary`): posición actual y distancia a
-   cada sede pendiente, de más cerca a más lejos. Usa recorrido en anchura, así
-   que contempla el atajo por el centro (8 casillas cruzando, frente a 21 por el
+2. **Brújula** (`boardRadarSummary`): posición actual y distancia a cada sede
+   pendiente, de más cerca a más lejos. Usa recorrido en anchura, así que
+   contempla el atajo por el centro (8 casillas cruzando, frente a 21 por el
    anillo).
+
+Estas consultas (situación, quesos, logros) se ofrecen como **botones**, no como
+atajos de una tecla. Los lectores de pantalla en **modo exploración** capturan
+las teclas sueltas (`B`, `L`, `Q`, `H`…) como navegación rápida por la página, de
+modo que un atajo de una letra nunca les llega. Activar un botón (Intro/Espacio)
+sí funciona en ese modo. Las teclas se mantienen como vía secundaria (modo foco o
+sin lector), nunca como única. Regla general: **no depender de teclas de un solo
+carácter imprimible para funciones del juego.**
 
 La regla de por dónde se puede avanzar (`forwardMoves`) vive en `shared/` y el
 servidor la usa a través de `legalMoves`: **una sola implementación**. Si el

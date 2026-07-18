@@ -42,12 +42,24 @@
 
         <p id="status" class="status"></p>
 
+        <!--
+          Botones de consulta. Son botones (no atajos de una tecla) a propósito:
+          los lectores de pantalla en modo exploración capturan las teclas
+          sueltas (B, L, Q…) como navegación rápida y nunca llegarían a la
+          página. Activar un botón sí funciona en ese modo.
+        -->
+        <div class="toolbar" role="group" aria-label="Consultas rápidas">
+          <button type="button" id="btn-radar">Dónde tengo cada sede</button>
+          <button type="button" id="btn-wedges">Mis quesos</button>
+          <button type="button" id="btn-achievements">Mis logros</button>
+        </div>
+
         <h2 id="my-wedges-title">Tus quesos</h2>
         <ul id="my-wedges" class="my-wedges"></ul>
         <p class="hint">
-          En cualquier momento: <kbd>Q</kbd> para oír tus quesos, <kbd>B</kbd>
-          para la brújula (a qué distancia tienes cada sede) y <kbd>L</kbd> para
-          tus logros.
+          Usa los botones de arriba para oír tu situación. Si tu lector de
+          pantalla no los intercepta, también valen las teclas <kbd>B</kbd>
+          (sedes), <kbd>Q</kbd> (quesos) y <kbd>L</kbd> (logros).
         </p>
 
         <section id="packs-section" hidden>

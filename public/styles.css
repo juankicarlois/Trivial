@@ -80,6 +80,10 @@ button.secondary { background: var(--panel-2); color: var(--text); }
   padding: 0.75rem 1rem;
 }
 
+/* Botones de consulta rápida (situación, quesos, logros). */
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+.toolbar button { background: var(--panel-2); color: var(--text); }
+
 .players { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
 .player {
   display: flex;
