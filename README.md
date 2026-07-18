@@ -18,6 +18,11 @@ npm install          # instala dependencias
 npm run dev          # compila el cliente y arranca el servidor
 ```
 
+> **Lanzadores de un clic** (`scripts/`, con acceso directo en el escritorio):
+> `jugar-local.bat` arranca el servidor y abre el juego en el navegador (para
+> jugar tú solo o con gente de tu red); `jugar-online.bat` arranca además el
+> túnel para jugar por internet (ver más abajo).
+
 Al arrancar, la consola imprime las direcciones de acceso, por ejemplo:
 
 ```
