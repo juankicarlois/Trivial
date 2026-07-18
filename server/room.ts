@@ -3,6 +3,11 @@
  * autoridad — valida cada acción y difunde el estado resultante más eventos
  * puntuales (para sonidos y anuncios en el cliente).
  *
+ * **Bandos.** La ficha y los quesos pertenecen a un *bando*, no a una persona.
+ * En modo individual hay un bando por jugador; en modo por equipos, un bando por
+ * equipo y sus miembros **rotan**: cada turno responde uno distinto. Así hay una
+ * sola ruta de código para ambos modos, sin duplicar reglas.
+ *
  * También lleva el progreso de los jugadores: actualiza sus estadísticas,
  * comprueba los logros y expone los packs temáticos que la mesa puede activar.
  *
@@ -14,15 +19,18 @@ import { buildBoard, type Board } from '../shared/board.js';
 import { CATEGORIES, type CategoryId } from '../shared/categories.js';
 import type { Question } from '../shared/questions.js';
 import { earnedAchievements, statValue } from '../shared/progress.js';
-import type {
-  AchievementView,
-  GameEvent,
-  GameView,
-  PackView,
-  PlayerView,
-  PublicQuestion,
-  ServerMessage,
-  TurnPhase,
+import {
+  MAX_TEAMS,
+  type AchievementView,
+  type GameEvent,
+  type GameMode,
+  type GameView,
+  type PackView,
+  type PlayerView,
+  type PublicQuestion,
+  type ServerMessage,
+  type TeamView,
+  type TurnPhase,
 } from '../shared/protocol.js';
 import { legalMoves, rollDie } from './engine.js';
 import { botAnswerIndex, chooseBotFinalCategory, chooseBotMove } from './bot.js';
@@ -41,7 +49,7 @@ export type Scheduler = (action: () => void, delayMs: number) => () => void;
 const BOT_DELAY_MS = 1100;
 
 /**
- * Aciertos seguidos que puede encadenar un jugador en un mismo turno antes de
+ * Aciertos seguidos que puede encadenar un bando en un mismo turno antes de
  * ceder la vez. Sin tope, quien domina el juego puede acaparar la partida
  * entera y el resto se aburre esperando.
  */
@@ -59,22 +67,33 @@ interface InternalPlayer {
   name: string;
   /** Identidad persistente, para acumular estadísticas y logros. */
   profileId: string;
-  nodeId: string;
-  wedges: CategoryId[];
   connected: boolean;
-  /** Aciertos seguidos en la partida en curso. */
+  /** Aciertos seguidos en la partida en curso (para la racha del perfil). */
   streak: number;
   /** true si lo maneja el servidor (bot); los bots no tienen perfil ni logros. */
   isBot: boolean;
   /** Dificultad, solo si es bot. */
   difficulty?: BotDifficulty;
+  /** Equipo elegido en el vestíbulo (1..MAX_TEAMS); null si no ha elegido. */
+  team: number | null;
+}
+
+/** Bando en juego: dueño de la ficha y de los quesos. */
+interface InternalTeam {
+  id: string;
+  name: string;
+  nodeId: string;
+  wedges: CategoryId[];
+  memberIds: string[];
+  /** Miembro que responde en el próximo turno del bando (van rotando). */
+  activeMemberIndex: number;
 }
 
 interface Movement {
   remaining: number;
   /** Nodo del que se viene (para no oscilar); null en el primer paso. */
   cameFrom: string | null;
-  /** Direcciones disponibles cuando se espera elección del jugador. */
+  /** Direcciones disponibles cuando se espera elección. */
   options: string[];
 }
 
@@ -87,16 +106,19 @@ export class Room {
   private readonly transport: Transport;
 
   private players: InternalPlayer[] = [];
+  private teams: InternalTeam[] = [];
+  private mode: GameMode = 'individual';
+  private hostId: string | null = null;
   private phase: TurnPhase = 'lobby';
-  private currentPlayerIndex = 0;
+  private currentTeamIndex = 0;
   private movement: Movement | null = null;
   private question: (Question & { forWin: boolean }) | null = null;
-  private winnerId: string | null = null;
+  private winnerTeamId: string | null = null;
   /** Packs temáticos activos en esta partida. */
   private enabledPacks = new Set<string>();
   /** Preguntas ya planteadas en la partida, para no repetirlas. */
   private askedThisGame = new Set<string>();
-  /** Aciertos encadenados por el jugador en el turno actual (tope por turno). */
+  /** Aciertos encadenados por el bando en el turno actual (tope por turno). */
   private correctThisTurn = 0;
   private readonly schedule: Scheduler;
   private readonly botDelayMs: number;
@@ -169,13 +191,14 @@ export class Room {
       id: crypto.randomUUID(),
       name,
       profileId,
-      nodeId: this.board.startNodeId,
-      wedges: [],
       connected: true,
       streak: 0,
       isBot: false,
+      team: null,
     };
     this.players.push(player);
+    // Quien crea la sala (primera persona en entrar) decide el modo de juego.
+    if (this.hostId === null) this.hostId = player.id;
     this.profiles.getOrCreate(profileId, name);
     this.emit({ kind: 'playerJoined', playerId: player.id, name });
     this.sync();
@@ -196,6 +219,41 @@ export class Room {
   }
 
   /**
+   * @brief Fija el modo de juego. Solo quien creó la sala y solo antes de jugar.
+   * @param playerId Quien lo intenta.
+   * @param mode Modo deseado.
+   */
+  setMode(playerId: string, mode: GameMode): void {
+    if (this.phase !== 'lobby' && this.phase !== 'gameOver') {
+      return this.reject('El modo se cambia antes de empezar.');
+    }
+    if (playerId !== this.hostId) return this.reject('Solo quien creó la sala elige el modo.');
+    this.mode = mode;
+    // Al volver a individual, las elecciones de equipo dejan de tener sentido.
+    if (mode === 'individual') for (const p of this.players) p.team = null;
+    this.sync();
+  }
+
+  /**
+   * @brief Elige el equipo de un jugador (solo en modo por equipos).
+   * @param playerId Jugador que elige.
+   * @param team Número de equipo (1..MAX_TEAMS) o null para dejarlo sin elegir.
+   */
+  chooseTeam(playerId: string, team: number | null): void {
+    if (this.phase !== 'lobby' && this.phase !== 'gameOver') {
+      return this.reject('Los equipos se eligen antes de empezar.');
+    }
+    if (this.mode !== 'teams') return this.reject('Esta partida es individual.');
+    if (team !== null && (!Number.isInteger(team) || team < 1 || team > MAX_TEAMS)) {
+      return this.reject('Ese equipo no existe.');
+    }
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player) return this.reject('No estás en la sala.');
+    player.team = team;
+    this.sync();
+  }
+
+  /**
    * @brief Añade un bot a la sala. Solo en el vestíbulo.
    * @param difficulty Dificultad del bot (afecta a su acierto).
    */
@@ -206,16 +264,26 @@ export class Room {
       id: crypto.randomUUID(),
       name: `Bot ${this.botCounter}`,
       profileId: `bot:${crypto.randomUUID()}`,
-      nodeId: this.board.startNodeId,
-      wedges: [],
       connected: true,
       streak: 0,
       isBot: true,
       difficulty,
+      team: null,
     };
     this.players.push(player);
     this.emit({ kind: 'playerJoined', playerId: player.id, name: player.name });
     this.sync();
+  }
+
+  /**
+   * @brief Cambia el equipo de un bot (solo en el vestíbulo y en modo equipos).
+   * @param playerId Bot a mover.
+   * @param team Equipo destino o null.
+   */
+  setBotTeam(playerId: string, team: number | null): void {
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player || !player.isBot) return this.reject('Ese jugador no es un bot.');
+    this.chooseTeam(playerId, team);
   }
 
   /**
@@ -231,39 +299,46 @@ export class Room {
   }
 
   markDisconnected(playerId: string): void {
-    const index = this.players.findIndex((p) => p.id === playerId);
-    if (index < 0) return;
-    const player = this.players[index];
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player) return;
     player.connected = false;
 
     // En el vestíbulo, un jugador que se va desaparece de la lista.
     if (this.phase === 'lobby') {
       this.players = this.players.filter((p) => p.id !== playerId);
+      if (this.hostId === playerId) {
+        // La sala se queda sin anfitrión: lo hereda la siguiente persona.
+        this.hostId = this.players.find((p) => !p.isBot)?.id ?? null;
+      }
       this.sync();
       return;
     }
 
-    // En partida, si se va justo el jugador con el turno, hay que pasarlo o la
-    // partida se queda clavada: nadie más podría actuar. Se descarta cualquier
-    // acción a medias (movimiento o pregunta) y pasa al siguiente conectado.
+    // En partida, si se va justo quien tenía que actuar, hay que pasar turno o
+    // la partida se queda clavada: nadie más podría hacerlo. Se descarta la
+    // acción a medias (movimiento o pregunta).
     const gameActive =
       this.phase === 'awaitRoll' ||
       this.phase === 'moving' ||
       this.phase === 'awaitAnswer' ||
       this.phase === 'awaitFinalCategory';
-    if (gameActive && index === this.currentPlayerIndex && this.hasConnectedPlayers()) {
-      this.movement = null;
-      this.question = null;
-      this.nextTurn();
-      return;
-    }
 
-    // Si se cae un rival mientras elegía la categoría de la pregunta final y ya
-    // no queda ningún rival que pueda elegir, se resuelve al azar para que el
-    // líder (que sigue conectado) pueda jugar su turno de victoria.
-    if (this.phase === 'awaitFinalCategory' && this.connectedRivals().length === 0) {
-      this.askQuestion(this.randomCategory(), true);
-      return;
+    if (gameActive) {
+      // Si quien actuaba tenía compañeros conectados, el equipo sigue jugando:
+      // le sustituye el siguiente miembro. Solo se pasa turno si el bando entero
+      // se queda sin nadie, o la partida se quedaría clavada.
+      if (this.currentTeamHasNoConnectedMembers() && this.anyTeamPlayable()) {
+        this.movement = null;
+        this.question = null;
+        this.nextTurn();
+        return;
+      }
+      // Si se cae el último rival mientras elegía la categoría de la pregunta
+      // final, se resuelve al azar para que el bando líder pueda jugársela.
+      if (this.phase === 'awaitFinalCategory' && this.connectedRivals().length === 0) {
+        this.askQuestion(this.randomCategory(), true);
+        return;
+      }
     }
     this.sync();
   }
@@ -296,6 +371,7 @@ export class Room {
   private unlockedInRoom(): Set<string> {
     const ids = new Set<string>();
     for (const player of this.players) {
+      if (player.isBot) continue;
       for (const id of this.profileOf(player).achievements) ids.add(id);
     }
     return ids;
@@ -319,11 +395,11 @@ export class Room {
   // --- Acciones -------------------------------------------------------------
 
   /**
-   * @brief Empieza (o reinicia) la partida.
+   * @brief Empieza (o reinicia) la partida, formando los bandos.
    *
-   * Se permite tanto desde el vestíbulo como al terminar (botón "Jugar otra
-   * vez"). Antes de arrancar se descartan los jugadores desconectados para que
-   * ningún fantasma se quede con el turno y bloquee la mesa.
+   * En individual, cada jugador es su propio bando. En equipos, un bando por
+   * cada equipo con miembros; todos deben haber elegido equipo (no se mezclan
+   * modos, así que nadie se queda fuera).
    */
   start(): void {
     if (this.phase !== 'lobby' && this.phase !== 'gameOver') {
@@ -331,6 +407,15 @@ export class Room {
     }
     this.players = this.players.filter((p) => p.connected);
     if (this.players.length < 1) return this.reject('No hay jugadores conectados.');
+
+    if (this.mode === 'teams') {
+      const sinEquipo = this.players.filter((p) => p.team === null);
+      if (sinEquipo.length > 0) {
+        return this.reject(
+          `Falta elegir equipo: ${sinEquipo.map((p) => p.name).join(', ')}.`,
+        );
+      }
+    }
 
     // Quien desbloqueó un pack puede haberse ido: no se juega con packs que ya
     // nadie de la mesa tiene.
@@ -340,25 +425,50 @@ export class Room {
       if (!pack || !unlocked.has(pack.unlockedBy)) this.enabledPacks.delete(packId);
     }
 
-    for (const p of this.players) {
-      p.nodeId = this.board.startNodeId;
-      p.wedges = [];
-      p.streak = 0;
-    }
-    this.currentPlayerIndex = 0;
+    this.teams = this.buildTeams();
+    if (this.teams.length === 0) return this.reject('No hay bandos para jugar.');
+
+    for (const p of this.players) p.streak = 0;
+    this.currentTeamIndex = 0;
     this.movement = null;
     this.question = null;
-    this.winnerId = null;
+    this.winnerTeamId = null;
     this.askedThisGame.clear();
     this.correctThisTurn = 0;
     this.phase = 'awaitRoll';
     this.emit({ kind: 'gameStarted' });
-    this.emit({ kind: 'turnChanged', playerId: this.current().id });
+    this.announceTurn();
     this.sync();
   }
 
+  /** Crea los bandos según el modo: uno por jugador, o uno por equipo. */
+  private buildTeams(): InternalTeam[] {
+    const start = this.board.startNodeId;
+    if (this.mode === 'individual') {
+      return this.players.map((p) => ({
+        id: `side-${p.id}`,
+        name: p.name,
+        nodeId: start,
+        wedges: [],
+        memberIds: [p.id],
+        activeMemberIndex: 0,
+      }));
+    }
+    const numbers = [...new Set(this.players.map((p) => p.team))]
+      .filter((n): n is number => n !== null)
+      .sort((a, b) => a - b);
+    return numbers.map((n) => ({
+      id: `team-${n}`,
+      name: `Equipo ${n}`,
+      nodeId: start,
+      wedges: [],
+      memberIds: this.players.filter((p) => p.team === n).map((p) => p.id),
+      activeMemberIndex: 0,
+    }));
+  }
+
   roll(playerId: string): void {
-    if (!this.isCurrent(playerId)) return this.reject('No es tu turno.');
+    if (!this.isActing(playerId)) return this.reject('No es tu turno.');
     if (this.phase !== 'awaitRoll') return this.reject('No puedes tirar ahora.');
     const value = rollDie();
     this.emit({ kind: 'diceRolled', playerId, value });
@@ -366,7 +476,7 @@ export class Room {
   }
 
   move(playerId: string, toNodeId: string): void {
-    if (!this.isCurrent(playerId)) return this.reject('No es tu turno.');
+    if (!this.isActing(playerId)) return this.reject('No es tu turno.');
     if (this.phase !== 'moving' || !this.movement) return this.reject('No hay movimiento en curso.');
     if (!this.movement.options.includes(toNodeId)) {
       return this.reject('Esa casilla no es una dirección válida.');
@@ -376,15 +486,16 @@ export class Room {
   }
 
   answer(playerId: string, optionIndex: number): void {
-    if (!this.isCurrent(playerId)) return this.reject('No es tu turno.');
+    if (!this.isActing(playerId)) return this.reject('No es tu turno.');
     if (this.phase !== 'awaitAnswer' || !this.question) return this.reject('No hay pregunta activa.');
 
-    const player = this.current();
+    const player = this.playerById(playerId)!;
+    const team = this.currentTeam()!;
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
     const category = this.question.category;
     const correctText = this.question.options[this.question.answerIndex];
-    const node = this.board.nodes[player.nodeId];
+    const node = this.board.nodes[team.nodeId];
     this.question = null;
 
     player.streak = correct ? player.streak + 1 : 0;
@@ -408,41 +519,45 @@ export class Room {
     }
 
     if (forWin) {
-      this.winnerId = player.id;
+      this.winnerTeamId = team.id;
       this.phase = 'gameOver';
       for (const p of this.players) if (!p.isBot) this.profileOf(p).stats.gamesPlayed += 1;
-      if (!player.isBot) this.profileOf(player).stats.gamesWon += 1;
-      this.emit({ kind: 'gameWon', playerId });
+      // La victoria es del bando: la suman todos sus miembros.
+      for (const memberId of team.memberIds) {
+        const member = this.playerById(memberId);
+        if (member && !member.isBot) this.profileOf(member).stats.gamesWon += 1;
+      }
+      this.emit({ kind: 'gameWon', teamId: team.id });
       for (const p of this.players) if (!p.isBot) this.checkAchievements(p);
       this.profiles.scheduleSave();
       this.sync();
       return;
     }
 
-    // Acertar en una sede otorga su queso (aplica también a los bots).
-    if (node.kind === 'hq' && node.category && !player.wedges.includes(node.category)) {
-      player.wedges.push(node.category);
+    // Acertar en una sede otorga su queso al bando (bots incluidos).
+    if (node.kind === 'hq' && node.category && !team.wedges.includes(node.category)) {
+      team.wedges.push(node.category);
       if (!player.isBot) this.profileOf(player).stats.wedgesEarned += 1;
-      this.emit({ kind: 'wedgeEarned', playerId, category: node.category });
+      this.emit({ kind: 'wedgeEarned', teamId: team.id, playerId, category: node.category });
       // Completar los seis cambia el objetivo (ahora hay que volver al centro):
-      // hay que decirlo, o el jugador sigue sin saber que ya va a por la victoria.
-      if (player.wedges.length === CATEGORIES.length) {
-        this.emit({ kind: 'allWedgesEarned', playerId });
+      // hay que decirlo, o se sigue jugando sin saber que ya se va a por la victoria.
+      if (team.wedges.length === CATEGORIES.length) {
+        this.emit({ kind: 'allWedgesEarned', teamId: team.id });
       }
     }
 
     this.saveProgressOf(player);
 
-    // Tope de aciertos por turno: aun acertando, cede la vez para que no se
+    // Tope de aciertos por turno: aun acertando, se cede la vez para que no se
     // acapare la partida.
     this.correctThisTurn += 1;
     if (this.correctThisTurn >= MAX_CORRECT_PER_TURN) {
-      this.emit({ kind: 'turnLimitReached', playerId, limit: MAX_CORRECT_PER_TURN });
+      this.emit({ kind: 'turnLimitReached', teamId: team.id, limit: MAX_CORRECT_PER_TURN });
       this.nextTurn();
       return;
     }
 
-    // Acertar da turno extra: el mismo jugador vuelve a tirar.
+    // Acertar da turno extra: el mismo bando vuelve a tirar.
     this.phase = 'awaitRoll';
     this.sync();
   }
@@ -501,6 +616,7 @@ export class Room {
 
   /** Envía a un jugador su propio progreso (nadie más lo recibe). */
   private sendProfile(player: InternalPlayer): void {
+    if (player.isBot) return;
     const profile = this.profileOf(player);
     this.transport.sendTo(player.id, {
       type: 'profile',
@@ -522,9 +638,10 @@ export class Room {
    * hay que elegir dirección o cuando se acaban los pasos (entonces se aterriza).
    */
   private continueMovement(): void {
-    const player = this.current();
+    const team = this.currentTeam();
+    if (!team) return;
     while (this.movement && this.movement.remaining > 0) {
-      const options = legalMoves(this.board, player.nodeId, this.movement.cameFrom);
+      const options = legalMoves(this.board, team.nodeId, this.movement.cameFrom);
       if (options.length === 1) {
         this.stepTo(options[0]);
       } else {
@@ -537,21 +654,24 @@ export class Room {
   }
 
   private stepTo(toNodeId: string): void {
-    const player = this.current();
-    const from = player.nodeId;
-    player.nodeId = toNodeId;
+    const team = this.currentTeam();
+    const acting = this.actingPlayer();
+    if (!team || !acting) return;
+    const from = team.nodeId;
+    team.nodeId = toNodeId;
     this.movement!.cameFrom = from;
     this.movement!.remaining -= 1;
-    this.emit({ kind: 'moved', playerId: player.id, toNodeId });
+    this.emit({ kind: 'moved', playerId: acting.id, toNodeId });
   }
 
   private land(): void {
-    const player = this.current();
-    const node = this.board.nodes[player.nodeId];
+    const team = this.currentTeam();
+    if (!team) return;
+    const node = this.board.nodes[team.nodeId];
     this.movement = null;
 
     if (node.kind === 'hub') {
-      if (player.wedges.length === CATEGORIES.length) {
+      if (team.wedges.length === CATEGORIES.length) {
         this.beginFinalQuestion();
       } else {
         // Centro sin todos los quesos: casilla libre, se vuelve a tirar.
@@ -567,16 +687,18 @@ export class Room {
   /**
    * Arranca la pregunta final. Como en el Trivial de mesa, la categoría la
    * eligen los rivales (para poner difícil al líder). Si no hay rivales
-   * conectados —partida en solitario o todos caídos— se elige al azar, para no
-   * dejar la partida atascada esperando una elección que nadie puede hacer.
+   * conectados se elige al azar, para no dejar la partida atascada esperando
+   * una elección que nadie puede hacer.
    */
   private beginFinalQuestion(): void {
+    const team = this.currentTeam();
+    if (!team) return;
     if (this.connectedRivals().length === 0) {
       this.askQuestion(this.randomCategory(), true);
       return;
     }
     this.phase = 'awaitFinalCategory';
-    this.emit({ kind: 'awaitingFinalCategory', playerId: this.current().id });
+    this.emit({ kind: 'awaitingFinalCategory', teamId: team.id });
     this.sync();
   }
 
@@ -585,13 +707,15 @@ export class Room {
    * @param playerId Rival que elige.
    * @param category Categoría elegida.
    *
-   * La elige quien NO va a por la victoria: el jugador del turno no puede
-   * escoger su propia pregunta.
+   * La elige quien NO juega en el bando que va a por la victoria.
    */
   chooseFinalCategory(playerId: string, category: CategoryId): void {
     if (this.phase !== 'awaitFinalCategory') return this.reject('No hay pregunta final pendiente.');
-    if (this.isCurrent(playerId)) return this.reject('La categoría la eligen tus rivales, no tú.');
-    const chooser = this.players.find((p) => p.id === playerId);
+    const team = this.currentTeam();
+    if (team?.memberIds.includes(playerId)) {
+      return this.reject('La categoría la eligen vuestros rivales, no vosotros.');
+    }
+    const chooser = this.playerById(playerId);
     if (!chooser || !chooser.connected) return this.reject('No puedes elegir ahora.');
     if (!CATEGORIES.some((c) => c.id === category)) return this.reject('Categoría desconocida.');
 
@@ -599,9 +723,11 @@ export class Room {
     this.askQuestion(category, true);
   }
 
-  /** Rivales del jugador del turno que siguen conectados. */
+  /** Jugadores conectados que no juegan en el bando del turno. */
   private connectedRivals(): InternalPlayer[] {
-    return this.players.filter((p, index) => index !== this.currentPlayerIndex && p.connected);
+    const team = this.currentTeam();
+    if (!team) return [];
+    return this.players.filter((p) => p.connected && !team.memberIds.includes(p.id));
   }
 
   private randomCategory(): CategoryId {
@@ -609,6 +735,9 @@ export class Room {
   }
 
   private askQuestion(category: CategoryId, forWin: boolean): void {
+    const team = this.currentTeam();
+    const acting = this.actingPlayer();
+    if (!team || !acting) return;
     const picked = this.repo.pick(category, {
       packIds: [...this.enabledPacks],
       askedThisGame: this.askedThisGame,
@@ -616,39 +745,84 @@ export class Room {
     this.askedThisGame.add(picked.id);
     this.question = { ...picked, forWin };
     this.phase = 'awaitAnswer';
-    this.emit({
-      kind: 'landed',
-      playerId: this.current().id,
-      nodeId: this.current().nodeId,
-      category,
-    });
+    this.emit({ kind: 'landed', playerId: acting.id, nodeId: team.nodeId, category });
     this.sync();
   }
 
+  /** Pasa el turno al siguiente bando jugable, rotando el miembro que responde. */
   private nextTurn(): void {
-    if (!this.hasConnectedPlayers()) return; // nadie a quien pasar el turno
-    const total = this.players.length;
-    let idx = this.currentPlayerIndex;
+    if (!this.anyTeamPlayable()) return;
+
+    // El bando que acaba de jugar rota su miembro: así responden todos.
+    const current = this.currentTeam();
+    if (current && current.memberIds.length > 1) {
+      current.activeMemberIndex = (current.activeMemberIndex + 1) % current.memberIds.length;
+    }
+
+    const total = this.teams.length;
+    let idx = this.currentTeamIndex;
     for (let i = 0; i < total; i++) {
       idx = (idx + 1) % total;
-      if (this.players[idx].connected) break;
+      if (this.teamHasConnectedMember(this.teams[idx])) break;
     }
-    this.currentPlayerIndex = idx;
+    this.currentTeamIndex = idx;
     this.correctThisTurn = 0; // el tope es por turno
     this.phase = 'awaitRoll';
-    this.emit({ kind: 'turnChanged', playerId: this.current().id });
+    this.announceTurn();
     this.sync();
+  }
+
+  private announceTurn(): void {
+    const team = this.currentTeam();
+    const acting = this.actingPlayer();
+    if (team && acting) this.emit({ kind: 'turnChanged', teamId: team.id, playerId: acting.id });
+  }
+
+  // --- Bandos y turno -------------------------------------------------------
+
+  private playerById(id: string): InternalPlayer | undefined {
+    return this.players.find((p) => p.id === id);
+  }
+
+  private currentTeam(): InternalTeam | undefined {
+    return this.teams[this.currentTeamIndex];
+  }
+
+  private teamHasConnectedMember(team: InternalTeam): boolean {
+    return team.memberIds.some((id) => this.playerById(id)?.connected);
+  }
+
+  private anyTeamPlayable(): boolean {
+    return this.teams.some((t) => this.teamHasConnectedMember(t));
+  }
+
+  private currentTeamHasNoConnectedMembers(): boolean {
+    const team = this.currentTeam();
+    return team ? !this.teamHasConnectedMember(team) : false;
+  }
+
+  /**
+   * Jugador que debe actuar: el miembro de turno del bando actual. Si ese
+   * miembro se ha caído, le sustituye el siguiente conectado, para que la
+   * ausencia de uno no bloquee a todo el equipo.
+   */
+  private actingPlayer(): InternalPlayer | undefined {
+    const team = this.currentTeam();
+    if (!team) return undefined;
+    const size = team.memberIds.length;
+    for (let i = 0; i < size; i++) {
+      const id = team.memberIds[(team.activeMemberIndex + i) % size];
+      const player = this.playerById(id);
+      if (player?.connected) return player;
+    }
+    return undefined;
+  }
+
+  private isActing(playerId: string): boolean {
+    return this.actingPlayer()?.id === playerId;
   }
 
   // --- Utilidades -----------------------------------------------------------
-
-  private current(): InternalPlayer {
-    return this.players[this.currentPlayerIndex];
-  }
-
-  private isCurrent(playerId: string): boolean {
-    return this.players.length > 0 && this.current().id === playerId;
-  }
 
   private emit(event: GameEvent): void {
     this.transport.broadcast({ type: 'event', event });
@@ -670,7 +844,7 @@ export class Room {
   /**
    * Programa la próxima acción de bot, si el estado actual la requiere. Se
    * recalcula al dispararse (el estado puede cambiar por una desconexión), así
-   * que solo se guarda el temporizador.
+   * que solo se guarda el cancelador.
    */
   private maybeDriveBot(): void {
     if (this.cancelBot) {
@@ -690,34 +864,30 @@ export class Room {
    * no toca ninguna (turno de una persona, vestíbulo, fin de partida…).
    */
   private botAction(): (() => void) | null {
-    const current = this.current();
+    const acting = this.actingPlayer();
+    const team = this.currentTeam();
 
-    if (this.phase === 'awaitRoll' && current?.isBot) {
-      return () => this.roll(current.id);
+    if (this.phase === 'awaitRoll' && acting?.isBot) {
+      return () => this.roll(acting.id);
     }
-    if (this.phase === 'moving' && current?.isBot && this.movement) {
+    if (this.phase === 'moving' && acting?.isBot && this.movement && team) {
       const options = this.movement.options;
       const steps = this.movement.remaining;
-      return () => {
-        const to = chooseBotMove(this.board, current.nodeId, options, steps, current.wedges);
-        this.move(current.id, to);
-      };
+      const from = team.nodeId;
+      const wedges = team.wedges;
+      return () => this.move(acting.id, chooseBotMove(this.board, from, options, steps, wedges));
     }
-    if (this.phase === 'awaitAnswer' && current?.isBot && this.question) {
+    if (this.phase === 'awaitAnswer' && acting?.isBot && this.question) {
       const question = this.question;
-      const difficulty = current.difficulty ?? 'normal';
-      return () => this.answer(current.id, botAnswerIndex(question, difficulty));
+      const difficulty = acting.difficulty ?? 'normal';
+      return () => this.answer(acting.id, botAnswerIndex(question, difficulty));
     }
     if (this.phase === 'awaitFinalCategory') {
-      // La categoría la eligen los rivales. Si hay algún rival humano conectado,
+      // La categoría la eligen los rivales. Si hay algún rival humano conectado
       // se le deja elegir; si solo hay bots, elige un bot.
-      const humanRival = this.players.some(
-        (p, i) => i !== this.currentPlayerIndex && p.connected && !p.isBot,
-      );
-      if (!humanRival) {
-        const botRival = this.players.find(
-          (p, i) => i !== this.currentPlayerIndex && p.connected && p.isBot,
-        );
+      const rivals = this.connectedRivals();
+      if (!rivals.some((p) => !p.isBot)) {
+        const botRival = rivals.find((p) => p.isBot);
         if (botRival) return () => this.chooseFinalCategory(botRival.id, chooseBotFinalCategory());
       }
     }
@@ -729,18 +899,34 @@ export class Room {
     const players: PlayerView[] = this.players.map((p) => ({
       id: p.id,
       name: p.name,
-      nodeId: p.nodeId,
-      wedges: [...p.wedges],
       connected: p.connected,
       isBot: p.isBot,
+      team: p.team,
       ...(p.difficulty ? { difficulty: p.difficulty } : {}),
+    }));
+
+    const teams: TeamView[] = this.teams.map((t) => ({
+      id: t.id,
+      // En individual el bando se llama como su jugador, y el nombre puede haber
+      // cambiado al reconectar: se toma el actual.
+      name:
+        this.mode === 'individual'
+          ? (this.playerById(t.memberIds[0])?.name ?? t.name)
+          : t.name,
+      nodeId: t.nodeId,
+      wedges: [...t.wedges],
+      memberIds: [...t.memberIds],
     }));
 
     const view: GameView = {
       roomCode: this.code,
+      mode: this.mode,
+      hostId: this.hostId,
       phase: this.phase,
       players,
-      currentPlayerIndex: this.currentPlayerIndex,
+      teams,
+      currentTeamIndex: this.currentTeamIndex,
+      actingPlayerId: this.actingPlayer()?.id ?? null,
       packs: this.packViews(),
     };
 
@@ -762,7 +948,7 @@ export class Room {
       view.question = publicQuestion;
     }
 
-    if (this.winnerId) view.winnerId = this.winnerId;
+    if (this.winnerTeamId) view.winnerTeamId = this.winnerTeamId;
 
     return view;
   }

@@ -176,6 +176,15 @@ wss.on('connection', (socket: WebSocket) => {
       case 'chooseFinalCategory':
         room.chooseFinalCategory(meta.playerId, msg.category);
         break;
+      case 'setMode':
+        room.setMode(meta.playerId, msg.mode);
+        break;
+      case 'chooseTeam':
+        room.chooseTeam(meta.playerId, msg.team);
+        break;
+      case 'setBotTeam':
+        room.setBotTeam(msg.playerId, msg.team);
+        break;
       case 'addBot':
         room.addBot(msg.difficulty);
         break;

@@ -16,6 +16,16 @@ const RING_RADIUS = 100;
 /** Colores de ficha, distintos entre sí; se reparten por orden de jugador. */
 const TOKEN_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#00b4b4'];
 
+/**
+ * Marca de la ficha: el número en los equipos ("Equipo 2" → "2") y la inicial
+ * cuando el bando es una persona.
+ */
+function tokenInitial(teamName: string): string {
+  const equipo = teamName.match(/(\d+)/);
+  if (equipo) return equipo[1];
+  return (teamName.trim()[0] ?? '?').toUpperCase();
+}
+
 function svg<K extends keyof SVGElementTagNameMap>(
   name: K,
   attrs: Record<string, string | number>,
@@ -90,29 +100,31 @@ export class BoardView {
   }
 
   /**
-   * @brief Redibuja las fichas según el estado.
+   * @brief Redibuja las fichas, una por bando (jugador o equipo).
    * @param state Estado de la partida.
-   * @param myId Id propio, para resaltar la ficha del jugador.
+   * @param myId Id propio, para resaltar la ficha del bando en que juegas.
    */
   update(state: GameView, myId: string | null): void {
     this.tokenLayer.replaceChildren();
 
     // Varias fichas pueden compartir casilla; se reparten alrededor del punto.
     const sameNode = new Map<string, string[]>();
-    for (const player of state.players) {
-      const list = sameNode.get(player.nodeId) ?? [];
-      list.push(player.id);
-      sameNode.set(player.nodeId, list);
+    for (const team of state.teams) {
+      const list = sameNode.get(team.nodeId) ?? [];
+      list.push(team.id);
+      sameNode.set(team.nodeId, list);
     }
 
-    const currentId = state.players[state.currentPlayerIndex]?.id;
+    const currentTeamId = state.teams[state.currentTeamIndex]?.id;
+    const anyMemberConnected = (memberIds: string[]) =>
+      memberIds.some((id) => state.players.find((p) => p.id === id)?.connected);
 
-    state.players.forEach((player, index) => {
-      const node = this.board.nodes[player.nodeId];
+    state.teams.forEach((team, index) => {
+      const node = this.board.nodes[team.nodeId];
       if (!node) return;
 
-      const group = sameNode.get(player.nodeId) ?? [player.id];
-      const slot = group.indexOf(player.id);
+      const group = sameNode.get(team.nodeId) ?? [team.id];
+      const slot = group.indexOf(team.id);
       let px = node.position.x * RING_RADIUS;
       let py = -node.position.y * RING_RADIUS;
       if (group.length > 1) {
@@ -121,16 +133,15 @@ export class BoardView {
         py += 11 * Math.sin(angle);
       }
 
-      const token = svg('g', {
-        class: 'board-token' + (player.id === currentId ? ' current' : ''),
-      });
-      if (player.id === currentId) {
+      const isCurrent = team.id === currentTeamId;
+      const token = svg('g', { class: 'board-token' + (isCurrent ? ' current' : '') });
+      if (isCurrent) {
         token.appendChild(svg('circle', { cx: px, cy: py, r: 11, class: 'board-token-halo' }));
       }
       const dot = svg('circle', { cx: px, cy: py, r: 7.5, class: 'board-token-dot' });
       dot.setAttribute('fill', TOKEN_COLORS[index % TOKEN_COLORS.length]);
-      if (player.id === myId) dot.classList.add('me'); // tu propia ficha, resaltada
-      if (!player.connected) dot.classList.add('offline');
+      if (myId && team.memberIds.includes(myId)) dot.classList.add('me'); // tu bando
+      if (!anyMemberConnected(team.memberIds)) dot.classList.add('offline');
       token.appendChild(dot);
 
       const initial = svg('text', {
@@ -140,7 +151,7 @@ export class BoardView {
         'text-anchor': 'middle',
         'dominant-baseline': 'central',
       });
-      initial.textContent = (player.name.trim()[0] ?? '?').toUpperCase();
+      initial.textContent = tokenInitial(team.name);
       token.appendChild(initial);
 
       this.tokenLayer.appendChild(token);

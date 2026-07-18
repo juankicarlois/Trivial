@@ -10,7 +10,7 @@
 
 import { distancesFrom, previewMove, HUB_ID, type Board, type BoardNode } from '../shared/board.js';
 import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.js';
-import type { AchievementView, PlayerView } from '../shared/protocol.js';
+import type { AchievementView, TeamView } from '../shared/protocol.js';
 
 /** Distancia en palabras. El caso 0 importa: "a 0 casillas" no se entiende. */
 export function distanceText(distance: number): string {
@@ -81,11 +81,11 @@ export function describeDirection(
  * @param player Jugador que consulta.
  * @return Frase con la posición y las sedes pendientes, de más cerca a más lejos.
  */
-export function boardRadarSummary(board: Board, player: PlayerView): string {
-  const distances = distancesFrom(board, player.nodeId);
-  const parts = [`Estás en ${board.nodes[player.nodeId]?.label ?? ''}.`];
+export function boardRadarSummary(board: Board, team: TeamView): string {
+  const distances = distancesFrom(board, team.nodeId);
+  const parts = [`Estás en ${board.nodes[team.nodeId]?.label ?? ''}.`];
 
-  const missing = CATEGORIES.filter((c) => !player.wedges.includes(c.id));
+  const missing = CATEGORIES.filter((c) => !team.wedges.includes(c.id));
   if (missing.length === 0) {
     parts.push(`Tienes los seis quesos: el centro está ${distanceText(distances.get(HUB_ID) ?? 0)}. Ve a ganar.`);
     return parts.join(' ');
@@ -114,11 +114,11 @@ export function boardRadarSummary(board: Board, player: PlayerView): string {
  */
 export function rivalsSummary(
   board: Board,
-  players: readonly PlayerView[],
-  myId: string | null,
+  teams: readonly TeamView[],
+  myTeamId: string | null,
 ): string {
-  const rivals = players.filter((p) => p.id !== myId);
-  if (rivals.length === 0) return 'No hay más jugadores en la sala.';
+  const rivals = teams.filter((t) => t.id !== myTeamId);
+  if (rivals.length === 0) return 'No hay rivales en la partida.';
 
   const parts = rivals.map((rival) => {
     const where = board.nodes[rival.nodeId]?.label ?? 'una casilla';
@@ -127,17 +127,16 @@ export function rivalsSummary(
       count === 0 ? 'sin quesos' : count === 1 ? '1 queso' : `${count} quesos`;
     const nearWin =
       count === CATEGORIES.length - 1 ? ', ¡le falta un queso para ir a ganar!' : '';
-    const disconnected = rival.connected ? '' : ', desconectado';
-    return `${rival.name}, en ${where}, ${wedges}${nearWin}${disconnected}`;
+    return `${rival.name}, en ${where}, ${wedges}${nearWin}`;
   });
   return `Rivales: ${parts.join('. ')}.`;
 }
 
-/** @brief Resume los quesos propios: cuáles tienes y cuáles te faltan. */
-export function wedgesSummary(player: PlayerView | undefined): string {
-  if (!player) return 'Todavía no estás en una partida.';
-  const earned = player.wedges.map((id) => categoryById(id).name);
-  const missing = CATEGORIES.filter((c) => !player.wedges.includes(c.id)).map((c) => c.name);
+/** @brief Resume los quesos del bando: cuáles tiene y cuáles le faltan. */
+export function wedgesSummary(team: TeamView | undefined): string {
+  if (!team) return 'Todavía no estás en una partida.';
+  const earned = team.wedges.map((id) => categoryById(id).name);
+  const missing = CATEGORIES.filter((c) => !team.wedges.includes(c.id)).map((c) => c.name);
   if (earned.length === 0) return `No tienes ningún queso. Te faltan los seis: ${missing.join(', ')}.`;
   if (missing.length === 0) return '¡Tienes los seis quesos! Vuelve al centro para ganar.';
   return `Tienes ${earned.length} de ${CATEGORIES.length} quesos: ${earned.join(', ')}. Te faltan: ${missing.join(', ')}.`;

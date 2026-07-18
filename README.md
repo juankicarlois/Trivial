@@ -42,6 +42,21 @@ En el vestíbulo puedes **añadir bots** (fácil, normal o difícil) para rellen
 mesa o jugar en solitario: el servidor los conduce (tiran, se mueven y responden
 solos, a un ritmo seguible). La dificultad marca su probabilidad de acertar.
 
+### Partidas por equipos
+
+**Quien crea la sala** (la primera persona que entra) decide si la partida es
+**individual** o **por equipos**; no se mezclan. En modo por equipos, cada cual
+elige el suyo (hasta **4 equipos**) y también se puede asignar equipo a los bots.
+
+- El equipo comparte **una ficha y unos quesos**: avanzáis y ganáis juntos.
+- Dentro del equipo **se turnan para responder**: cada turno del equipo contesta
+  un miembro distinto, así juegan todos. Se anuncia siempre de quién es el turno
+  y quién responde ("Turno de Equipo 1: responde Carlos"), y a los compañeros se
+  les indica "Juega tu equipo: responde Carlos…".
+- Los compañeros pueden ayudarse de viva voz, como en el juego de mesa.
+- Si quien iba a responder se desconecta, **le sustituye un compañero** y el
+  equipo no pierde el turno.
+
 ### Jugar por internet (fuera de tu red)
 
 Sin desplegar nada en ningún servidor: tu PC sigue siendo el servidor y un **túnel**

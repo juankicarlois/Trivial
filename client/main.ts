@@ -11,7 +11,14 @@
 import { buildBoard } from '../shared/board.js';
 import { CATEGORIES, categoryById, type CategoryId } from '../shared/categories.js';
 import { BOT_DIFFICULTIES, type BotDifficulty } from '../shared/bot.js';
-import type { AchievementView, GameEvent, GameView, PlayerView } from '../shared/protocol.js';
+import {
+  MAX_TEAMS,
+  type AchievementView,
+  type GameEvent,
+  type GameMode,
+  type GameView,
+  type TeamView,
+} from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
 import { BoardView } from './board_view.js';
@@ -53,6 +60,7 @@ const announceRegion = $('announce');
 const statusLine = $('status');
 const myWedgesTitle = $('my-wedges-title');
 const myWedgesList = $('my-wedges');
+const playersTitle = $('players-title');
 const playersList = $('players');
 const boardPanel = $('board');
 const actions = $('actions');
@@ -186,6 +194,27 @@ function nameOf(playerId: string): string {
   return lastState?.players.find((p) => p.id === playerId)?.name ?? 'Alguien';
 }
 
+/** Bando por id (equipo, o el jugador si la partida es individual). */
+function teamById(teamId: string): TeamView | undefined {
+  return lastState?.teams.find((t) => t.id === teamId);
+}
+
+/** Nombre del bando: "Equipo 2" en equipos, el nombre del jugador en individual. */
+function sideName(teamId: string): string {
+  return teamById(teamId)?.name ?? 'Alguien';
+}
+
+/** true si juego en ese bando. */
+function isMySide(teamId: string): boolean {
+  return myId != null && (teamById(teamId)?.memberIds.includes(myId) ?? false);
+}
+
+/** El bando en el que juego, si la partida ha empezado. */
+function myTeam(): TeamView | undefined {
+  return myId == null ? undefined : lastState?.teams.find((t) => t.memberIds.includes(myId!));
+}
+
+
 // --- Eventos → sonido + anuncio ---------------------------------------------
 
 function handleEvent(event: GameEvent): void {
@@ -225,46 +254,58 @@ function handleEvent(event: GameEvent): void {
         announce(`${nameOf(event.playerId)} responde: incorrecto. La respuesta era: ${event.correctText}.`);
       }
       break;
-    case 'wedgeEarned':
+    case 'wedgeEarned': {
       sound.wedge();
-      announce(`${nameOf(event.playerId)} gana el queso de ${categoryById(event.category).name}.`);
+      const queso = categoryById(event.category).name;
+      // En equipos se nombra al equipo y a quien lo consiguió; en individual
+      // ambos son la misma persona, así que basta con el nombre.
+      announce(
+        esPorEquipos()
+          ? `${sideName(event.teamId)} gana el queso de ${queso}, con ${nameOf(event.playerId)}.`
+          : `${nameOf(event.playerId)} gana el queso de ${queso}.`,
+      );
       break;
+    }
     case 'allWedgesEarned':
       announce(
-        event.playerId === myId
-          ? '¡Ya tienes los seis quesos! Ahora vuelve al centro de la rueda: al caer justo en él te harán la pregunta final para ganar.'
-          : `${nameOf(event.playerId)} ya tiene los seis quesos y va camino del centro a por la victoria.`,
+        isMySide(event.teamId)
+          ? '¡Ya tenéis los seis quesos! Ahora volved al centro de la rueda: al caer justo en él os harán la pregunta final para ganar.'
+          : `${sideName(event.teamId)} ya tiene los seis quesos y va camino del centro a por la victoria.`,
       );
       break;
     case 'turnLimitReached':
       announce(
-        event.playerId === myId
-          ? `¡${event.limit} aciertos seguidos! Has llegado al tope del turno y cedes la vez.`
-          : `${nameOf(event.playerId)} encadena ${event.limit} aciertos y cede la vez.`,
+        isMySide(event.teamId)
+          ? `¡${event.limit} aciertos seguidos! Habéis llegado al tope del turno y cedéis la vez.`
+          : `${sideName(event.teamId)} encadena ${event.limit} aciertos y cede la vez.`,
       );
       break;
     case 'turnChanged': {
-      if (event.playerId === myId) sound.turn(); // aviso sonoro de que te toca
-      if (event.playerId !== myId) {
-        announce(`Turno de ${nameOf(event.playerId)}.`);
-        break;
-      }
+      const meToca = event.playerId === myId;
+      if (meToca) sound.turn(); // aviso sonoro de que te toca
       // Con los seis quesos se recuerda el objetivo en cada turno: sin el
       // tablero a la vista es fácil olvidar que ya solo falta llegar al centro.
-      const yo = me();
-      const conTodos = yo != null && yo.wedges.length === CATEGORIES.length;
-      announce(conTodos ? 'Es tu turno. Tienes los seis quesos: ve al centro.' : 'Es tu turno.');
+      const equipo = teamById(event.teamId);
+      const conTodos = equipo != null && equipo.wedges.length === CATEGORIES.length;
+      const recuerdo = conTodos ? ' Tenéis los seis quesos: id al centro.' : '';
+      if (meToca) {
+        announce(`Es tu turno.${recuerdo}`);
+      } else if (esPorEquipos()) {
+        announce(`Turno de ${sideName(event.teamId)}: responde ${nameOf(event.playerId)}.${recuerdo}`);
+      } else {
+        announce(`Turno de ${nameOf(event.playerId)}.${recuerdo}`);
+      }
       break;
     }
     case 'gameWon':
       sound.win();
-      announce(`¡${nameOf(event.playerId)} gana la partida!`);
+      announce(`¡${sideName(event.teamId)} gana la partida!`);
       break;
     case 'awaitingFinalCategory':
       announce(
-        event.playerId === myId
-          ? '¡Tienes los seis quesos y llegas al centro! Tus rivales van a elegir la categoría de tu pregunta final.'
-          : `${nameOf(event.playerId)} llega al centro con los seis quesos. Elegid la categoría de su pregunta final.`,
+        isMySide(event.teamId)
+          ? '¡Tenéis los seis quesos y llegáis al centro! Vuestros rivales van a elegir la categoría de la pregunta final.'
+          : `${sideName(event.teamId)} llega al centro con los seis quesos. Elegid la categoría de su pregunta final.`,
       );
       break;
     case 'finalCategoryChosen':
@@ -382,14 +423,20 @@ function renderAchievements(): void {
  * cualquier momento sin depender de haber oído el aviso al ganarla.
  */
 function renderMyWedges(state: GameView): void {
-  const me = state.players.find((p) => p.id === myId);
+  const yo = myId;
+  const team = yo == null ? undefined : state.teams.find((t) => t.memberIds.includes(yo));
   myWedgesList.replaceChildren();
-  if (!me) return;
+  if (!team) {
+    myWedgesTitle.textContent = 'Tus quesos';
+    return;
+  }
 
-  myWedgesTitle.textContent = `Tus quesos (${me.wedges.length} de ${CATEGORIES.length})`;
+  // En equipos los quesos son del equipo, no tuyos: el título lo deja claro.
+  const titulo = state.mode === 'teams' ? `Quesos de ${team.name}` : 'Tus quesos';
+  myWedgesTitle.textContent = `${titulo} (${team.wedges.length} de ${CATEGORIES.length})`;
 
   for (const cat of CATEGORIES) {
-    const earned = me.wedges.includes(cat.id);
+    const earned = team.wedges.includes(cat.id);
     const li = document.createElement('li');
     li.className = 'my-wedge' + (earned ? ' earned' : '');
 
@@ -406,71 +453,182 @@ function renderMyWedges(state: GameView): void {
   }
 }
 
-/** El jugador que maneja este cliente, si ya está en la partida. */
-function me(): PlayerView | undefined {
-  return lastState?.players.find((p) => p.id === myId);
+
+/** true si la partida se juega por equipos. */
+function esPorEquipos(): boolean {
+  return lastState?.mode === 'teams';
 }
 
 function renderStatus(state: GameView): void {
-  const current = state.players[state.currentPlayerIndex];
+  const team = state.teams[state.currentTeamIndex];
   let text: string;
   switch (state.phase) {
     case 'lobby':
-      text = `Sala ${state.roomCode}. ${state.players.length} jugador(es). Esperando para empezar.`;
+      text = `Sala ${state.roomCode}. ${state.players.length} jugador(es). ${
+        state.mode === 'teams' ? 'Partida por equipos.' : 'Partida individual.'
+      } Esperando para empezar.`;
       break;
     case 'gameOver':
-      text = state.winnerId ? `Fin de la partida. Gana ${nameOf(state.winnerId)}.` : 'Fin de la partida.';
+      text = state.winnerTeamId
+        ? `Fin de la partida. Gana ${state.teams.find((t) => t.id === state.winnerTeamId)?.name ?? ''}.`
+        : 'Fin de la partida.';
       break;
     default: {
-      if (!current) {
+      if (!team) {
         text = 'Partida en curso.';
         break;
       }
-      text = `Turno de ${current.id === myId ? 'ti' : current.name}.`;
+      const acting = state.players.find((p) => p.id === state.actingPlayerId);
+      if (state.actingPlayerId === myId) text = 'Turno de ti.';
+      else if (state.mode === 'teams') text = `Turno de ${team.name}: responde ${acting?.name ?? ''}.`;
+      else text = `Turno de ${team.name}.`;
       // Quien tiene los seis quesos ya va a por la victoria: se indica aquí para
       // que el objetivo esté siempre a la vista, no solo en el aviso del momento.
-      if (current.wedges.length === CATEGORIES.length) {
-        text +=
-          current.id === myId
-            ? ' Tienes los seis quesos: ve al centro para la pregunta final.'
-            : ' ¡Tiene los seis quesos y va a por la victoria!';
+      if (team.wedges.length === CATEGORIES.length) {
+        text += myId && team.memberIds.includes(myId)
+          ? ' Tenéis los seis quesos: id al centro para la pregunta final.'
+          : ' ¡Tiene los seis quesos y va a por la victoria!';
       }
     }
   }
   statusLine.textContent = text;
 }
 
+/**
+ * En el vestíbulo se listan los jugadores (con su equipo y los mandos para
+ * quitar bots); en partida, los bandos con su ficha y sus quesos, que es lo que
+ * de verdad compite.
+ */
 function renderPlayers(state: GameView): void {
   playersList.replaceChildren();
-  state.players.forEach((player, index) => {
+  playersTitle.textContent =
+    state.phase === 'lobby' ? 'Jugadores' : state.mode === 'teams' ? 'Equipos' : 'Jugadores';
+
+  if (state.phase === 'lobby') {
+    for (const player of state.players) {
+      const li = document.createElement('li');
+      li.className = 'player';
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      const botTag = player.isBot
+        ? ` (bot${player.difficulty ? ', ' + difficultyLabel(player.difficulty) : ''})`
+        : player.id === myId
+          ? ' (tú)'
+          : '';
+      name.textContent = player.name + botTag;
+
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      if (state.mode === 'teams') {
+        meta.textContent = player.team ? `Equipo ${player.team}` : 'sin equipo';
+      } else {
+        meta.textContent = player.connected ? '' : 'desconectado';
+      }
+
+      li.append(name, meta);
+
+      // Los bots se quitan, y en equipos también se les asigna equipo.
+      if (player.isBot) {
+        if (state.mode === 'teams') li.append(buildTeamPicker(player.id, player.team));
+        const remove = button('Quitar', () => net.send({ type: 'removeBot', playerId: player.id }), 'secondary');
+        remove.setAttribute('aria-label', `Quitar ${player.name}`);
+        li.append(remove);
+      }
+      playersList.append(li);
+    }
+    return;
+  }
+
+  state.teams.forEach((team, index) => {
     const li = document.createElement('li');
-    li.className = 'player' + (index === state.currentPlayerIndex ? ' current' : '');
+    li.className = 'player' + (index === state.currentTeamIndex ? ' current' : '');
 
     const name = document.createElement('span');
     name.className = 'name';
-    const botTag = player.isBot
-      ? ` (bot${player.difficulty ? ', ' + difficultyLabel(player.difficulty) : ''})`
-      : player.id === myId
-        ? ' (tú)'
-        : '';
-    name.textContent = player.name + botTag;
+    const mio = myId != null && team.memberIds.includes(myId);
+    name.textContent = team.name + (mio ? ' (tú)' : '');
 
     const meta = document.createElement('span');
     meta.className = 'meta';
-    const nodeLabel = board.nodes[player.nodeId]?.label ?? '';
-    meta.textContent = `${player.connected ? '' : 'desconectado · '}${nodeLabel}`;
+    const donde = board.nodes[team.nodeId]?.label ?? '';
+    const quienes =
+      state.mode === 'teams'
+        ? ' · ' + team.memberIds.map((id) => nameOf(id)).join(', ')
+        : '';
+    meta.textContent = donde + quienes;
 
-    li.append(name, meta, buildWedges(player.wedges));
-
-    // En el vestíbulo, los bots se pueden quitar.
-    if (player.isBot && state.phase === 'lobby') {
-      const remove = button('Quitar', () => net.send({ type: 'removeBot', playerId: player.id }), 'secondary');
-      remove.setAttribute('aria-label', `Quitar ${player.name}`);
-      li.append(remove);
-    }
-
+    li.append(name, meta, buildWedges(team.wedges));
     playersList.append(li);
   });
+}
+
+/**
+ * Mandos del vestíbulo para el modo de juego. El modo lo fija **quien creó la
+ * sala** (a los demás solo se les informa), y si es por equipos, cada cual elige
+ * el suyo.
+ */
+function buildModeControls(state: GameView): HTMLElement {
+  const wrap = document.createElement('div');
+  const soyAnfitrion = state.hostId != null && state.hostId === myId;
+
+  if (soyAnfitrion) {
+    const row = document.createElement('div');
+    row.className = 'action-row';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Modo de juego');
+    const modos: { id: GameMode; label: string }[] = [
+      { id: 'individual', label: 'Partida individual' },
+      { id: 'teams', label: 'Partida por equipos' },
+    ];
+    for (const modo of modos) {
+      const btn = button(modo.label, () => net.send({ type: 'setMode', mode: modo.id }), 'secondary');
+      btn.id = `mode-${modo.id}`;
+      if (state.mode === modo.id) btn.setAttribute('aria-pressed', 'true');
+      row.append(btn);
+    }
+    wrap.append(row);
+  } else {
+    const info = document.createElement('p');
+    info.className = 'hint';
+    info.textContent =
+      state.mode === 'teams'
+        ? 'Partida por equipos (lo decide quien creó la sala).'
+        : 'Partida individual (lo decide quien creó la sala).';
+    wrap.append(info);
+  }
+
+  if (state.mode === 'teams') {
+    const yo = state.players.find((p) => p.id === myId);
+    const mine = document.createElement('p');
+    mine.className = 'hint';
+    mine.textContent = yo?.team ? `Estás en el equipo ${yo.team}. Elige tu equipo:` : 'Elige tu equipo:';
+    const picker = buildTeamPicker(myId ?? '', yo?.team ?? null);
+    wrap.append(mine, picker);
+  }
+  return wrap;
+}
+
+/** Botones para elegir equipo (1..MAX_TEAMS) de un jugador o bot. */
+function buildTeamPicker(playerId: string, current: number | null): HTMLElement {
+  const wrap = document.createElement('span');
+  wrap.className = 'team-picker';
+  for (let n = 1; n <= MAX_TEAMS; n++) {
+    const btn = button(
+      String(n),
+      () =>
+        net.send(
+          playerId === myId
+            ? { type: 'chooseTeam', team: n }
+            : { type: 'setBotTeam', playerId, team: n },
+        ),
+      'secondary',
+    );
+    btn.setAttribute('aria-label', `Poner en el equipo ${n}`);
+    if (current === n) btn.setAttribute('aria-pressed', 'true');
+    wrap.append(btn);
+  }
+  return wrap;
 }
 
 /** Nombre de una dificultad de bot. */
@@ -515,13 +673,19 @@ function renderActions(state: GameView): void {
   // si el conjunto de acciones no cambia (p. ej. al añadir un bot en el vestíbulo).
   const focusedId = document.activeElement instanceof HTMLElement ? document.activeElement.id : '';
   actions.replaceChildren();
-  const iAmCurrent = state.players[state.currentPlayerIndex]?.id === myId;
+  // "Me toca" es ser el miembro de turno de mi bando; "es mi bando" basta para
+  // saber si me afecta la pregunta final (la eligen los rivales del bando).
+  const iAmActingNow = state.actingPlayerId != null && state.actingPlayerId === myId;
+  const currentTeam = state.teams[state.currentTeamIndex];
+  const myTeamPlays = currentTeam != null && myId != null && currentTeam.memberIds.includes(myId);
   let focusTarget: HTMLElement | null = null;
 
   if (state.phase === 'lobby') {
     const hint = document.createElement('p');
     hint.className = 'hint';
     hint.textContent = 'Comparte el código de la sala. Añade bots para rellenar mesa o jugar en solitario. Cuando estéis todos, pulsa Empezar.';
+
+    actions.append(hint, buildModeControls(state));
 
     const bots = document.createElement('div');
     bots.className = 'action-row';
@@ -534,27 +698,26 @@ function renderActions(state: GameView): void {
     }
 
     const startBtn = button('Empezar partida', () => net.send({ type: 'start' }));
-    actions.append(hint, bots, startBtn);
+    actions.append(bots, startBtn);
     focusTarget = startBtn;
   } else if (state.phase === 'gameOver') {
     const again = button('Jugar otra vez', () => net.send({ type: 'start' }));
     actions.append(again);
     focusTarget = again;
   } else if (state.phase === 'awaitAnswer' && state.question) {
-    renderQuestion(state, iAmCurrent, (btn) => (focusTarget = btn));
+    renderQuestion(state, iAmActingNow, (btn) => (focusTarget = btn));
   } else if (state.phase === 'awaitFinalCategory') {
-    // La categoría de la pregunta final la eligen los rivales, no quien va a
-    // ganar: por eso este caso va antes del "esperando" genérico de no-turno.
-    const winner = state.players[state.currentPlayerIndex];
-    if (iAmCurrent) {
+    // La categoría de la pregunta final la eligen los rivales, no el bando que va
+    // a ganar: por eso este caso va antes del "esperando" genérico de no-turno.
+    if (myTeamPlays) {
       const hint = document.createElement('p');
       hint.className = 'hint';
-      hint.textContent = 'Tienes los seis quesos. Tus rivales eligen la categoría de tu pregunta final…';
+      hint.textContent = 'Tenéis los seis quesos. Vuestros rivales eligen la categoría de la pregunta final…';
       actions.append(hint);
     } else {
       const hint = document.createElement('p');
       hint.className = 'hint';
-      hint.textContent = `${winner?.name ?? 'El líder'} va a por la victoria. Elige la categoría de su pregunta final:`;
+      hint.textContent = `${currentTeam?.name ?? 'El líder'} va a por la victoria. Elige la categoría de su pregunta final:`;
       const opts = document.createElement('div');
       opts.className = 'options';
       CATEGORIES.forEach((cat, i) => {
@@ -564,10 +727,14 @@ function renderActions(state: GameView): void {
       });
       actions.append(hint, opts);
     }
-  } else if (!iAmCurrent) {
+  } else if (!iAmActingNow) {
     const wait = document.createElement('p');
     wait.className = 'hint';
-    wait.textContent = `Esperando a ${state.players[state.currentPlayerIndex]?.name ?? 'otro jugador'}…`;
+    const quien = state.players.find((p) => p.id === state.actingPlayerId)?.name ?? 'otro jugador';
+    // Si juega tu equipo pero responde un compañero, conviene decirlo.
+    wait.textContent = myTeamPlays
+      ? `Juega tu equipo: responde ${quien}…`
+      : `Esperando a ${quien}…`;
     actions.append(wait);
   } else if (state.phase === 'awaitRoll') {
     const rollBtn = button('Tirar el dado', () => net.send({ type: 'roll' }));
@@ -579,11 +746,10 @@ function renderActions(state: GameView): void {
     h.textContent = `Te quedan ${state.movement.remaining} paso(s). Elige dirección:`;
     const row = document.createElement('div');
     row.className = 'action-row';
-    const me = state.players.find((p) => p.id === myId);
-    const from = state.players[state.currentPlayerIndex]?.nodeId ?? '';
+    const from = currentTeam?.nodeId ?? '';
     const steps = state.movement.remaining;
     state.movement.options.forEach((nodeId, i) => {
-      const label = describeDirection(board, from, nodeId, steps, me?.wedges ?? []);
+      const label = describeDirection(board, from, nodeId, steps, currentTeam?.wedges ?? []);
       const btn = button(label, () => net.send({ type: 'move', toNodeId: nodeId }), 'secondary');
       if (i === 0) focusTarget = btn;
       row.append(btn);
@@ -610,7 +776,8 @@ function renderQuestion(
 ): void {
   const q = state.question!;
   const cat = categoryById(q.category).name;
-  const asker = state.players[state.currentPlayerIndex]?.name ?? 'el jugador';
+  // Quien responde es el miembro de turno del bando (en individual, él mismo).
+  const asker = state.players.find((p) => p.id === state.actingPlayerId)?.name ?? 'el jugador';
   const title = q.forWin ? 'Pregunta final' : cat;
 
   const heading = document.createElement('p');
@@ -657,7 +824,8 @@ function renderQuestion(
 function manageFocus(state: GameView, target: HTMLElement | null, previousFocusId: string): void {
   const key = [
     state.phase,
-    state.players[state.currentPlayerIndex]?.id ?? '',
+    state.mode,
+    state.actingPlayerId ?? '',
     state.question?.id ?? '',
     state.movement?.options.join(',') ?? '',
     String(state.movement?.remaining ?? ''),
@@ -674,20 +842,24 @@ function manageFocus(state: GameView, target: HTMLElement | null, previousFocusI
 
 // --- Consultas rápidas (situación, quesos, logros) --------------------------
 
-/** Anuncia dónde tienes cada sede que te falta. */
+/** Anuncia dónde tiene tu bando cada sede que le falta. */
 function announceRadar(): void {
-  const player = me();
-  announce(player ? boardRadarSummary(board, player) : 'Todavía no estás en una partida.');
+  const team = myTeam();
+  announce(team ? boardRadarSummary(board, team) : 'Todavía no estás en una partida.');
 }
 
-/** Anuncia dónde está cada rival y cómo va. */
+/** Anuncia dónde está cada bando rival y cómo va. */
 function announceRivals(): void {
-  announce(lastState ? rivalsSummary(board, lastState.players, myId) : 'Todavía no estás en una partida.');
+  announce(
+    lastState
+      ? rivalsSummary(board, lastState.teams, myTeam()?.id ?? null)
+      : 'Todavía no estás en una partida.',
+  );
 }
 
-/** Anuncia los quesos que tienes y los que te faltan. */
+/** Anuncia los quesos de tu bando y los que le faltan. */
 function announceWedges(): void {
-  announce(wedgesSummary(me()));
+  announce(wedgesSummary(myTeam()));
 }
 
 /** Anuncia tus logros y el que tienes más a mano. */

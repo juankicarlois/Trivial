@@ -225,6 +225,26 @@ casilla se reparten alrededor del punto). Es **complemento para quien ve** y se
 marca `aria-hidden`: la misma información llega al lector por los anuncios, la
 lista de jugadores y las consultas.
 
+## Bandos: individual y por equipos
+
+La ficha y los quesos pertenecen a un **bando**, no a una persona. En modo
+individual hay un bando por jugador; en modo por equipos, uno por equipo. Esto da
+**una sola ruta de código** para ambos modos, sin duplicar las reglas.
+
+- El **modo lo fija quien crea la sala** (el primero que entra, `hostId`) y no se
+  mezcla: o todos individuales o todos en equipos. Mezclar daría partidas
+  desequilibradas y complicaría cada regla con casos especiales.
+- Hasta `MAX_TEAMS` (4) equipos. En modo por equipos, `start()` exige que todos
+  hayan elegido: nadie se queda fuera por descuido.
+- Dentro de un equipo, los miembros **rotan** al responder
+  (`activeMemberIndex`): cada turno del equipo contesta uno distinto, así juegan
+  todos y con lector se sabe a quién le toca.
+- Si el miembro de turno se cae, `actingPlayer()` pasa al siguiente conectado:
+  la ausencia de uno no bloquea al equipo. Solo se cede el turno si el bando
+  entero se queda sin nadie conectado.
+- Estadísticas y logros son **de la persona** que responde; la victoria la suman
+  todos los miembros del bando ganador.
+
 ## Bots
 
 El servidor es la autoridad, así que un **bot es un jugador que el propio

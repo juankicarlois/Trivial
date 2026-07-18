@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildBoard, HUB_ID } from '../shared/board.js';
 import { CATEGORIES, type CategoryId } from '../shared/categories.js';
-import type { AchievementView, PlayerView } from '../shared/protocol.js';
+import type { AchievementView, TeamView } from '../shared/protocol.js';
 import {
   achievementsSummary,
   boardRadarSummary,
@@ -14,19 +14,19 @@ import {
 
 const board = buildBoard();
 
-function player(nodeId: string, wedges: CategoryId[] = []): PlayerView {
-  return { id: 'p1', name: 'Ana', nodeId, wedges, connected: true, isBot: false };
+/** Bando propio (en individual, el bando es el propio jugador). */
+function player(nodeId: string, wedges: CategoryId[] = []): TeamView {
+  return { id: 'side-p1', name: 'Ana', nodeId, wedges, memberIds: ['p1'] };
 }
 
-/** Jugador con id y nombre concretos, para las pruebas de rivales. */
+/** Bando con id y nombre concretos, para las pruebas de rivales. */
 function named(
   id: string,
   name: string,
   nodeId: string,
   wedges: CategoryId[] = [],
-  connected = true,
-): PlayerView {
-  return { id, name, nodeId, wedges, connected, isBot: false };
+): TeamView {
+  return { id, name, nodeId, wedges, memberIds: [id] };
 }
 
 // --- Distancias -------------------------------------------------------------
@@ -160,13 +160,18 @@ test('avisa del rival al que le falta un queso para ir a ganar', () => {
   assert.match(rivalsSummary(board, players, 'yo'), /le falta un queso para ir a ganar/);
 });
 
-test('un rival desconectado se marca como tal', () => {
-  const players = [named('yo', 'Ana', HUB_ID), named('p2', 'Bea', HUB_ID, [], false)];
-  assert.match(rivalsSummary(board, players, 'yo'), /Bea,.*desconectado/);
+test('en equipos, los rivales se anuncian por equipo, no por persona', () => {
+  const equipos: TeamView[] = [
+    { id: 'team-1', name: 'Equipo 1', nodeId: HUB_ID, wedges: [], memberIds: ['yo', 'x'] },
+    { id: 'team-2', name: 'Equipo 2', nodeId: 'hq-arte', wedges: ['arte'], memberIds: ['a', 'b'] },
+  ];
+  const text = rivalsSummary(board, equipos, 'team-1');
+  assert.match(text, /Equipo 2, en Sede de Arte y Literatura, 1 queso/);
+  assert.doesNotMatch(text, /Equipo 1/, 'no debe incluir mi propio equipo');
 });
 
 test('sin rivales, lo dice en vez de dar una lista vacía', () => {
-  assert.match(rivalsSummary(board, [named('yo', 'Ana', HUB_ID)], 'yo'), /No hay más jugadores/);
+  assert.match(rivalsSummary(board, [named('yo', 'Ana', HUB_ID)], 'yo'), /No hay rivales/);
 });
 
 // --- Quesos y logros --------------------------------------------------------

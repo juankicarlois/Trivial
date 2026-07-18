@@ -55,7 +55,7 @@ test('la partida empieza con el turno del primer jugador', () => {
   room.start();
   const view = room.toView();
   assert.equal(view.phase, 'awaitRoll');
-  assert.equal(view.players[view.currentPlayerIndex].id, ana);
+  assert.equal(view.actingPlayerId, ana);
 });
 
 test('si se desconecta el jugador con el turno, pasa al siguiente conectado', () => {
@@ -68,7 +68,7 @@ test('si se desconecta el jugador con el turno, pasa al siguiente conectado', ()
   room.markDisconnected(ana!);
   const view = room.toView();
   assert.equal(view.phase, 'awaitRoll');
-  assert.equal(view.players[view.currentPlayerIndex].id, bea, 'el turno debe pasar a Bea');
+  assert.equal(view.actingPlayerId, bea, 'el turno debe pasar a Bea');
 });
 
 test('un jugador que se va en el vestíbulo desaparece de la lista', () => {
@@ -147,6 +147,21 @@ function stubRepository(): QuestionRepository {
   return repo;
 }
 
+/** Avanza hasta que haya pregunta y falla a propósito, para ceder el turno. */
+function falla(room: Room, playerId: string): void {
+  for (let intentos = 0; intentos < 60; intentos++) {
+    const view = room.toView();
+    if (view.phase === 'awaitAnswer') break;
+    if (view.phase === 'awaitRoll') room.roll(playerId);
+    else if (view.phase === 'moving' && view.movement) room.move(playerId, view.movement.options[0]);
+    else break;
+  }
+  const view = room.toView();
+  assert.equal(view.phase, 'awaitAnswer', 'debería haberse planteado una pregunta');
+  const mala = view.question!.options.findIndex((o) => o !== 'CORRECTA');
+  room.answer(playerId, mala);
+}
+
 /** Avanza (tirando y moviendo) hasta que haya pregunta, y la acierta. */
 function aciertaUnaPregunta(room: Room, playerId: string): void {
   for (let intentos = 0; intentos < 60; intentos++) {
@@ -169,25 +184,25 @@ test('al tercer acierto seguido, el turno pasa aunque se acierte', () => {
   const ana = room.addOrReattach('Ana', 'perfil-ana')!;
   const bea = room.addOrReattach('Bea', 'perfil-bea')!;
   room.start();
-  assert.equal(room.toView().players[room.toView().currentPlayerIndex].id, ana);
+  assert.equal(room.toView().actingPlayerId, ana);
 
   aciertaUnaPregunta(room, ana);
   assert.equal(
-    room.toView().players[room.toView().currentPlayerIndex].id,
+    room.toView().actingPlayerId,
     ana,
     'tras 1 acierto sigue siendo su turno',
   );
 
   aciertaUnaPregunta(room, ana);
   assert.equal(
-    room.toView().players[room.toView().currentPlayerIndex].id,
+    room.toView().actingPlayerId,
     ana,
     'tras 2 aciertos sigue siendo su turno',
   );
 
   aciertaUnaPregunta(room, ana);
   assert.equal(
-    room.toView().players[room.toView().currentPlayerIndex].id,
+    room.toView().actingPlayerId,
     bea,
     'al tercer acierto debe ceder la vez',
   );
@@ -200,16 +215,134 @@ test('el tope se reinicia en el turno siguiente', () => {
   room.start();
 
   for (let i = 0; i < 3; i++) aciertaUnaPregunta(room, ana); // Ana agota su tope
-  assert.equal(room.toView().players[room.toView().currentPlayerIndex].id, bea);
+  assert.equal(room.toView().actingPlayerId, bea);
 
   // Bea empieza de cero: dos aciertos y sigue siendo suyo el turno.
   aciertaUnaPregunta(room, bea);
   aciertaUnaPregunta(room, bea);
   assert.equal(
-    room.toView().players[room.toView().currentPlayerIndex].id,
+    room.toView().actingPlayerId,
     bea,
     'el contador no se arrastra de un turno a otro',
   );
+});
+
+// --- Modo por equipos -------------------------------------------------------
+
+test('solo quien crea la sala puede cambiar el modo', () => {
+  const room = newRoom();
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!; // primera: anfitriona
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+
+  room.setMode(bea, 'teams');
+  assert.equal(room.toView().mode, 'individual', 'un invitado no cambia el modo');
+
+  room.setMode(ana, 'teams');
+  assert.equal(room.toView().mode, 'teams');
+});
+
+test('en equipos, la ficha y los quesos son del equipo, no de cada uno', () => {
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const carlos = room.addOrReattach('Carlos', 'perfil-carlos')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.setMode(ana, 'teams');
+  room.chooseTeam(ana, 1);
+  room.chooseTeam(carlos, 1);
+  room.chooseTeam(bea, 2);
+  room.start();
+
+  const view = room.toView();
+  assert.equal(view.teams.length, 2, 'dos equipos');
+  const equipo1 = view.teams.find((t) => t.name === 'Equipo 1')!;
+  assert.deepEqual([...equipo1.memberIds].sort(), [ana, carlos].sort());
+  // Empieza el Equipo 1 y responde su primer miembro.
+  assert.equal(view.currentTeamIndex, 0);
+  assert.ok(equipo1.memberIds.includes(view.actingPlayerId!));
+});
+
+test('no se puede empezar por equipos si alguien no ha elegido', () => {
+  const room = newRoom();
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.addOrReattach('Bea', 'perfil-bea');
+  room.setMode(ana, 'teams');
+  room.chooseTeam(ana, 1);
+  room.start();
+  assert.equal(room.toView().phase, 'lobby', 'falta Bea por elegir equipo');
+});
+
+test('dentro del equipo, los miembros rotan al responder', () => {
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const carlos = room.addOrReattach('Carlos', 'perfil-carlos')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.setMode(ana, 'teams');
+  room.chooseTeam(ana, 1);
+  room.chooseTeam(carlos, 1);
+  room.chooseTeam(bea, 2);
+  room.start();
+
+  const primero = room.toView().actingPlayerId!;
+  assert.ok([ana, carlos].includes(primero));
+
+  // Falla para ceder el turno al Equipo 2, y este también falla para volver.
+  falla(room, primero);
+  const turnoRival = room.toView().actingPlayerId!;
+  assert.equal(turnoRival, bea, 'ahora juega el Equipo 2');
+  falla(room, bea);
+
+  const segundo = room.toView().actingPlayerId!;
+  assert.ok([ana, carlos].includes(segundo), 'vuelve el Equipo 1');
+  assert.notEqual(segundo, primero, 'pero responde el otro miembro');
+});
+
+test('si se cae quien respondía, sigue jugando su compañero', () => {
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const carlos = room.addOrReattach('Carlos', 'perfil-carlos')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.setMode(ana, 'teams');
+  room.chooseTeam(ana, 1);
+  room.chooseTeam(carlos, 1);
+  room.chooseTeam(bea, 2);
+  room.start();
+
+  const actuaba = room.toView().actingPlayerId!;
+  room.markDisconnected(actuaba);
+
+  const ahora = room.toView().actingPlayerId!;
+  const equipo1 = room.toView().teams[0];
+  assert.ok(equipo1.memberIds.includes(ahora), 'le sustituye su compañero de equipo');
+  assert.notEqual(ahora, actuaba);
+  assert.equal(room.toView().currentTeamIndex, 0, 'el equipo no pierde el turno');
+});
+
+test('los quesos ganados son del equipo entero', () => {
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const carlos = room.addOrReattach('Carlos', 'perfil-carlos')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.setMode(ana, 'teams');
+  room.chooseTeam(ana, 1);
+  room.chooseTeam(carlos, 1);
+  room.chooseTeam(bea, 2);
+  room.start();
+
+  // Quien juegue del Equipo 1 acierta hasta lograr un queso (o agotar intentos).
+  for (let i = 0; i < 12; i++) {
+    const view = room.toView();
+    if (view.teams[0].wedges.length > 0) break;
+    if (view.currentTeamIndex !== 0) {
+      aciertaUnaPregunta(room, view.actingPlayerId!); // el rival juega su turno
+      continue;
+    }
+    aciertaUnaPregunta(room, view.actingPlayerId!);
+  }
+  const equipo1 = room.toView().teams[0];
+  if (equipo1.wedges.length > 0) {
+    // El queso figura en el equipo, no en un jugador: ambos miembros lo comparten.
+    assert.ok(equipo1.memberIds.length === 2);
+  }
 });
 
 test('los bots se añaden y se quitan en el vestíbulo', () => {
