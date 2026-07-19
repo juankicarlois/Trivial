@@ -16,7 +16,7 @@ const base: QuestionBank = {
 const content = loadContent();
 
 /** Mínimo por categoría en el banco base: por debajo se repetirían demasiado. */
-const MIN_PER_CATEGORY = 140;
+const MIN_PER_CATEGORY = 160;
 
 /**
  * Enunciado normalizado: sin tildes, signos ni mayúsculas.
@@ -63,6 +63,52 @@ test('ninguna pregunta se repite en todo el banco', () => {
       const previous = seen.get(key);
       assert.ok(!previous, `pregunta repetida: "${q.text}" (${q.id} y ${previous})`);
       seen.set(key, q.id);
+    }
+  }
+});
+
+/**
+ * Parejas que comparten respuesta y casi todas las palabras, pero preguntan
+ * cosas distintas de verdad. Se listan aquí para que el test de reformulaciones
+ * no las señale.
+ */
+const REFORMULACIONES_PERMITIDAS = new Set(['dep-001|dep-081']);
+
+test('ninguna pregunta es una reformulación de otra', () => {
+  // El test de arriba solo pilla el texto idéntico. El duplicado que de verdad
+  // se cuela es el mismo dato preguntado con otras palabras ("¿Qué arte marcial
+  // de origen coreano…?" frente a "¿Qué arte marcial coreana…?"), así que aquí
+  // se comparan las preguntas que comparten categoría y respuesta correcta.
+  const PALABRAS_VACIAS = new Set(
+    'el la los las un una de del que en y a al se es cual cuales cuantos cuantas quien como donde por para con su sus mas o mundo'.split(' '),
+  );
+  const contentWords = (text: string) =>
+    new Set(
+      normalizeText(text)
+        .split(' ')
+        .filter((w) => w.length > 3 && !PALABRAS_VACIAS.has(w)),
+    );
+
+  const questions = allBanks.flatMap((b) => b.questions);
+  for (let i = 0; i < questions.length; i++) {
+    for (let j = i + 1; j < questions.length; j++) {
+      const a = questions[i];
+      const b = questions[j];
+      if (a.category !== b.category) continue;
+      if (normalizeText(a.options[a.answerIndex]) !== normalizeText(b.options[b.answerIndex])) continue;
+      if (REFORMULACIONES_PERMITIDAS.has(`${a.id}|${b.id}`)) continue;
+
+      const wordsA = contentWords(a.text);
+      const wordsB = contentWords(b.text);
+      const comunes = [...wordsA].filter((w) => wordsB.has(w)).length;
+      const parecido = comunes / (new Set([...wordsA, ...wordsB]).size || 1);
+
+      assert.ok(
+        parecido < 0.45,
+        `${a.id} y ${b.id} preguntan lo mismo con otras palabras ` +
+          `("${a.text}" / "${b.text}"). Si de verdad son distintas, añádelas a ` +
+          'REFORMULACIONES_PERMITIDAS.',
+      );
     }
   }
 });
