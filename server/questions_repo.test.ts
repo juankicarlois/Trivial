@@ -16,7 +16,7 @@ const base: QuestionBank = {
 const content = loadContent();
 
 /** Mínimo por categoría en el banco base: por debajo se repetirían demasiado. */
-const MIN_PER_CATEGORY = 160;
+const MIN_PER_CATEGORY = 200;
 
 /**
  * Enunciado normalizado: sin tildes, signos ni mayúsculas.
@@ -72,7 +72,11 @@ test('ninguna pregunta se repite en todo el banco', () => {
  * cosas distintas de verdad. Se listan aquí para que el test de reformulaciones
  * no las señale.
  */
-const REFORMULACIONES_PERMITIDAS = new Set(['dep-001|dep-081']);
+const REFORMULACIONES_PERMITIDAS = new Set([
+  'dep-001|dep-081', // Juegos Olímpicos de verano / de invierno.
+  'dep-031|dep-223', // Mundial masculino de 2010 / femenino de 2023, los dos de España.
+  'art-082|art-221', // "Aida" / "La traviata": dos óperas distintas de Verdi.
+]);
 
 test('ninguna pregunta es una reformulación de otra', () => {
   // El test de arriba solo pilla el texto idéntico. El duplicado que de verdad
