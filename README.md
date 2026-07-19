@@ -261,4 +261,14 @@ servidor). Formato:
 `answerIndex` es la posición (empezando en 0) de la opción correcta; el juego
 baraja las opciones al plantear la pregunta. Categorías válidas: `geografia`,
 `historia`, `arte`, `ciencia`, `deportes`, `cultura`. Ejecuta `npm test` después
-de tocar el banco: valida ids únicos, opciones y respuestas.
+de tocar el banco: valida ids únicos, que no haya preguntas repetidas, opciones
+y respuestas.
+
+> **Regla obligatoria: la pregunta se responde oyéndola.** Aquí juega gente
+> ciega, así que **ninguna pregunta puede depender de ver algo**. Nada de «¿Qué
+> bandera es esta?», «¿Qué cuadro se muestra?» ni enunciados que señalen algo en
+> pantalla. Sí valen las preguntas *sobre* lo visual cuando van descritas con
+> palabras: «¿Cuántas estrellas tiene la bandera de la Unión Europea?» o «¿Qué
+> color se obtiene mezclando azul y amarillo?». Al escribir una pregunta,
+> léela en voz alta con sus cuatro opciones: si así no se puede contestar, no
+> entra.
