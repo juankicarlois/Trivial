@@ -7,8 +7,8 @@
     {
       "id": "lotr-001",
       "category": "arte",
-      "text": "¿Quién escribió \"El Señor de los Anillos\"?",
-      "options": ["C. S. Lewis", "J. R. R. Tolkien", "George R. R. Martin", "Terry Pratchett"],
+      "text": "¿Qué obra de Tolkien narra la historia anterior a \"El Señor de los Anillos\", con Bilbo y el dragón Smaug?",
+      "options": ["\"El Silmarillion\"", "\"El hobbit\"", "\"Los hijos de Húrin\"", "\"Cuentos inconclusos\""],
       "answerIndex": 1,
       "difficulty": 1
     },

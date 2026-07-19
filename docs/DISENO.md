@@ -132,7 +132,7 @@ dentro); **hub** = 6 (un radio por categoría).
 
 ### Banco de preguntas
 
-Banco base: **753 preguntas, más de 115 por categoría**, repartidas en varios ficheros
+Banco base: **662 preguntas, más de 105 por categoría**, repartidas en varios ficheros
 (`content/questions*.json`, que se cargan todos: ampliar es añadir un fichero).
 De opción
 múltiple (4 opciones, barajadas al plantearlas). Cada una lleva `difficulty` de

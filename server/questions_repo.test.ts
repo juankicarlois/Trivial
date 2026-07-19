@@ -16,7 +16,24 @@ const base: QuestionBank = {
 const content = loadContent();
 
 /** Mínimo por categoría en el banco base: por debajo se repetirían demasiado. */
-const MIN_PER_CATEGORY = 115;
+const MIN_PER_CATEGORY = 105;
+
+/**
+ * Enunciado normalizado: sin tildes, signos ni mayúsculas.
+ *
+ * Se compara así porque los duplicados reales no llegan con el texto idéntico,
+ * sino reformulados ("¿Quién fue el primer presidente de los Estados Unidos?"
+ * frente a "¿Quién fue el primer presidente de Estados Unidos?").
+ */
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 /** Todas las preguntas del juego, con la etiqueta de dónde salen (para errores). */
 const allBanks: { label: string; questions: Question[] }[] = [
@@ -31,6 +48,21 @@ test('los ids de las preguntas son únicos en todo el juego', () => {
       const previous = seen.get(q.id);
       assert.ok(!previous, `id repetido "${q.id}" en ${bank.label} y en ${previous}`);
       seen.set(q.id, bank.label);
+    }
+  }
+});
+
+test('ninguna pregunta se repite en todo el banco', () => {
+  // El banco se reparte en varios ficheros, así que la comprobación tiene que
+  // ser global: comparar solo dentro de cada fichero deja pasar la misma
+  // pregunta escrita dos veces en sitios distintos.
+  const seen = new Map<string, string>();
+  for (const bank of allBanks) {
+    for (const q of bank.questions) {
+      const key = normalizeText(q.text);
+      const previous = seen.get(key);
+      assert.ok(!previous, `pregunta repetida: "${q.text}" (${q.id} y ${previous})`);
+      seen.set(key, q.id);
     }
   }
 });

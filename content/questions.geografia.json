@@ -80,23 +80,12 @@
     { "id": "geo-098", "category": "geografia", "text": "¿Qué gran muralla es visible como símbolo de un país asiático?", "options": ["La de Berlín", "La China", "La de Adriano", "La de Jericó"], "answerIndex": 1, "difficulty": 1 },
     { "id": "geo-099", "category": "geografia", "text": "¿Cuál es la capital de Nueva Zelanda?", "options": ["Auckland", "Wellington", "Christchurch", "Dunedin"], "answerIndex": 1, "difficulty": 3 },
     { "id": "geo-100", "category": "geografia", "text": "¿En qué continente está la Antártida?", "options": ["Es un continente en sí misma", "América", "Oceanía", "Asia"], "answerIndex": 0, "difficulty": 1 },
-    { "id": "geo-101", "category": "geografia", "text": "¿Qué océano separa América de Europa?", "options": ["El Pacífico", "El Índico", "El Ártico", "El Atlántico"], "answerIndex": 3, "difficulty": 1 },
-    { "id": "geo-102", "category": "geografia", "text": "¿Cuál es la capital de Canadá?", "options": ["Toronto", "Ottawa", "Montreal", "Vancouver"], "answerIndex": 1, "difficulty": 2 },
-    { "id": "geo-103", "category": "geografia", "text": "¿Qué cordillera se considera el límite entre Europa y Asia?", "options": ["Los Alpes", "Los Cárpatos", "Los Urales", "El Cáucaso"], "answerIndex": 2, "difficulty": 2 },
-    { "id": "geo-104", "category": "geografia", "text": "¿Cuál es la capital de Argentina?", "options": ["Córdoba", "Rosario", "Buenos Aires", "Mendoza"], "answerIndex": 2, "difficulty": 1 },
     { "id": "geo-105", "category": "geografia", "text": "¿Cuál es el país más poblado de África?", "options": ["Egipto", "Nigeria", "Etiopía", "Sudáfrica"], "answerIndex": 1, "difficulty": 3 },
-    { "id": "geo-106", "category": "geografia", "text": "¿Cuál es la capital de Marruecos?", "options": ["Casablanca", "Marrakech", "Rabat", "Tánger"], "answerIndex": 2, "difficulty": 2 },
-    { "id": "geo-107", "category": "geografia", "text": "¿Qué estrecho separa España del norte de África?", "options": ["El de Ormuz", "El de Gibraltar", "El de Bering", "El de Mesina"], "answerIndex": 1, "difficulty": 1 },
     { "id": "geo-108", "category": "geografia", "text": "¿Cuál es el lago más profundo del mundo?", "options": ["El Baikal", "El Superior", "El Titicaca", "El Tanganica"], "answerIndex": 0, "difficulty": 3 },
-    { "id": "geo-109", "category": "geografia", "text": "¿Cuál es la capital de Australia?", "options": ["Sídney", "Melbourne", "Canberra", "Brisbane"], "answerIndex": 2, "difficulty": 2 },
     { "id": "geo-110", "category": "geografia", "text": "¿Cuál es el volcán activo más alto de Europa?", "options": ["El Vesubio", "El Etna", "El Estrómboli", "El Teide"], "answerIndex": 1, "difficulty": 2 },
-    { "id": "geo-111", "category": "geografia", "text": "¿En qué país está Machu Picchu?", "options": ["Bolivia", "Ecuador", "Perú", "Chile"], "answerIndex": 2, "difficulty": 1 },
     { "id": "geo-112", "category": "geografia", "text": "¿Cuál es la segunda ciudad más poblada de España?", "options": ["Valencia", "Sevilla", "Barcelona", "Zaragoza"], "answerIndex": 2, "difficulty": 1 },
     { "id": "geo-113", "category": "geografia", "text": "¿Qué mar baña la costa este de la península ibérica?", "options": ["El Cantábrico", "El Mediterráneo", "El Báltico", "El Negro"], "answerIndex": 1, "difficulty": 1 },
     { "id": "geo-114", "category": "geografia", "text": "¿Qué comunidad autónoma española tiene más provincias?", "options": ["Andalucía", "Cataluña", "Castilla y León", "Galicia"], "answerIndex": 2, "difficulty": 3 },
-    { "id": "geo-115", "category": "geografia", "text": "¿Cuál es la capital de Países Bajos?", "options": ["Róterdam", "La Haya", "Ámsterdam", "Utrecht"], "answerIndex": 2, "difficulty": 2 },
-    { "id": "geo-116", "category": "geografia", "text": "¿En qué continente está el desierto del Kalahari?", "options": ["África", "Asia", "Oceanía", "América"], "answerIndex": 0, "difficulty": 3 },
-    { "id": "geo-117", "category": "geografia", "text": "¿Qué país tiene forma de bota?", "options": ["Grecia", "Italia", "Croacia", "Portugal"], "answerIndex": 1, "difficulty": 1 },
-    { "id": "geo-118", "category": "geografia", "text": "¿Qué canal une el mar Mediterráneo con el mar Rojo?", "options": ["El de Panamá", "El de Suez", "El de Kiel", "El de Corinto"], "answerIndex": 1, "difficulty": 2 }
+    { "id": "geo-116", "category": "geografia", "text": "¿En qué continente está el desierto del Kalahari?", "options": ["África", "Asia", "Oceanía", "América"], "answerIndex": 0, "difficulty": 3 }
   ]
 }

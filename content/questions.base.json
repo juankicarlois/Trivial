@@ -1,969 +1,124 @@
 {
   "questions": [
-    {
-      "id": "geo-001",
-      "category": "geografia",
-      "text": "¿Cuál es la capital de Australia?",
-      "options": ["Sídney", "Canberra", "Melbourne", "Perth"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-002",
-      "category": "geografia",
-      "text": "¿En qué continente se encuentra el desierto del Sahara?",
-      "options": ["Asia", "África", "Oceanía", "América"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-003",
-      "category": "geografia",
-      "text": "¿Cuál es el océano más extenso del planeta?",
-      "options": ["Atlántico", "Índico", "Pacífico", "Ártico"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-004",
-      "category": "geografia",
-      "text": "¿Qué país es el más poblado del mundo en 2026?",
-      "options": ["China", "India", "Estados Unidos", "Indonesia"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-005",
-      "category": "geografia",
-      "text": "¿Cuál es el país más extenso del mundo?",
-      "options": ["Canadá", "China", "Rusia", "Estados Unidos"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-006",
-      "category": "geografia",
-      "text": "¿Cuál es el país más pequeño del mundo?",
-      "options": ["Mónaco", "Ciudad del Vaticano", "San Marino", "Liechtenstein"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-007",
-      "category": "geografia",
-      "text": "¿En qué país se encuentra el Machu Picchu?",
-      "options": ["Bolivia", "México", "Perú", "Ecuador"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-008",
-      "category": "geografia",
-      "text": "¿Cuál es la capital de Canadá?",
-      "options": ["Toronto", "Vancouver", "Montreal", "Ottawa"],
-      "answerIndex": 3,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-009",
-      "category": "geografia",
-      "text": "¿Qué cordillera se considera la frontera natural entre Europa y Asia?",
-      "options": ["Los Alpes", "Los Urales", "El Cáucaso", "Los Cárpatos"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-010",
-      "category": "geografia",
-      "text": "¿Cuál es la montaña más alta del mundo sobre el nivel del mar?",
-      "options": ["El K2", "El Everest", "El Kilimanjaro", "El Mont Blanc"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-011",
-      "category": "geografia",
-      "text": "¿Cuál es el río más largo de la península ibérica?",
-      "options": ["El Ebro", "El Duero", "El Tajo", "El Guadalquivir"],
-      "answerIndex": 2,
-      "difficulty": 3
-    },
-    {
-      "id": "geo-012",
-      "category": "geografia",
-      "text": "¿Cuántas comunidades autónomas tiene España?",
-      "options": ["15", "17", "19", "21"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-013",
-      "category": "geografia",
-      "text": "¿En qué océano se encuentra la isla de Madagascar?",
-      "options": ["Atlántico", "Pacífico", "Índico", "Ártico"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-014",
-      "category": "geografia",
-      "text": "¿Cuál es la capital de Marruecos?",
-      "options": ["Casablanca", "Marrakech", "Rabat", "Tánger"],
-      "answerIndex": 2,
-      "difficulty": 3
-    },
-    {
-      "id": "geo-015",
-      "category": "geografia",
-      "text": "¿Qué estrecho separa España de Marruecos?",
-      "options": ["El estrecho de Gibraltar", "El estrecho de Ormuz", "El canal de la Mancha", "El estrecho de Bering"],
-      "answerIndex": 0,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-016",
-      "category": "geografia",
-      "text": "¿Cuál es el lago más grande del mundo por superficie?",
-      "options": ["El lago Victoria", "El mar Caspio", "El lago Superior", "El lago Baikal"],
-      "answerIndex": 1,
-      "difficulty": 3
-    },
-    {
-      "id": "geo-017",
-      "category": "geografia",
-      "text": "¿Qué país tiene forma de bota?",
-      "options": ["Grecia", "Portugal", "Italia", "Croacia"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-018",
-      "category": "geografia",
-      "text": "¿Cuál es la capital de Argentina?",
-      "options": ["Córdoba", "Rosario", "Buenos Aires", "Mendoza"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "geo-019",
-      "category": "geografia",
-      "text": "¿Cuál es el desierto cálido más extenso del mundo?",
-      "options": ["El Gobi", "El Sahara", "El Kalahari", "El de Atacama"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "geo-020",
-      "category": "geografia",
-      "text": "¿En qué continente se encuentra la mayor parte de Egipto?",
-      "options": ["Asia", "África", "Europa", "Oceanía"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-
-    {
-      "id": "his-001",
-      "category": "historia",
-      "text": "¿En qué año cayó el Muro de Berlín?",
-      "options": ["1985", "1989", "1991", "1979"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-002",
-      "category": "historia",
-      "text": "¿Quién fue el primer presidente de los Estados Unidos?",
-      "options": ["Thomas Jefferson", "Abraham Lincoln", "George Washington", "John Adams"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "his-003",
-      "category": "historia",
-      "text": "¿En qué año llegó el ser humano a la Luna por primera vez?",
-      "options": ["1969", "1961", "1972", "1957"],
-      "answerIndex": 0,
-      "difficulty": 2
-    },
-    {
-      "id": "his-004",
-      "category": "historia",
-      "text": "¿En qué año terminó la Segunda Guerra Mundial?",
-      "options": ["1943", "1945", "1939", "1950"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "his-005",
-      "category": "historia",
-      "text": "¿En qué año llegó Cristóbal Colón a América?",
-      "options": ["1492", "1498", "1485", "1512"],
-      "answerIndex": 0,
-      "difficulty": 1
-    },
-    {
-      "id": "his-006",
-      "category": "historia",
-      "text": "¿En qué año comenzó la Primera Guerra Mundial?",
-      "options": ["1918", "1914", "1912", "1920"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-007",
-      "category": "historia",
-      "text": "¿Quién fue el primer emperador de Roma?",
-      "options": ["Julio César", "Augusto", "Nerón", "Trajano"],
-      "answerIndex": 1,
-      "difficulty": 3
-    },
-    {
-      "id": "his-008",
-      "category": "historia",
-      "text": "¿En qué año se aprobó la Constitución española vigente?",
-      "options": ["1975", "1978", "1981", "1986"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-009",
-      "category": "historia",
-      "text": "¿Qué imperio construyó la ciudadela de Machu Picchu?",
-      "options": ["El azteca", "El maya", "El inca", "El olmeca"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "his-010",
-      "category": "historia",
-      "text": "¿En qué año cayó el Imperio Romano de Occidente?",
-      "options": ["313", "476", "525", "410"],
-      "answerIndex": 1,
-      "difficulty": 3
-    },
-    {
-      "id": "his-011",
-      "category": "historia",
-      "text": "¿Quién lideró la Revolución Cubana que triunfó en 1959?",
-      "options": ["Che Guevara", "Fidel Castro", "Camilo Cienfuegos", "Raúl Castro"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-012",
-      "category": "historia",
-      "text": "¿En qué país comenzó la Revolución Industrial?",
-      "options": ["Francia", "Alemania", "Reino Unido", "Estados Unidos"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "his-013",
-      "category": "historia",
-      "text": "¿En qué año terminó la Guerra Civil española?",
-      "options": ["1936", "1939", "1945", "1940"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-014",
-      "category": "historia",
-      "text": "¿Quién fue la primera mujer en ganar un Premio Nobel?",
-      "options": ["Marie Curie", "Rosalind Franklin", "Ada Lovelace", "Lise Meitner"],
-      "answerIndex": 0,
-      "difficulty": 2
-    },
-    {
-      "id": "his-015",
-      "category": "historia",
-      "text": "¿En qué año se firmó la Declaración de Independencia de los Estados Unidos?",
-      "options": ["1776", "1783", "1789", "1765"],
-      "answerIndex": 0,
-      "difficulty": 2
-    },
-    {
-      "id": "his-016",
-      "category": "historia",
-      "text": "¿En qué año se hundió el Titanic?",
-      "options": ["1905", "1912", "1918", "1923"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-017",
-      "category": "historia",
-      "text": "¿Qué reina de Castilla apoyó el primer viaje de Colón?",
-      "options": ["Juana I", "Isabel I", "Berenguela", "María de Molina"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-018",
-      "category": "historia",
-      "text": "¿En qué año se disolvió la Unión Soviética?",
-      "options": ["1989", "1991", "1993", "1987"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "his-019",
-      "category": "historia",
-      "text": "¿Qué civilización construyó las pirámides de Guiza?",
-      "options": ["La sumeria", "La egipcia", "La persa", "La fenicia"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "his-020",
-      "category": "historia",
-      "text": "¿Quién dirigió la Alemania nazi durante la Segunda Guerra Mundial?",
-      "options": ["Heinrich Himmler", "Adolf Hitler", "Joseph Goebbels", "Hermann Göring"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-
-    {
-      "id": "art-001",
-      "category": "arte",
-      "text": "¿Quién escribió \"Don Quijote de la Mancha\"?",
-      "options": ["Lope de Vega", "Miguel de Cervantes", "Francisco de Quevedo", "Calderón de la Barca"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "art-002",
-      "category": "arte",
-      "text": "¿Quién pintó la Mona Lisa?",
-      "options": ["Miguel Ángel", "Rafael", "Leonardo da Vinci", "Sandro Botticelli"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "art-003",
-      "category": "arte",
-      "text": "¿Quién es el autor de \"Cien años de soledad\"?",
-      "options": ["Mario Vargas Llosa", "Julio Cortázar", "Jorge Luis Borges", "Gabriel García Márquez"],
-      "answerIndex": 3,
-      "difficulty": 2
-    },
-    {
-      "id": "art-004",
-      "category": "arte",
-      "text": "¿Quién escribió la tragedia \"Romeo y Julieta\"?",
-      "options": ["William Shakespeare", "Christopher Marlowe", "Molière", "Oscar Wilde"],
-      "answerIndex": 0,
-      "difficulty": 1
-    },
-    {
-      "id": "art-005",
-      "category": "arte",
-      "text": "¿Quién pintó el \"Guernica\"?",
-      "options": ["Joan Miró", "Pablo Picasso", "Salvador Dalí", "Juan Gris"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "art-006",
-      "category": "arte",
-      "text": "¿A quién se atribuye la autoría de \"La Odisea\"?",
-      "options": ["Virgilio", "Homero", "Sófocles", "Esopo"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-007",
-      "category": "arte",
-      "text": "¿Quién pintó \"La noche estrellada\"?",
-      "options": ["Claude Monet", "Paul Cézanne", "Vincent van Gogh", "Paul Gauguin"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "art-008",
-      "category": "arte",
-      "text": "¿Quién escribió la novela \"1984\"?",
-      "options": ["Aldous Huxley", "Ray Bradbury", "George Orwell", "H. G. Wells"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "art-009",
-      "category": "arte",
-      "text": "¿Quién compuso la Novena Sinfonía, que incluye el \"Himno a la alegría\"?",
-      "options": ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Franz Schubert"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-010",
-      "category": "arte",
-      "text": "¿Quién diseñó el templo de la Sagrada Familia de Barcelona?",
-      "options": ["Antoni Gaudí", "Lluís Domènech i Montaner", "Josep Puig i Cadafalch", "Ricardo Bofill"],
-      "answerIndex": 0,
-      "difficulty": 1
-    },
-    {
-      "id": "art-011",
-      "category": "arte",
-      "text": "¿Quién escribió \"El principito\"?",
-      "options": ["Julio Verne", "Antoine de Saint-Exupéry", "Michael Ende", "Lewis Carroll"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-012",
-      "category": "arte",
-      "text": "¿Quién pintó \"Las meninas\"?",
-      "options": ["Francisco de Goya", "El Greco", "Diego Velázquez", "Bartolomé Esteban Murillo"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "art-013",
-      "category": "arte",
-      "text": "¿Quién escribió \"Orgullo y prejuicio\"?",
-      "options": ["Emily Brontë", "Jane Austen", "Virginia Woolf", "Mary Shelley"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-014",
-      "category": "arte",
-      "text": "¿Quién esculpió el \"David\" que se conserva en Florencia?",
-      "options": ["Donatello", "Miguel Ángel", "Bernini", "Cellini"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-015",
-      "category": "arte",
-      "text": "¿Quién escribió \"La casa de Bernarda Alba\"?",
-      "options": ["Antonio Machado", "Federico García Lorca", "Rafael Alberti", "Miguel Hernández"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-016",
-      "category": "arte",
-      "text": "¿Qué pintor español es famoso por sus relojes derretidos en \"La persistencia de la memoria\"?",
-      "options": ["Joan Miró", "Salvador Dalí", "Pablo Picasso", "Antoni Tàpies"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "art-017",
-      "category": "arte",
-      "text": "¿Quién escribió la novela \"Drácula\"?",
-      "options": ["Mary Shelley", "Edgar Allan Poe", "Bram Stoker", "Robert Louis Stevenson"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "art-018",
-      "category": "arte",
-      "text": "¿Quién escribió \"El señor de los anillos\"?",
-      "options": ["C. S. Lewis", "J. R. R. Tolkien", "Terry Pratchett", "George R. R. Martin"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "art-019",
-      "category": "arte",
-      "text": "¿Quién pintó \"El grito\"?",
-      "options": ["Gustav Klimt", "Edvard Munch", "Egon Schiele", "Wassily Kandinsky"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "art-020",
-      "category": "arte",
-      "text": "¿Quién escribió \"La Divina Comedia\"?",
-      "options": ["Petrarca", "Dante Alighieri", "Boccaccio", "Maquiavelo"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-
-    {
-      "id": "cie-001",
-      "category": "ciencia",
-      "text": "¿Cuál es el símbolo químico del oro?",
-      "options": ["Ag", "Au", "Or", "Go"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-002",
-      "category": "ciencia",
-      "text": "¿Cuántos huesos tiene el cuerpo humano adulto?",
-      "options": ["186", "206", "226", "196"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-003",
-      "category": "ciencia",
-      "text": "¿Cuál es el planeta más grande del sistema solar?",
-      "options": ["Saturno", "Neptuno", "Júpiter", "Urano"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-004",
-      "category": "ciencia",
-      "text": "¿Qué gas absorben las plantas del aire para la fotosíntesis?",
-      "options": ["Oxígeno", "Nitrógeno", "Dióxido de carbono", "Hidrógeno"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-005",
-      "category": "ciencia",
-      "text": "¿Cuál es el planeta más cercano al Sol?",
-      "options": ["Venus", "Mercurio", "Marte", "La Tierra"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-006",
-      "category": "ciencia",
-      "text": "¿Cuál es la fórmula química del agua?",
-      "options": ["CO2", "O2", "H2O", "NaCl"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-007",
-      "category": "ciencia",
-      "text": "¿Qué científico formuló la teoría de la relatividad?",
-      "options": ["Isaac Newton", "Albert Einstein", "Niels Bohr", "Max Planck"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-008",
-      "category": "ciencia",
-      "text": "¿Qué metal es líquido a temperatura ambiente?",
-      "options": ["El plomo", "El mercurio", "El estaño", "El sodio"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-009",
-      "category": "ciencia",
-      "text": "¿Cuál es el gas más abundante en la atmósfera terrestre?",
-      "options": ["Oxígeno", "Nitrógeno", "Dióxido de carbono", "Argón"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-010",
-      "category": "ciencia",
-      "text": "¿Cuál es el hueso más largo del cuerpo humano?",
-      "options": ["La tibia", "El fémur", "El húmero", "El peroné"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-011",
-      "category": "ciencia",
-      "text": "¿Cuál es el animal terrestre más rápido?",
-      "options": ["El leopardo", "El guepardo", "El antílope", "El caballo"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-012",
-      "category": "ciencia",
-      "text": "¿Quién propuso la teoría de la evolución por selección natural?",
-      "options": ["Gregor Mendel", "Charles Darwin", "Jean-Baptiste Lamarck", "Louis Pasteur"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-013",
-      "category": "ciencia",
-      "text": "¿Cuántos corazones tiene un pulpo?",
-      "options": ["1", "2", "3", "4"],
-      "answerIndex": 2,
-      "difficulty": 3
-    },
-    {
-      "id": "cie-014",
-      "category": "ciencia",
-      "text": "¿Qué planeta es célebre por su sistema de anillos?",
-      "options": ["Júpiter", "Saturno", "Marte", "Venus"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-015",
-      "category": "ciencia",
-      "text": "¿Cuál es el órgano más grande del cuerpo humano?",
-      "options": ["El hígado", "La piel", "El pulmón", "El intestino"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-016",
-      "category": "ciencia",
-      "text": "¿Qué vitamina produce el cuerpo al exponerse a la luz solar?",
-      "options": ["La vitamina A", "La vitamina C", "La vitamina D", "La vitamina B12"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "cie-017",
-      "category": "ciencia",
-      "text": "¿Cuál es el único satélite natural de la Tierra?",
-      "options": ["Fobos", "La Luna", "Europa", "Titán"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-018",
-      "category": "ciencia",
-      "text": "¿A qué temperatura hierve el agua al nivel del mar?",
-      "options": ["90 °C", "100 °C", "110 °C", "80 °C"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-019",
-      "category": "ciencia",
-      "text": "¿Cuál es el animal terrestre más grande que existe hoy?",
-      "options": ["El rinoceronte blanco", "El elefante africano", "El hipopótamo", "La jirafa"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cie-020",
-      "category": "ciencia",
-      "text": "¿Qué órgano se encarga de bombear la sangre por el cuerpo?",
-      "options": ["El pulmón", "El corazón", "El hígado", "El riñón"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-
-    {
-      "id": "dep-001",
-      "category": "deportes",
-      "text": "¿Cada cuántos años se celebran los Juegos Olímpicos de verano?",
-      "options": ["2", "3", "4", "5"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-002",
-      "category": "deportes",
-      "text": "¿Qué selección ganó el Mundial de fútbol de 2022?",
-      "options": ["Francia", "Argentina", "Brasil", "Croacia"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-003",
-      "category": "deportes",
-      "text": "¿Cuántos jugadores de un equipo hay en el campo en un partido de fútbol?",
-      "options": ["9", "10", "11", "12"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-004",
-      "category": "deportes",
-      "text": "En baloncesto, ¿cuántos puntos vale un tiro libre?",
-      "options": ["1", "2", "3", "4"],
-      "answerIndex": 0,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-005",
-      "category": "deportes",
-      "text": "¿Cuántos jugadores de un equipo hay en pista en un partido de baloncesto?",
-      "options": ["4", "5", "6", "7"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-006",
-      "category": "deportes",
-      "text": "¿Cuántos anillos tiene el símbolo olímpico?",
-      "options": ["4", "5", "6", "7"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-007",
-      "category": "deportes",
-      "text": "¿En qué deporte se golpea un volante en lugar de una pelota?",
-      "options": ["El squash", "El bádminton", "El tenis de mesa", "El pádel"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-008",
-      "category": "deportes",
-      "text": "¿En qué país se originó el judo?",
-      "options": ["China", "Corea", "Japón", "Tailandia"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-009",
-      "category": "deportes",
-      "text": "¿Qué equipo de fútbol juega como local en el Santiago Bernabéu?",
-      "options": ["El Atlético de Madrid", "El Real Madrid", "El FC Barcelona", "El Valencia"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-010",
-      "category": "deportes",
-      "text": "¿Cuántos jugadores de un equipo hay en pista en un partido de voleibol?",
-      "options": ["5", "6", "7", "8"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-011",
-      "category": "deportes",
-      "text": "¿En qué deporte destacó Rafael Nadal?",
-      "options": ["El pádel", "El tenis", "El golf", "El bádminton"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-012",
-      "category": "deportes",
-      "text": "¿Cuál es la carrera ciclista por etapas más famosa de Francia?",
-      "options": ["El Giro de Italia", "El Tour de Francia", "La Vuelta a España", "La París-Roubaix"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-013",
-      "category": "deportes",
-      "text": "¿De cuántos hoyos consta un campo de golf reglamentario?",
-      "options": ["9", "12", "18", "24"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-014",
-      "category": "deportes",
-      "text": "¿Qué selección ha ganado más Mundiales de fútbol?",
-      "options": ["Alemania", "Brasil", "Italia", "Argentina"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-015",
-      "category": "deportes",
-      "text": "¿En qué ciudad española se celebraron los Juegos Olímpicos de 1992?",
-      "options": ["Madrid", "Barcelona", "Sevilla", "Valencia"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-016",
-      "category": "deportes",
-      "text": "¿Cuánto dura un partido de fútbol reglamentario, sin contar el descuento?",
-      "options": ["80 minutos", "90 minutos", "100 minutos", "120 minutos"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "dep-017",
-      "category": "deportes",
-      "text": "¿Cuántas casillas tiene un tablero de ajedrez?",
-      "options": ["49", "64", "72", "81"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-018",
-      "category": "deportes",
-      "text": "¿Qué pieza del ajedrez solo puede moverse en diagonal?",
-      "options": ["La torre", "El alfil", "El caballo", "El peón"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-019",
-      "category": "deportes",
-      "text": "¿Cuántos jugadores forman un equipo de rugby en la modalidad XV?",
-      "options": ["11", "13", "15", "17"],
-      "answerIndex": 2,
-      "difficulty": 2
-    },
-    {
-      "id": "dep-020",
-      "category": "deportes",
-      "text": "¿Cada cuántos años se celebra el Mundial de fútbol masculino?",
-      "options": ["2", "3", "4", "5"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-
-    {
-      "id": "cul-001",
-      "category": "cultura",
-      "text": "¿Qué empresa lanzó el primer iPhone?",
-      "options": ["Samsung", "Apple", "Nokia", "Google"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-002",
-      "category": "cultura",
-      "text": "¿Qué significan las siglas \"www\" de las páginas web?",
-      "options": ["World Web Wide", "World Wide Web", "Wide World Web", "Web World Wide"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-003",
-      "category": "cultura",
-      "text": "¿Quién fundó Microsoft junto a Paul Allen?",
-      "options": ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Elon Musk"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-004",
-      "category": "cultura",
-      "text": "¿En qué red social nacieron los mensajes llamados \"tweets\"?",
-      "options": ["Instagram", "Facebook", "Twitter (X)", "TikTok"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-005",
-      "category": "cultura",
-      "text": "¿Quién creó la World Wide Web?",
-      "options": ["Bill Gates", "Tim Berners-Lee", "Steve Wozniak", "Vint Cerf"],
-      "answerIndex": 1,
-      "difficulty": 3
-    },
-    {
-      "id": "cul-006",
-      "category": "cultura",
-      "text": "¿Qué empresa desarrolla el sistema operativo Windows?",
-      "options": ["Apple", "Microsoft", "IBM", "Google"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-007",
-      "category": "cultura",
-      "text": "¿Qué empresa desarrolla el sistema operativo Android?",
-      "options": ["Apple", "Samsung", "Google", "Huawei"],
-      "answerIndex": 2,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-008",
-      "category": "cultura",
-      "text": "¿Qué significan las siglas \"IA\"?",
-      "options": ["Interfaz Automática", "Inteligencia Artificial", "Informática Aplicada", "Índice Analítico"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-009",
-      "category": "cultura",
-      "text": "¿Qué empresa creó ChatGPT?",
-      "options": ["Google", "OpenAI", "Meta", "Microsoft"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-010",
-      "category": "cultura",
-      "text": "¿Qué empresa creó el asistente de inteligencia artificial Claude?",
-      "options": ["OpenAI", "Anthropic", "Google", "Mistral"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-011",
-      "category": "cultura",
-      "text": "¿Qué red social compró Facebook en 2012?",
-      "options": ["Snapchat", "Instagram", "TikTok", "Pinterest"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-012",
-      "category": "cultura",
-      "text": "¿Qué significan las siglas \"USB\"?",
-      "options": ["United System Bus", "Universal Serial Bus", "Universal System Board", "Ultra Speed Bus"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-013",
-      "category": "cultura",
-      "text": "¿Qué significan las siglas \"PDF\"?",
-      "options": ["Personal Document File", "Portable Document Format", "Public Data Format", "Printed Document File"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-014",
-      "category": "cultura",
-      "text": "¿Qué empresa fundó Elon Musk dedicada a los viajes espaciales?",
-      "options": ["Blue Origin", "SpaceX", "Virgin Galactic", "Rocket Lab"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-015",
-      "category": "cultura",
-      "text": "¿En qué año se fundó YouTube?",
-      "options": ["2001", "2005", "2008", "2010"],
-      "answerIndex": 1,
-      "difficulty": 3
-    },
-    {
-      "id": "cul-016",
-      "category": "cultura",
-      "text": "¿Qué videoconsola lanzó Nintendo en 2017?",
-      "options": ["La Wii U", "La Nintendo Switch", "La 3DS", "La GameCube"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-017",
-      "category": "cultura",
-      "text": "¿En qué plataforma de streaming se estrenó la serie \"Stranger Things\"?",
-      "options": ["HBO", "Netflix", "Prime Video", "Disney+"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-018",
-      "category": "cultura",
-      "text": "¿Qué es un píxel?",
-      "options": ["Un tipo de cable", "El punto más pequeño de una imagen digital", "Una unidad de memoria", "Un formato de vídeo"],
-      "answerIndex": 1,
-      "difficulty": 1
-    },
-    {
-      "id": "cul-019",
-      "category": "cultura",
-      "text": "¿Qué significan las siglas \"CPU\"?",
-      "options": ["Central Program Unit", "Unidad Central de Procesamiento", "Computer Power Unit", "Unidad de Control Principal"],
-      "answerIndex": 1,
-      "difficulty": 2
-    },
-    {
-      "id": "cul-020",
-      "category": "cultura",
-      "text": "¿Qué buscador de internet desarrolló la empresa Google?",
-      "options": ["Bing", "Google", "Yahoo", "DuckDuckGo"],
-      "answerIndex": 1,
-      "difficulty": 1
-    }
+    { "id": "geo-001", "category": "geografia", "text": "¿Cuál es la capital de Australia?", "options": ["Sídney", "Canberra", "Melbourne", "Perth"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "geo-002", "category": "geografia", "text": "¿En qué continente se encuentra el desierto del Sahara?", "options": ["Asia", "África", "Oceanía", "América"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "geo-003", "category": "geografia", "text": "¿Cuál es el océano más extenso del planeta?", "options": ["Atlántico", "Índico", "Pacífico", "Ártico"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "geo-004", "category": "geografia", "text": "¿Qué país es el más poblado del mundo en 2026?", "options": ["China", "India", "Estados Unidos", "Indonesia"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "geo-005", "category": "geografia", "text": "¿Cuál es el país más extenso del mundo?", "options": ["Canadá", "China", "Rusia", "Estados Unidos"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "geo-006", "category": "geografia", "text": "¿Cuál es el país más pequeño del mundo?", "options": ["Mónaco", "Ciudad del Vaticano", "San Marino", "Liechtenstein"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "geo-007", "category": "geografia", "text": "¿En qué país se encuentra el Machu Picchu?", "options": ["Bolivia", "México", "Perú", "Ecuador"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "geo-008", "category": "geografia", "text": "¿Cuál es la capital de Canadá?", "options": ["Toronto", "Vancouver", "Montreal", "Ottawa"], "answerIndex": 3, "difficulty": 2 },
+    { "id": "geo-009", "category": "geografia", "text": "¿Qué cordillera se considera la frontera natural entre Europa y Asia?", "options": ["Los Alpes", "Los Urales", "El Cáucaso", "Los Cárpatos"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "geo-010", "category": "geografia", "text": "¿Cuál es la montaña más alta del mundo sobre el nivel del mar?", "options": ["El K2", "El Everest", "El Kilimanjaro", "El Mont Blanc"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "geo-011", "category": "geografia", "text": "¿Cuál es el río más largo de la península ibérica?", "options": ["El Ebro", "El Duero", "El Tajo", "El Guadalquivir"], "answerIndex": 2, "difficulty": 3 },
+    { "id": "geo-012", "category": "geografia", "text": "¿Cuántas comunidades autónomas tiene España?", "options": ["15", "17", "19", "21"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "geo-013", "category": "geografia", "text": "¿En qué océano se encuentra la isla de Madagascar?", "options": ["Atlántico", "Pacífico", "Índico", "Ártico"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "geo-014", "category": "geografia", "text": "¿Cuál es la capital de Marruecos?", "options": ["Casablanca", "Marrakech", "Rabat", "Tánger"], "answerIndex": 2, "difficulty": 3 },
+    { "id": "geo-015", "category": "geografia", "text": "¿Qué estrecho separa España de Marruecos?", "options": ["El estrecho de Gibraltar", "El estrecho de Ormuz", "El canal de la Mancha", "El estrecho de Bering"], "answerIndex": 0, "difficulty": 1 },
+    { "id": "geo-016", "category": "geografia", "text": "¿Cuál es el lago más grande del mundo por superficie?", "options": ["El lago Victoria", "El mar Caspio", "El lago Superior", "El lago Baikal"], "answerIndex": 1, "difficulty": 3 },
+    { "id": "geo-017", "category": "geografia", "text": "¿Qué país tiene forma de bota?", "options": ["Grecia", "Portugal", "Italia", "Croacia"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "geo-018", "category": "geografia", "text": "¿Cuál es la capital de Argentina?", "options": ["Córdoba", "Rosario", "Buenos Aires", "Mendoza"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "geo-019", "category": "geografia", "text": "¿Cuál es el desierto cálido más extenso del mundo?", "options": ["El Gobi", "El Sahara", "El Kalahari", "El de Atacama"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "geo-020", "category": "geografia", "text": "¿En qué continente se encuentra la mayor parte de Egipto?", "options": ["Asia", "África", "Europa", "Oceanía"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "his-001", "category": "historia", "text": "¿En qué año cayó el Muro de Berlín?", "options": ["1985", "1989", "1991", "1979"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-002", "category": "historia", "text": "¿Quién fue el primer presidente de los Estados Unidos?", "options": ["Thomas Jefferson", "Abraham Lincoln", "George Washington", "John Adams"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "his-003", "category": "historia", "text": "¿En qué año llegó el ser humano a la Luna por primera vez?", "options": ["1969", "1961", "1972", "1957"], "answerIndex": 0, "difficulty": 2 },
+    { "id": "his-004", "category": "historia", "text": "¿En qué año terminó la Segunda Guerra Mundial?", "options": ["1943", "1945", "1939", "1950"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "his-005", "category": "historia", "text": "¿En qué año llegó Cristóbal Colón a América?", "options": ["1492", "1498", "1485", "1512"], "answerIndex": 0, "difficulty": 1 },
+    { "id": "his-006", "category": "historia", "text": "¿En qué año comenzó la Primera Guerra Mundial?", "options": ["1918", "1914", "1912", "1920"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-007", "category": "historia", "text": "¿Quién fue el primer emperador de Roma?", "options": ["Julio César", "Augusto", "Nerón", "Trajano"], "answerIndex": 1, "difficulty": 3 },
+    { "id": "his-008", "category": "historia", "text": "¿En qué año se aprobó la Constitución española vigente?", "options": ["1975", "1978", "1981", "1986"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-009", "category": "historia", "text": "¿Qué imperio construyó la ciudadela de Machu Picchu?", "options": ["El azteca", "El maya", "El inca", "El olmeca"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "his-010", "category": "historia", "text": "¿En qué año cayó el Imperio Romano de Occidente?", "options": ["313", "476", "525", "410"], "answerIndex": 1, "difficulty": 3 },
+    { "id": "his-011", "category": "historia", "text": "¿Quién lideró la Revolución Cubana que triunfó en 1959?", "options": ["Che Guevara", "Fidel Castro", "Camilo Cienfuegos", "Raúl Castro"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-012", "category": "historia", "text": "¿En qué país comenzó la Revolución Industrial?", "options": ["Francia", "Alemania", "Reino Unido", "Estados Unidos"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "his-013", "category": "historia", "text": "¿En qué año terminó la Guerra Civil española?", "options": ["1936", "1939", "1945", "1940"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-014", "category": "historia", "text": "¿Quién fue la primera mujer en ganar un Premio Nobel?", "options": ["Marie Curie", "Rosalind Franklin", "Ada Lovelace", "Lise Meitner"], "answerIndex": 0, "difficulty": 2 },
+    { "id": "his-015", "category": "historia", "text": "¿En qué año se firmó la Declaración de Independencia de los Estados Unidos?", "options": ["1776", "1783", "1789", "1765"], "answerIndex": 0, "difficulty": 2 },
+    { "id": "his-016", "category": "historia", "text": "¿En qué año se hundió el Titanic?", "options": ["1905", "1912", "1918", "1923"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-017", "category": "historia", "text": "¿Qué reina de Castilla apoyó el primer viaje de Colón?", "options": ["Juana I", "Isabel I", "Berenguela", "María de Molina"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-018", "category": "historia", "text": "¿En qué año se disolvió la Unión Soviética?", "options": ["1989", "1991", "1993", "1987"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "his-019", "category": "historia", "text": "¿Qué civilización construyó las pirámides de Guiza?", "options": ["La sumeria", "La egipcia", "La persa", "La fenicia"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "his-020", "category": "historia", "text": "¿Quién dirigió la Alemania nazi durante la Segunda Guerra Mundial?", "options": ["Heinrich Himmler", "Adolf Hitler", "Joseph Goebbels", "Hermann Göring"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "art-001", "category": "arte", "text": "¿Quién escribió \"Don Quijote de la Mancha\"?", "options": ["Lope de Vega", "Miguel de Cervantes", "Francisco de Quevedo", "Calderón de la Barca"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "art-002", "category": "arte", "text": "¿Quién pintó la Mona Lisa?", "options": ["Miguel Ángel", "Rafael", "Leonardo da Vinci", "Sandro Botticelli"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "art-003", "category": "arte", "text": "¿Quién es el autor de \"Cien años de soledad\"?", "options": ["Mario Vargas Llosa", "Julio Cortázar", "Jorge Luis Borges", "Gabriel García Márquez"], "answerIndex": 3, "difficulty": 2 },
+    { "id": "art-004", "category": "arte", "text": "¿Quién escribió la tragedia \"Romeo y Julieta\"?", "options": ["William Shakespeare", "Christopher Marlowe", "Molière", "Oscar Wilde"], "answerIndex": 0, "difficulty": 1 },
+    { "id": "art-005", "category": "arte", "text": "¿Quién pintó el \"Guernica\"?", "options": ["Joan Miró", "Pablo Picasso", "Salvador Dalí", "Juan Gris"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "art-006", "category": "arte", "text": "¿A quién se atribuye la autoría de \"La Odisea\"?", "options": ["Virgilio", "Homero", "Sófocles", "Esopo"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-007", "category": "arte", "text": "¿Quién pintó \"La noche estrellada\"?", "options": ["Claude Monet", "Paul Cézanne", "Vincent van Gogh", "Paul Gauguin"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "art-008", "category": "arte", "text": "¿Quién escribió la novela \"1984\"?", "options": ["Aldous Huxley", "Ray Bradbury", "George Orwell", "H. G. Wells"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "art-009", "category": "arte", "text": "¿Quién compuso la Novena Sinfonía, que incluye el \"Himno a la alegría\"?", "options": ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Franz Schubert"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-010", "category": "arte", "text": "¿Quién diseñó el templo de la Sagrada Familia de Barcelona?", "options": ["Antoni Gaudí", "Lluís Domènech i Montaner", "Josep Puig i Cadafalch", "Ricardo Bofill"], "answerIndex": 0, "difficulty": 1 },
+    { "id": "art-011", "category": "arte", "text": "¿Quién escribió \"El principito\"?", "options": ["Julio Verne", "Antoine de Saint-Exupéry", "Michael Ende", "Lewis Carroll"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-012", "category": "arte", "text": "¿Quién pintó \"Las meninas\"?", "options": ["Francisco de Goya", "El Greco", "Diego Velázquez", "Bartolomé Esteban Murillo"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "art-013", "category": "arte", "text": "¿Quién escribió \"Orgullo y prejuicio\"?", "options": ["Emily Brontë", "Jane Austen", "Virginia Woolf", "Mary Shelley"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-014", "category": "arte", "text": "¿Quién esculpió el \"David\" que se conserva en Florencia?", "options": ["Donatello", "Miguel Ángel", "Bernini", "Cellini"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-015", "category": "arte", "text": "¿Quién escribió \"La casa de Bernarda Alba\"?", "options": ["Antonio Machado", "Federico García Lorca", "Rafael Alberti", "Miguel Hernández"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-016", "category": "arte", "text": "¿Qué pintor español es famoso por sus relojes derretidos en \"La persistencia de la memoria\"?", "options": ["Joan Miró", "Salvador Dalí", "Pablo Picasso", "Antoni Tàpies"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "art-017", "category": "arte", "text": "¿Quién escribió la novela \"Drácula\"?", "options": ["Mary Shelley", "Edgar Allan Poe", "Bram Stoker", "Robert Louis Stevenson"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "art-018", "category": "arte", "text": "¿Quién escribió \"El señor de los anillos\"?", "options": ["C. S. Lewis", "J. R. R. Tolkien", "Terry Pratchett", "George R. R. Martin"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "art-019", "category": "arte", "text": "¿Quién pintó \"El grito\"?", "options": ["Gustav Klimt", "Edvard Munch", "Egon Schiele", "Wassily Kandinsky"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "art-020", "category": "arte", "text": "¿Quién escribió \"La Divina Comedia\"?", "options": ["Petrarca", "Dante Alighieri", "Boccaccio", "Maquiavelo"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-001", "category": "ciencia", "text": "¿Cuál es el símbolo químico del oro?", "options": ["Ag", "Au", "Or", "Go"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-002", "category": "ciencia", "text": "¿Cuántos huesos tiene el cuerpo humano adulto?", "options": ["186", "206", "226", "196"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-003", "category": "ciencia", "text": "¿Cuál es el planeta más grande del sistema solar?", "options": ["Saturno", "Neptuno", "Júpiter", "Urano"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "cie-004", "category": "ciencia", "text": "¿Qué gas absorben las plantas del aire para la fotosíntesis?", "options": ["Oxígeno", "Nitrógeno", "Dióxido de carbono", "Hidrógeno"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "cie-005", "category": "ciencia", "text": "¿Cuál es el planeta más cercano al Sol?", "options": ["Venus", "Mercurio", "Marte", "La Tierra"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-006", "category": "ciencia", "text": "¿Cuál es la fórmula química del agua?", "options": ["CO2", "O2", "H2O", "NaCl"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "cie-007", "category": "ciencia", "text": "¿Qué científico formuló la teoría de la relatividad?", "options": ["Isaac Newton", "Albert Einstein", "Niels Bohr", "Max Planck"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-008", "category": "ciencia", "text": "¿Qué metal es líquido a temperatura ambiente?", "options": ["El plomo", "El mercurio", "El estaño", "El sodio"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-009", "category": "ciencia", "text": "¿Cuál es el gas más abundante en la atmósfera terrestre?", "options": ["Oxígeno", "Nitrógeno", "Dióxido de carbono", "Argón"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-010", "category": "ciencia", "text": "¿Cuál es el hueso más largo del cuerpo humano?", "options": ["La tibia", "El fémur", "El húmero", "El peroné"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-011", "category": "ciencia", "text": "¿Cuál es el animal terrestre más rápido?", "options": ["El leopardo", "El guepardo", "El antílope", "El caballo"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-012", "category": "ciencia", "text": "¿Quién propuso la teoría de la evolución por selección natural?", "options": ["Gregor Mendel", "Charles Darwin", "Jean-Baptiste Lamarck", "Louis Pasteur"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-013", "category": "ciencia", "text": "¿Cuántos corazones tiene un pulpo?", "options": ["1", "2", "3", "4"], "answerIndex": 2, "difficulty": 3 },
+    { "id": "cie-014", "category": "ciencia", "text": "¿Qué planeta es célebre por su sistema de anillos?", "options": ["Júpiter", "Saturno", "Marte", "Venus"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-015", "category": "ciencia", "text": "¿Cuál es el órgano más grande del cuerpo humano?", "options": ["El hígado", "La piel", "El pulmón", "El intestino"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cie-016", "category": "ciencia", "text": "¿Qué vitamina produce el cuerpo al exponerse a la luz solar?", "options": ["La vitamina A", "La vitamina C", "La vitamina D", "La vitamina B12"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "cie-017", "category": "ciencia", "text": "¿Cuál es el único satélite natural de la Tierra?", "options": ["Fobos", "La Luna", "Europa", "Titán"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-018", "category": "ciencia", "text": "¿A qué temperatura hierve el agua al nivel del mar?", "options": ["90 °C", "100 °C", "110 °C", "80 °C"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-019", "category": "ciencia", "text": "¿Cuál es el animal terrestre más grande que existe hoy?", "options": ["El rinoceronte blanco", "El elefante africano", "El hipopótamo", "La jirafa"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cie-020", "category": "ciencia", "text": "¿Qué órgano se encarga de bombear la sangre por el cuerpo?", "options": ["El pulmón", "El corazón", "El hígado", "El riñón"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-001", "category": "deportes", "text": "¿Cada cuántos años se celebran los Juegos Olímpicos de verano?", "options": ["2", "3", "4", "5"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "dep-002", "category": "deportes", "text": "¿Qué selección ganó el Mundial de fútbol de 2022?", "options": ["Francia", "Argentina", "Brasil", "Croacia"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-003", "category": "deportes", "text": "¿Cuántos jugadores de un equipo hay en el campo en un partido de fútbol?", "options": ["9", "10", "11", "12"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "dep-004", "category": "deportes", "text": "En baloncesto, ¿cuántos puntos vale un tiro libre?", "options": ["1", "2", "3", "4"], "answerIndex": 0, "difficulty": 1 },
+    { "id": "dep-005", "category": "deportes", "text": "¿Cuántos jugadores de un equipo hay en pista en un partido de baloncesto?", "options": ["4", "5", "6", "7"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-006", "category": "deportes", "text": "¿Cuántos anillos tiene el símbolo olímpico?", "options": ["4", "5", "6", "7"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-007", "category": "deportes", "text": "¿En qué deporte se golpea un volante en lugar de una pelota?", "options": ["El squash", "El bádminton", "El tenis de mesa", "El pádel"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "dep-008", "category": "deportes", "text": "¿En qué país se originó el judo?", "options": ["China", "Corea", "Japón", "Tailandia"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "dep-009", "category": "deportes", "text": "¿Qué equipo de fútbol juega como local en el Santiago Bernabéu?", "options": ["El Atlético de Madrid", "El Real Madrid", "El FC Barcelona", "El Valencia"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-010", "category": "deportes", "text": "¿Cuántos jugadores de un equipo hay en pista en un partido de voleibol?", "options": ["5", "6", "7", "8"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "dep-011", "category": "deportes", "text": "¿En qué deporte destacó Rafael Nadal?", "options": ["El pádel", "El tenis", "El golf", "El bádminton"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-012", "category": "deportes", "text": "¿Cuál es la carrera ciclista por etapas más famosa de Francia?", "options": ["El Giro de Italia", "El Tour de Francia", "La Vuelta a España", "La París-Roubaix"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-013", "category": "deportes", "text": "¿De cuántos hoyos consta un campo de golf reglamentario?", "options": ["9", "12", "18", "24"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "dep-014", "category": "deportes", "text": "¿Qué selección ha ganado más Mundiales de fútbol?", "options": ["Alemania", "Brasil", "Italia", "Argentina"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "dep-015", "category": "deportes", "text": "¿En qué ciudad española se celebraron los Juegos Olímpicos de 1992?", "options": ["Madrid", "Barcelona", "Sevilla", "Valencia"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-016", "category": "deportes", "text": "¿Cuánto dura un partido de fútbol reglamentario, sin contar el descuento?", "options": ["80 minutos", "90 minutos", "100 minutos", "120 minutos"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "dep-017", "category": "deportes", "text": "¿Cuántas casillas tiene un tablero de ajedrez?", "options": ["49", "64", "72", "81"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "dep-018", "category": "deportes", "text": "¿Qué pieza del ajedrez solo puede moverse en diagonal?", "options": ["La torre", "El alfil", "El caballo", "El peón"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "dep-019", "category": "deportes", "text": "¿Cuántos jugadores forman un equipo de rugby en la modalidad XV?", "options": ["11", "13", "15", "17"], "answerIndex": 2, "difficulty": 2 },
+    { "id": "dep-020", "category": "deportes", "text": "¿Cada cuántos años se celebra el Mundial de fútbol masculino?", "options": ["2", "3", "4", "5"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "cul-001", "category": "cultura", "text": "¿Qué empresa lanzó el primer iPhone?", "options": ["Samsung", "Apple", "Nokia", "Google"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-002", "category": "cultura", "text": "¿Qué significan las siglas \"www\" de las páginas web?", "options": ["World Web Wide", "World Wide Web", "Wide World Web", "Web World Wide"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-003", "category": "cultura", "text": "¿Quién fundó Microsoft junto a Paul Allen?", "options": ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Elon Musk"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-004", "category": "cultura", "text": "¿En qué red social nacieron los mensajes llamados \"tweets\"?", "options": ["Instagram", "Facebook", "Twitter (X)", "TikTok"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "cul-005", "category": "cultura", "text": "¿Quién creó la World Wide Web?", "options": ["Bill Gates", "Tim Berners-Lee", "Steve Wozniak", "Vint Cerf"], "answerIndex": 1, "difficulty": 3 },
+    { "id": "cul-006", "category": "cultura", "text": "¿Qué empresa desarrolla el sistema operativo Windows?", "options": ["Apple", "Microsoft", "IBM", "Google"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-007", "category": "cultura", "text": "¿Qué empresa desarrolla el sistema operativo Android?", "options": ["Apple", "Samsung", "Google", "Huawei"], "answerIndex": 2, "difficulty": 1 },
+    { "id": "cul-008", "category": "cultura", "text": "¿Qué significan las siglas \"IA\"?", "options": ["Interfaz Automática", "Inteligencia Artificial", "Informática Aplicada", "Índice Analítico"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-009", "category": "cultura", "text": "¿Qué empresa creó ChatGPT?", "options": ["Google", "OpenAI", "Meta", "Microsoft"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-010", "category": "cultura", "text": "¿Qué empresa creó el asistente de inteligencia artificial Claude?", "options": ["OpenAI", "Anthropic", "Google", "Mistral"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-011", "category": "cultura", "text": "¿Qué red social compró Facebook en 2012?", "options": ["Snapchat", "Instagram", "TikTok", "Pinterest"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-012", "category": "cultura", "text": "¿Qué significan las siglas \"USB\"?", "options": ["United System Bus", "Universal Serial Bus", "Universal System Board", "Ultra Speed Bus"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-013", "category": "cultura", "text": "¿Qué significan las siglas \"PDF\"?", "options": ["Personal Document File", "Portable Document Format", "Public Data Format", "Printed Document File"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-014", "category": "cultura", "text": "¿Qué empresa fundó Elon Musk dedicada a los viajes espaciales?", "options": ["Blue Origin", "SpaceX", "Virgin Galactic", "Rocket Lab"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-015", "category": "cultura", "text": "¿En qué año se fundó YouTube?", "options": ["2001", "2005", "2008", "2010"], "answerIndex": 1, "difficulty": 3 },
+    { "id": "cul-016", "category": "cultura", "text": "¿Qué videoconsola lanzó Nintendo en 2017?", "options": ["La Wii U", "La Nintendo Switch", "La 3DS", "La GameCube"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-017", "category": "cultura", "text": "¿En qué plataforma de streaming se estrenó la serie \"Stranger Things\"?", "options": ["HBO", "Netflix", "Prime Video", "Disney+"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-018", "category": "cultura", "text": "¿Qué es un píxel?", "options": ["Un tipo de cable", "El punto más pequeño de una imagen digital", "Una unidad de memoria", "Un formato de vídeo"], "answerIndex": 1, "difficulty": 1 },
+    { "id": "cul-019", "category": "cultura", "text": "¿Qué significan las siglas \"CPU\"?", "options": ["Central Program Unit", "Unidad Central de Procesamiento", "Computer Power Unit", "Unidad de Control Principal"], "answerIndex": 1, "difficulty": 2 },
+    { "id": "cul-020", "category": "cultura", "text": "¿Qué buscador de internet desarrolló la empresa Google?", "options": ["Bing", "Google", "Yahoo", "DuckDuckGo"], "answerIndex": 1, "difficulty": 1 }
   ]
 }
