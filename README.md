@@ -234,15 +234,18 @@ que lo desbloquea, más sus `questions` en el mismo formato que el banco base.
 ## Estado
 
 Fases 1 y 2 completas: salas en LAN, tablero, dado, movimiento por teclado, **120
-preguntas base** (20 por categoría), quesos y victoria; perfiles persistentes,
+preguntas base** (100 por categoría), quesos y victoria; perfiles persistentes,
 logros y packs temáticos (Harry Potter, Disney, Camarón de la Isla). Todo con
 accesibilidad y sonidos. Pendiente: bots e internet (fase 3), tablero visual y
 que los rivales elijan la categoría de la pregunta final. Ver `docs/DISENO.md`.
 
 ### Añadir preguntas
 
-Se editan en `content/questions.base.json` (no hace falta recompilar el servidor,
-solo reiniciarlo). Formato:
+El banco base son **600 preguntas (100 por categoría)**, repartidas en varios
+ficheros: `content/questions.base.json` y `content/questions.<categoria>.json`.
+Se cargan **todos** los `content/questions*.json`, así que para ampliar basta con
+añadir otro fichero con ese patrón (no hace falta recompilar, solo reiniciar el
+servidor). Formato:
 
 ```json
 {

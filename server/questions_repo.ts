@@ -6,7 +6,7 @@
  * se sortea entre el banco base y los de esos packs.
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CategoryId } from '../shared/categories.js';
 import type { Question, QuestionBank } from '../shared/questions.js';
@@ -117,13 +117,29 @@ function shuffleOptions(question: Question): Question {
 }
 
 /**
- * @brief Crea un repositorio con el banco base y todos los packs registrados.
+ * @brief Lista los ficheros del banco base: todo `content/questions*.json`.
+ *
+ * El banco se reparte en varios ficheros (uno por categoría además del base)
+ * para que ampliarlo sea añadir un fichero, sin editar uno gigante.
+ *
+ * @param contentDir Directorio de contenido.
+ * @return Rutas de los ficheros del banco, en orden estable.
+ */
+export function baseQuestionFiles(contentDir: string = CONTENT_DIR): string[] {
+  return readdirSync(contentDir)
+    .filter((f) => f.startsWith('questions') && f.endsWith('.json'))
+    .sort()
+    .map((f) => join(contentDir, f));
+}
+
+/**
+ * @brief Crea un repositorio con todo el banco base y los packs registrados.
  * @param packs Packs temáticos a registrar (por defecto, ninguno).
  * @return Repositorio listo para usar.
  */
 export function createDefaultRepository(packs: readonly PackDef[] = []): QuestionRepository {
   const repo = new QuestionRepository();
-  repo.loadBaseFile(join(CONTENT_DIR, 'questions.base.json'));
+  for (const file of baseQuestionFiles()) repo.loadBaseFile(file);
   for (const pack of packs) repo.addPack(pack);
   return repo;
 }

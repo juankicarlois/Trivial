@@ -1,19 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { CATEGORIES } from '../shared/categories.js';
 import type { Question, QuestionBank } from '../shared/questions.js';
-import { createDefaultRepository } from './questions_repo.js';
-import { CONTENT_DIR, loadContent } from './content.js';
+import { baseQuestionFiles, createDefaultRepository } from './questions_repo.js';
+import { loadContent } from './content.js';
 
-const base = JSON.parse(
-  readFileSync(join(CONTENT_DIR, 'questions.base.json'), 'utf-8'),
-) as QuestionBank;
+// El banco base se reparte en varios ficheros: se validan todos.
+const baseFiles = baseQuestionFiles();
+const base: QuestionBank = {
+  questions: baseFiles.flatMap(
+    (file) => (JSON.parse(readFileSync(file, 'utf-8')) as QuestionBank).questions,
+  ),
+};
 const content = loadContent();
 
 /** Mínimo por categoría en el banco base: por debajo se repetirían demasiado. */
-const MIN_PER_CATEGORY = 20;
+const MIN_PER_CATEGORY = 100;
 
 /** Todas las preguntas del juego, con la etiqueta de dónde salen (para errores). */
 const allBanks: { label: string; questions: Question[] }[] = [
