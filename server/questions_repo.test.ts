@@ -16,7 +16,7 @@ const base: QuestionBank = {
 const content = loadContent();
 
 /** Mínimo por categoría en el banco base: por debajo se repetirían demasiado. */
-const MIN_PER_CATEGORY = 100;
+const MIN_PER_CATEGORY = 115;
 
 /** Todas las preguntas del juego, con la etiqueta de dónde salen (para errores). */
 const allBanks: { label: string; questions: Question[] }[] = [
