@@ -16,7 +16,7 @@ const base: QuestionBank = {
 const content = loadContent();
 
 /** Mínimo por categoría en el banco base: por debajo se repetirían demasiado. */
-const MIN_PER_CATEGORY = 105;
+const MIN_PER_CATEGORY = 140;
 
 /**
  * Enunciado normalizado: sin tildes, signos ni mayúsculas.
