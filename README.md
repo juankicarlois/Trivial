@@ -191,10 +191,12 @@ nivelarlo igual.
 
 > ⚠️ **Procedencia y licencia.** Las muestras incluidas provienen de la
 > plataforma de audiojuegos **PlayPalace** y se usan aquí de forma provisional.
-> Antes de distribuir el juego públicamente hay que **verificar su licencia** o
-> sustituirlas por sonidos propios o de una biblioteca libre (p. ej. CC0). Para
-> cambiar un sonido, reemplaza el fichero en `public/sounds/` (mismos nombres) —
-> ver el mapa evento→fichero en `client/audio.ts`.
+> Están dentro del repositorio porque es **privado** y se comparte solo con
+> gente conocida. Antes de hacerlo público o distribuir el juego hay que
+> **verificar su licencia** o sustituirlas por sonidos propios o de una
+> biblioteca libre (p. ej. CC0). Para cambiar un sonido, reemplaza el fichero en
+> `public/sounds/` (mismos nombres) — ver el mapa evento→fichero en
+> `client/audio.ts`.
 
 ## Logros y packs temáticos
 
