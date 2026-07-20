@@ -96,7 +96,7 @@
     },
     {
       "id": "tif-011",
-      "category": "deportes",
+      "category": "ciencia",
       "text": "¿Qué animal se adiestra para ayudar a desplazarse a muchas personas ciegas?",
       "options": ["El gato", "El caballo", "El perro", "El halcón"],
       "answerIndex": 2,
