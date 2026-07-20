@@ -228,6 +228,12 @@ casilla se reparten alrededor del punto). Es **complemento para quien ve** y se
 marca `aria-hidden`: la misma información llega al lector por los anuncios, la
 lista de jugadores y las consultas.
 
+`client/dice_view.ts` enseña la **última tirada** como una cara de dado con sus
+puntos y el nombre de quien la ha hecho. El volteo dura lo que el sonido del
+dado, así que lo que se ve y lo que se oye acaban a la vez, y se salta entero si
+quien mira pidió `prefers-reduced-motion`. También va `aria-hidden`: el resultado
+ya llega al lector por el anuncio de la tirada.
+
 Al elegir dirección, las casillas destino se marcan en el dibujo y se pueden
 **pulsar** (`setMoveTargets`), lo que envía el mismo `move` que su botón de
 texto. Es un atajo de ratón, nunca la única vía: el SVG sigue `aria-hidden` y

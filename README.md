@@ -157,7 +157,7 @@ que te falta, de más cerca a más lejos. Tiene en cuenta el atajo por el centro
 ```
 shared/        Tipos, tablero (grafo de la rueda), protocolo y categorías (cliente+servidor)
 server/        Servidor HTTP + WebSocket, salas, reglas del juego, banco de preguntas
-client/        Interfaz accesible (DOM), tablero visual (SVG), audio (Web Audio) y red
+client/        Interfaz accesible (DOM), tablero y dado visuales (SVG), audio (Web Audio) y red
 content/       Preguntas, packs temáticos y logros, en JSON autorable
 public/        HTML, estilos, cliente compilado (app.js) y sonidos
 public/sounds/ Muestras de audio (dado, pasos, acierto, queso, logro, victoria…)
@@ -237,8 +237,8 @@ Jugable de principio a fin: salas en LAN, tablero, dado, movimiento por teclado,
 **1.242 preguntas base** (más de 200 por categoría), quesos, pregunta final elegida
 por los rivales y victoria; bots con tres dificultades, perfiles persistentes, logros
 y packs temáticos (Harry Potter, Disney, Camarón de la Isla). Todo con accesibilidad
-y sonidos, más un tablero visual en SVG como complemento para quien ve (sus casillas
-destino se pueden pulsar con el ratón). Pendiente: juego fuera de la LAN y más
+y sonidos, más tablero y dado visuales en SVG como complemento para quien ve (las
+casillas destino se pueden pulsar con el ratón). Pendiente: juego fuera de la LAN y más
 contenido. Ver `docs/DISENO.md`.
 
 ### Añadir preguntas

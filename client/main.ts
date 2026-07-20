@@ -22,6 +22,7 @@ import {
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
 import { BoardView } from './board_view.js';
+import { DiceView } from './dice_view.js';
 import { loadProfileId } from './identity.js';
 import {
   achievementsSummary,
@@ -63,6 +64,7 @@ const myWedgesList = $('my-wedges');
 const playersTitle = $('players-title');
 const playersList = $('players');
 const boardPanel = $('board');
+const dicePanel = $('dice');
 const actions = $('actions');
 const packsSection = $('packs-section');
 const packsList = $('packs');
@@ -71,6 +73,9 @@ const achievementsList = $('achievements');
 
 /** Tablero visual (rueda SVG); complemento para quien ve, oculto al lector. */
 const boardView = new BoardView(boardPanel, board);
+
+/** Dado visual; igual que el tablero, complemento para quien ve. */
+const diceView = new DiceView(dicePanel);
 
 // --- Estado local -----------------------------------------------------------
 
@@ -227,10 +232,12 @@ function handleEvent(event: GameEvent): void {
       break;
     case 'gameStarted':
       sound.start();
+      diceView.clear(); // la tirada de la partida anterior ya no viene a cuento
       announce('¡Empieza la partida!');
       break;
     case 'diceRolled':
       sound.dice();
+      diceView.show(event.value, nameOf(event.playerId));
       announce(`${nameOf(event.playerId)} saca un ${event.value}.`);
       break;
     case 'moved':

@@ -166,6 +166,22 @@ kbd {
 
 .board { margin: 1rem 0; }
 
+/* Dado visual: última tirada, con quién la ha hecho. Complemento para quien ve. */
+.dice { display: grid; justify-items: center; gap: 0.3rem; margin: 1rem 0 0; }
+.dice-face { width: 84px; height: 84px; }
+.dice-body { fill: var(--panel-2); stroke: var(--text); stroke-width: 3; }
+.dice-pip { fill: var(--text); }
+.dice-caption { margin: 0; font-weight: 600; color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dice-face.rolling { animation: dice-roll 0.64s ease-out; }
+}
+@keyframes dice-roll {
+  0% { transform: rotate(-18deg) scale(0.86); }
+  60% { transform: rotate(12deg) scale(1.06); }
+  100% { transform: none; }
+}
+
 /* Tablero visual (rueda SVG). Complemento para quien ve; el lector lo ignora. */
 .board-svg {
   display: block;
