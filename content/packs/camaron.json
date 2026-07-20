@@ -104,6 +104,14 @@
       "options": ["La seguiriya", "La bulería", "La soleá", "El martinete"],
       "answerIndex": 1,
       "difficulty": 2
+    },
+    {
+      "id": "cam-013",
+      "category": "deportes",
+      "text": "¿Qué futbolista, ídolo del Cádiz en los años ochenta, fue muy amigo de Camarón?",
+      "options": ["Hugo Sánchez", "Mágico González", "Mario Kempes", "Bernd Schuster"],
+      "answerIndex": 1,
+      "difficulty": 3
     }
   ]
 }
