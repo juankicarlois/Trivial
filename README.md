@@ -103,6 +103,11 @@ npm test               # tests del tablero y del motor
 
 ## Cómo se juega
 
+> Dentro del juego hay un manual completo: el botón **«Cómo se juega»**, tanto en
+> la pantalla de entrada como durante la partida, abre una ayuda por secciones
+> (qué es el Trivial, tu turno paso a paso, quesos, rebote, contrarreloj, teclas)
+> pensada para quien no conozca el juego. Se cierra con «Volver» o con `Escape`.
+
 - Todas las fichas empiezan en el centro. En tu turno **tiras el dado** y avanzas.
 - En los cruces eliges dirección; los tramos sin desvío se recorren solos.
 - Al caer en una casilla respondes una **pregunta** de su categoría (opción
@@ -136,6 +141,7 @@ así que un atajo de una letra nunca les llegaría. Activar un botón sí funcio
 | `Tab` / `Mayús+Tab` | Moverse entre los mandos |
 | `Intro` / `Espacio` | Activar el mando o botón enfocado (incluido el **pulsador del rebote**, que se enfoca solo) |
 | `B` · `R` · `Q` · `L` | Sedes · rivales · quesos · logros (**vía secundaria**: solo con el lector en modo foco o sin lector) |
+| `Escape` | Cerrar el manual «Cómo se juega» |
 
 El foco salta solo al mando principal cuando te toca actuar (tirar, elegir
 dirección o responder).

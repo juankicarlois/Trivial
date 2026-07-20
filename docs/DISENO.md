@@ -327,6 +327,23 @@ ffmpeg -y \
 El `volume=0.8dB` deja el pico en −1,5 dBFS, que es como están nivelados los
 demás sonidos cortos.
 
+## Manual (pantalla de ayuda)
+
+`client/help.ts` + la sección `#help-screen` de `index.html`. El **contenido es
+HTML estático y semántico** (encabezados y listas), no generado en JS: así el
+lector de pantalla lo recorre con su navegación por encabezados sin que haya que
+construir ninguna estructura ARIA. El módulo solo abre, cierra y gestiona el
+foco.
+
+Se abre con el botón «Cómo se juega», presente en el vestíbulo y en la partida, y
+tapa la pantalla que hubiera (guardándola para restaurarla al cerrar). Al abrir,
+el foco va al título (`tabindex="-1"`) para leer desde el principio; al cerrar,
+vuelve al botón que la abrió. Cierra con «Volver» (hay uno arriba y otro abajo,
+para no recorrer todo el texto) o con `Escape`.
+
+Mientras está abierta, los atajos de una letra (B/R/Q/L) se ignoran: el manual
+los menciona como texto y no deben lanzar consultas al leerlos.
+
 ## Bandos: individual y por equipos
 
 La ficha y los quesos pertenecen a un **bando**, no a una persona. En modo

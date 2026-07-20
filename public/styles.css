@@ -41,6 +41,13 @@ h1 { font-size: 1.8rem; }
 h2 { font-size: 1.2rem; margin-top: 1.5rem; }
 
 .field { margin-bottom: 1rem; }
+
+/* Manual: texto largo, algo más estrecho y aireado para leerlo cómodo. */
+#help-screen { max-width: 46rem; }
+#help-screen p { line-height: 1.6; }
+#help-screen li { line-height: 1.6; margin-bottom: 0.3rem; }
+#help-screen h2 { margin-top: 2rem; }
+#help-screen :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
 
 input {

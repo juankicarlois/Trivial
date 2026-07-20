@@ -31,6 +31,9 @@
           <button type="submit">Entrar en la sala</button>
         </form>
         <p id="join-error" class="error" role="alert"></p>
+        <p>
+          <button type="button" id="btn-help-join" class="secondary">Cómo se juega</button>
+        </p>
       </section>
 
       <!-- Partida -->
@@ -39,6 +42,10 @@
 
         <!-- Región de anuncios para el lector de pantalla -->
         <div id="announce" class="sr-only" role="status" aria-live="assertive"></div>
+
+        <p>
+          <button type="button" id="btn-help-game" class="secondary">Cómo se juega</button>
+        </p>
 
         <p id="status" class="status"></p>
 
@@ -97,6 +104,156 @@
         <h1 id="time-attack-title">Contrarreloj</h1>
         <p id="time-attack-status" class="status"></p>
         <div id="time-attack-actions" tabindex="-1"></div>
+      </section>
+
+      <!--
+        Manual. Contenido estático y semántico (encabezados y listas) para que se
+        recorra con la navegación por encabezados del lector de pantalla. El botón
+        "Volver" está al principio y al final para no tener que recorrerlo entero
+        para salir. El foco se gestiona desde help.ts.
+      -->
+      <section id="help-screen" aria-labelledby="help-title" tabindex="-1" hidden>
+        <h1 id="help-title">Cómo se juega</h1>
+        <p>
+          <button type="button" class="secondary" data-help-close>Volver</button>
+        </p>
+
+        <h2>Qué es este juego</h2>
+        <p>
+          Es un concurso de preguntas y respuestas por turnos, al estilo del
+          Trivial de mesa. Cada jugador tiene una ficha en un tablero con forma de
+          rueda: un centro y seis radios, cada uno con la sede de una categoría.
+          Respondes preguntas de opción múltiple; si aciertas en la sede de una
+          categoría, ganas su «queso». Gana quien reúne los seis quesos y acierta
+          una última pregunta en el centro.
+        </p>
+        <p>
+          No hace falta saber nada de antemano: el juego te va diciendo por voz
+          qué ocurre y qué puedes hacer en cada momento. Está pensado para jugarse
+          escuchando, con lector de pantalla, aunque también se ve.
+        </p>
+
+        <h2>Las seis categorías</h2>
+        <ul>
+          <li>Geografía.</li>
+          <li>Historia.</li>
+          <li>Arte y Literatura.</li>
+          <li>Ciencia y Naturaleza.</li>
+          <li>Deportes y Ocio.</li>
+          <li>Cultura y Tecnología.</li>
+        </ul>
+
+        <h2>Empezar una partida</h2>
+        <p>
+          En la pantalla de entrada escribes un código de sala (te lo inventas) y
+          tu nombre. Quien escriba el mismo código juega contigo, así que para
+          jugar con alguien basta con compartirle el código. Cuando estéis todos,
+          quien creó la sala pulsa «Empezar partida».
+        </p>
+        <p>
+          ¿Sin nadie con quien jugar? Añade uno o más «bots» (jugadores que maneja
+          el ordenador) con los botones «Añadir bot», elige su dificultad y juega
+          contra ellos.
+        </p>
+
+        <h2>Tu turno, paso a paso</h2>
+        <ol>
+          <li>
+            <strong>Tiras el dado</strong> con el botón «Tirar el dado». Sale un
+            número del 1 al 6: son las casillas que avanzarás.
+          </li>
+          <li>
+            <strong>Eliges dirección.</strong> En cada cruce el juego te ofrece
+            botones con los caminos posibles, diciéndote a dónde llegarías con
+            cada uno. Los tramos sin desvío se recorren solos. No puedes volver a
+            la casilla de la que acabas de venir.
+          </li>
+          <li>
+            <strong>Respondes la pregunta</strong> de la categoría de la casilla
+            donde caes. Se lee la pregunta y sus cuatro opciones; eliges una.
+          </li>
+          <li>
+            <strong>Si aciertas, vuelves a tirar</strong> y sigues jugando. Si
+            fallas, pasa el turno al siguiente (pero antes puede haber rebote, ver
+            más abajo).
+          </li>
+        </ol>
+        <p>
+          Para que nadie acapare la partida, al tercer acierto seguido en un mismo
+          turno cedes la vez aunque hayas acertado.
+        </p>
+
+        <h2>Los quesos y cómo ganar</h2>
+        <p>
+          Cada radio termina en la <strong>sede</strong> de su categoría. Si caes
+          en una sede y aciertas su pregunta, ganas el <strong>queso</strong> de
+          esa categoría. Cada queso se gana una sola vez.
+        </p>
+        <p>
+          Cuando tienes los <strong>seis quesos</strong>, vuelve al centro de la
+          rueda. Al llegar, tus rivales eligen la categoría de una última pregunta.
+          Si la aciertas, <strong>ganas la partida</strong>; si fallas, seguirás
+          intentándolo en próximos turnos.
+        </p>
+
+        <h2>El rebote</h2>
+        <p>
+          Cuando alguien falla una pregunta, no se descarta: queda «en el aire»
+          durante ocho segundos, y cualquier rival puede quedársela pulsando el
+          botón «¡Pulsar!». Quien pulsa primero pasa a responderla.
+        </p>
+        <ul>
+          <li>Si la aciertas, saltas a la casilla donde estaba quien falló y, si era una sede, te llevas su queso.</li>
+          <li>Fallar el rebote no te cuesta nada, así que merece la pena arriesgarse.</li>
+          <li>Si nadie pulsa a tiempo, la pregunta se pierde y sigue el juego.</li>
+        </ul>
+        <p>
+          Al fallar tú una pregunta que va a rebotar, el juego te dice en privado
+          cuál era la respuesta correcta, pero no la canta a los demás: sería
+          regalársela a quien va a intentar quedársela.
+        </p>
+
+        <h2>Contrarreloj (en solitario)</h2>
+        <p>
+          Un modo para jugar solo, que se desbloquea con el logro «Contrarreloj»
+          (juega tres partidas). Son tres minutos de preguntas encadenadas: cada
+          acierto suma un punto y cada fallo te resta diez segundos. Se guarda tu
+          mejor marca para que intentes superarla.
+        </p>
+        <p>
+          El tiempo se avisa por voz al quedar un minuto, treinta segundos y diez
+          segundos, y el botón «Cuánto tiempo queda» te lo dice cuando quieras.
+        </p>
+
+        <h2>Consultas durante la partida</h2>
+        <p>
+          En cualquier momento puedes oír tu situación con estos botones, siempre
+          disponibles en la partida:
+        </p>
+        <ul>
+          <li><strong>Dónde tengo cada sede:</strong> hacia dónde queda cada categoría que te falta.</li>
+          <li><strong>Dónde están los rivales:</strong> dónde está cada rival y cómo va.</li>
+          <li><strong>Mis quesos:</strong> los que tienes y los que te faltan.</li>
+          <li><strong>Mis logros:</strong> los conseguidos y su progreso.</li>
+        </ul>
+        <p>
+          También valen las teclas <kbd>B</kbd> (sedes), <kbd>R</kbd> (rivales),
+          <kbd>Q</kbd> (quesos) y <kbd>L</kbd> (logros), si tu lector de pantalla
+          no las intercepta. Para moverte entre los botones usa el tabulador, y
+          <kbd>Intro</kbd> o <kbd>Espacio</kbd> para activarlos.
+        </p>
+
+        <h2>Logros y packs de preguntas</h2>
+        <p>
+          Al ir jugando consigues <strong>logros</strong> (ganar quesos, encadenar
+          aciertos, jugar partidas…). Algunos desbloquean <strong>packs</strong>
+          de preguntas temáticas (cine, videojuegos, etc.) que cualquiera de la
+          sala puede activar antes de empezar, para todos.
+        </p>
+
+        <p>
+          <button type="button" class="secondary" data-help-close>Volver</button>
+        </p>
       </section>
     </main>
 

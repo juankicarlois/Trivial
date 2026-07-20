@@ -24,6 +24,7 @@ import { Net } from './net.js';
 import { BoardView } from './board_view.js';
 import { DiceView } from './dice_view.js';
 import { TimeAttackScreen } from './time_attack.js';
+import { HelpScreen } from './help.js';
 import { TIME_ATTACK_ACHIEVEMENT } from '../shared/progress.js';
 import { loadProfileId } from './identity.js';
 import {
@@ -72,6 +73,14 @@ const packsSection = $('packs-section');
 const packsList = $('packs');
 const achievementsTitle = $('achievements-title');
 const achievementsList = $('achievements');
+
+/** Manual del juego, superpuesto a la pantalla que hubiera. */
+const help = new HelpScreen({
+  help: $('help-screen'),
+  others: [joinScreen, gameScreen, $('time-attack-screen')],
+});
+$<HTMLButtonElement>('btn-help-join').addEventListener('click', (ev) => help.show(ev.currentTarget as HTMLElement));
+$<HTMLButtonElement>('btn-help-game').addEventListener('click', (ev) => help.show(ev.currentTarget as HTMLElement));
 
 /** Tablero visual (rueda SVG); complemento para quien ve, oculto al lector. */
 const boardView = new BoardView(boardPanel, board);
@@ -1071,6 +1080,9 @@ $<HTMLButtonElement>('btn-achievements').addEventListener('click', announceAchie
 document.addEventListener('keydown', (ev) => {
   if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
   if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
+  // En el manual estas letras aparecen como texto (menciona las teclas B, R…):
+  // no deben lanzar consultas mientras se lee.
+  if (help.open) return;
 
   const key = ev.key.toLowerCase();
   if (key === 'q') {
