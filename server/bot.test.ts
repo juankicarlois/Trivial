@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildBoard, HUB_ID } from '../shared/board.js';
 import { CATEGORIES } from '../shared/categories.js';
-import { chooseBotFinalCategory, botAnswerIndex, chooseBotMove } from './bot.js';
+import { botBuzzDelayMs, chooseBotFinalCategory, botAnswerIndex, chooseBotMove } from './bot.js';
 
 const board = buildBoard();
 
@@ -65,4 +65,35 @@ test('chooseBotMove nunca devuelve una opción fuera de las dadas', () => {
 test('la categoría final del bot es una categoría válida', () => {
   const ids = new Set(CATEGORIES.map((c) => c.id));
   for (const r of [0, 0.3, 0.99]) assert.ok(ids.has(chooseBotFinalCategory(() => r)));
+});
+
+// --- Pulsador del rebote ----------------------------------------------------
+
+test('un bot solo pulsa el rebote cuando le toca según su acierto', () => {
+  // random() por encima de la probabilidad de acierto: no pulsa.
+  assert.equal(botBuzzDelayMs('facil', 8000, () => 0.95), null);
+  // Por debajo: pulsa, y el retardo cae dentro de la ventana.
+  const delay = botBuzzDelayMs('dificil', 8000, () => 0.1);
+  assert.ok(delay !== null && delay > 0 && delay < 8000);
+});
+
+test('el bot nunca pulsa antes del primer tercio de la ventana', () => {
+  // Si se lanzara al instante, una persona no llegaría nunca a tiempo.
+  for (const dificultad of ['facil', 'normal', 'dificil'] as const) {
+    for (const r of [0, 0.01, 0.2]) {
+      const delay = botBuzzDelayMs(dificultad, 9000, () => r);
+      if (delay !== null) assert.ok(delay >= 3000, `${dificultad} pulsó a los ${delay} ms`);
+    }
+  }
+});
+
+test('cuanto mejor es el bot, antes pulsa', () => {
+  // Primera llamada 0: pasa el filtro y pulsa. Segunda 1: el retardo máximo de
+  // su rango, que es donde se ve la diferencia entre dificultades.
+  const peorCaso = (d: 'facil' | 'normal' | 'dificil') => {
+    const valores = [0, 1];
+    return botBuzzDelayMs(d, 8000, () => valores.shift() ?? 1)!;
+  };
+  assert.ok(peorCaso('dificil') < peorCaso('normal'), 'el difícil reacciona antes que el normal');
+  assert.ok(peorCaso('normal') < peorCaso('facil'), 'el normal, antes que el fácil');
 });

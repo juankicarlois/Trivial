@@ -33,7 +33,7 @@ import {
   type TurnPhase,
 } from '../shared/protocol.js';
 import { legalMoves, rollDie } from './engine.js';
-import { botAnswerIndex, chooseBotFinalCategory, chooseBotMove } from './bot.js';
+import { botAnswerIndex, botBuzzDelayMs, chooseBotFinalCategory, chooseBotMove } from './bot.js';
 import type { QuestionRepository } from './questions_repo.js';
 import type { GameContent } from './content.js';
 import type { Profile, ProfileStore } from './profiles.js';
@@ -54,6 +54,14 @@ const BOT_DELAY_MS = 1100;
  * entera y el resto se aburre esperando.
  */
 const MAX_CORRECT_PER_TURN = 3;
+
+/**
+ * Tiempo que los rivales tienen para pulsar el rebote. Se cuenta desde que se
+ * anuncia, no desde que se planteó la pregunta: así todos arrancan a la vez y
+ * quien navega con lector de pantalla no sale perdiendo por leer más despacio.
+ * Ocho segundos dan margen a oír el aviso y reaccionar sin que la mesa se pare.
+ */
+const REBOUND_MS = 8000;
 
 /** Envío de mensajes a los clientes de la sala. */
 export interface Transport {
@@ -89,6 +97,24 @@ interface InternalTeam {
   activeMemberIndex: number;
 }
 
+/**
+ * Pregunta fallada que sigue en el aire. Mientras el pulsador está abierto
+ * (`claimedByTeamIndex === null`) cualquier bando de `eligibleTeamIndices` puede
+ * quedársela; luego responde solo quien pulsó.
+ */
+interface Rebound {
+  /** Pregunta que se quedó sin acertar. */
+  question: Question;
+  /** Casilla donde estaba quien falló: el premio si el rebote se acierta. */
+  nodeId: string;
+  /** Bandos que pueden pulsar (todos menos el que falló). */
+  eligibleTeamIndices: number[];
+  /** Bando que ha pulsado primero; null mientras el pulsador sigue abierto. */
+  claimedByTeamIndex: number | null;
+  /** Miembro que responde por el bando que pulsó. */
+  claimedByPlayerId: string | null;
+}
+
 interface Movement {
   remaining: number;
   /** Nodo del que se viene (para no oscilar); null en el primer paso. */
@@ -120,8 +146,15 @@ export class Room {
   private askedThisGame = new Set<string>();
   /** Aciertos encadenados por el bando en el turno actual (tope por turno). */
   private correctThisTurn = 0;
+  /** Rebote en curso, si la pregunta fallada sigue en el aire. */
+  private rebound: Rebound | null = null;
+  /** Cancela el cierre del pulsador del rebote, si está abierto. */
+  private cancelRebound: (() => void) | null = null;
+  /** Cancela la pulsación programada de un bot, si la hay. */
+  private cancelBotBuzz: (() => void) | null = null;
   private readonly schedule: Scheduler;
   private readonly botDelayMs: number;
+  private readonly reboundMs: number;
   /** Cancela la próxima acción de bot pendiente, si la hay. */
   private cancelBot: (() => void) | null = null;
   private botCounter = 0;
@@ -132,7 +165,7 @@ export class Room {
     content: GameContent,
     profiles: ProfileStore,
     transport: Transport,
-    options: { scheduler?: Scheduler; botDelayMs?: number } = {},
+    options: { scheduler?: Scheduler; botDelayMs?: number; reboundMs?: number } = {},
   ) {
     this.code = code;
     this.repo = repo;
@@ -146,6 +179,7 @@ export class Room {
         return () => clearTimeout(handle);
       });
     this.botDelayMs = options.botDelayMs ?? BOT_DELAY_MS;
+    this.reboundMs = options.reboundMs ?? REBOUND_MS;
   }
 
   /** Libera recursos al descartar la sala (temporizadores pendientes). */
@@ -154,6 +188,7 @@ export class Room {
       this.cancelBot();
       this.cancelBot = null;
     }
+    this.closeReboundWindow();
   }
 
   // --- Gestión de jugadores -------------------------------------------------
@@ -321,13 +356,16 @@ export class Room {
       this.phase === 'awaitRoll' ||
       this.phase === 'moving' ||
       this.phase === 'awaitAnswer' ||
+      this.phase === 'awaitRebound' ||
       this.phase === 'awaitFinalCategory';
 
     if (gameActive) {
       // Si quien actuaba tenía compañeros conectados, el equipo sigue jugando:
       // le sustituye el siguiente miembro. Solo se pasa turno si el bando entero
       // se queda sin nadie, o la partida se quedaría clavada.
-      if (this.currentTeamHasNoConnectedMembers() && this.anyTeamPlayable()) {
+      // Durante el rebote no actúa el bando del turno, así que su ausencia no
+      // bloquea nada: el pulsador sigue vivo para los rivales.
+      if (this.phase !== 'awaitRebound' && this.currentTeamHasNoConnectedMembers() && this.anyTeamPlayable()) {
         this.movement = null;
         this.question = null;
         this.nextTurn();
@@ -337,6 +375,14 @@ export class Room {
       // final, se resuelve al azar para que el bando líder pueda jugársela.
       if (this.phase === 'awaitFinalCategory' && this.connectedRivals().length === 0) {
         this.askQuestion(this.randomCategory(), true);
+        return;
+      }
+      // Si quien había pulsado el rebote se cae, nadie puede responder por él:
+      // la pregunta se pierde y sigue la partida.
+      if (this.phase === 'awaitRebound' && this.rebound?.claimedByPlayerId === playerId) {
+        this.rebound = null;
+        this.emit({ kind: 'reboundExpired' });
+        this.nextTurn();
         return;
       }
     }
@@ -486,11 +532,15 @@ export class Room {
   }
 
   answer(playerId: string, optionIndex: number): void {
+    // La pregunta rebotada la responde quien pulsó, no quien tiene el turno.
+    if (this.phase === 'awaitRebound') return this.answerRebound(playerId, optionIndex);
+
     if (!this.isActing(playerId)) return this.reject('No es tu turno.');
     if (this.phase !== 'awaitAnswer' || !this.question) return this.reject('No hay pregunta activa.');
 
     const player = this.playerById(playerId)!;
     const team = this.currentTeam()!;
+    const failed = this.question;
     const correct = optionIndex === this.question.answerIndex;
     const forWin = this.question.forWin;
     const category = this.question.category;
@@ -514,6 +564,9 @@ export class Room {
 
     if (!correct) {
       this.saveProgressOf(player);
+      // La pregunta fallada no se tira: se ofrece a los rivales (menos la
+      // final, que decide la partida y no se regala).
+      if (!forWin && this.openRebound(failed, team)) return;
       this.nextTurn();
       return;
     }
@@ -560,6 +613,170 @@ export class Room {
     // Acertar da turno extra: el mismo bando vuelve a tirar.
     this.phase = 'awaitRoll';
     this.sync();
+  }
+
+  // --- Rebote ---------------------------------------------------------------
+
+  /**
+   * @brief Pulsa el rebote: quien llega primero se queda la pregunta fallada.
+   * @param playerId Jugador que pulsa.
+   *
+   * Solo vale una pulsación: la primera cierra el pulsador y las demás se
+   * rechazan. No puede pulsar el bando que ha fallado (sería contestar dos veces
+   * a la misma pregunta) ni un bando que ya haya pulsado.
+   */
+  buzz(playerId: string): void {
+    if (this.phase !== 'awaitRebound' || !this.rebound) return this.reject('No hay ningún rebote abierto.');
+    if (this.rebound.claimedByTeamIndex !== null) return this.reject('El rebote ya es de otro.');
+
+    const player = this.playerById(playerId);
+    if (!player?.connected) return this.reject('No estás en la partida.');
+    const teamIndex = this.teams.findIndex((t) => t.memberIds.includes(playerId));
+    if (!this.rebound.eligibleTeamIndices.includes(teamIndex)) {
+      return this.reject('Tu bando no puede rebotar esta pregunta.');
+    }
+
+    this.closeReboundWindow();
+    this.rebound.claimedByTeamIndex = teamIndex;
+    this.rebound.claimedByPlayerId = playerId;
+    this.emit({ kind: 'reboundClaimed', teamId: this.teams[teamIndex].id, playerId });
+    this.sync();
+  }
+
+  /**
+   * Abre el pulsador para los rivales del bando que ha fallado.
+   *
+   * @param question Pregunta que se ha fallado.
+   * @param failedTeam Bando que la ha fallado (no puede rebotar la suya).
+   * @return true si el rebote queda abierto; false si no hay a quién ofrecérselo
+   *         y el turno debe seguir su curso.
+   */
+  private openRebound(question: Question, failedTeam: InternalTeam): boolean {
+    const eligible = this.teams
+      .map((team, index) => ({ team, index }))
+      .filter(({ team }) => team.id !== failedTeam.id && this.teamHasConnectedMember(team))
+      .map(({ index }) => index);
+    if (eligible.length === 0) return false;
+
+    this.rebound = {
+      question,
+      nodeId: failedTeam.nodeId,
+      eligibleTeamIndices: eligible,
+      claimedByTeamIndex: null,
+      claimedByPlayerId: null,
+    };
+    this.phase = 'awaitRebound';
+    this.emit({
+      kind: 'reboundOpened',
+      failedTeamId: failedTeam.id,
+      seconds: Math.round(this.reboundMs / 1000),
+    });
+    this.cancelRebound = this.schedule(() => {
+      this.cancelRebound = null;
+      this.expireRebound();
+    }, this.reboundMs);
+    this.scheduleBotBuzz(eligible);
+    this.sync();
+    return true;
+  }
+
+  /**
+   * Programa la pulsación del bot más rápido de entre los bandos que pueden
+   * rebotar. Solo se programa uno: en cuanto alguien pulsa, el pulsador se
+   * cierra, así que los demás no llegarían a nada.
+   */
+  private scheduleBotBuzz(eligibleTeamIndices: readonly number[]): void {
+    let bestPlayerId: string | null = null;
+    let bestDelay = Infinity;
+
+    for (const index of eligibleTeamIndices) {
+      for (const memberId of this.teams[index].memberIds) {
+        const member = this.playerById(memberId);
+        if (!member?.isBot || !member.connected) continue;
+        const delay = botBuzzDelayMs(member.difficulty ?? 'normal', this.reboundMs);
+        if (delay !== null && delay < bestDelay) {
+          bestDelay = delay;
+          bestPlayerId = member.id;
+        }
+      }
+    }
+
+    if (bestPlayerId === null) return;
+    const playerId = bestPlayerId;
+    this.cancelBotBuzz = this.schedule(() => {
+      this.cancelBotBuzz = null;
+      if (this.phase === 'awaitRebound' && this.rebound?.claimedByTeamIndex === null) {
+        this.buzz(playerId);
+      }
+    }, bestDelay);
+  }
+
+  /** Nadie ha pulsado a tiempo: la pregunta se pierde y sigue la partida. */
+  private expireRebound(): void {
+    if (this.phase !== 'awaitRebound' || !this.rebound || this.rebound.claimedByTeamIndex !== null) return;
+    this.rebound = null;
+    this.emit({ kind: 'reboundExpired' });
+    this.nextTurn();
+  }
+
+  /**
+   * Resuelve la respuesta de quien pulsó el rebote. Acertar le da la casilla del
+   * que falló (y su queso, si era una sede que le faltaba); fallar no le cuesta
+   * nada, porque quien no arriesga nunca pulsaría.
+   */
+  private answerRebound(playerId: string, optionIndex: number): void {
+    const rebound = this.rebound;
+    if (!rebound || rebound.claimedByPlayerId === null) return this.reject('Aún no has pulsado el rebote.');
+    if (rebound.claimedByPlayerId !== playerId) return this.reject('El rebote es de otro jugador.');
+
+    const player = this.playerById(playerId)!;
+    const team = this.teams[rebound.claimedByTeamIndex!];
+    const correct = optionIndex === rebound.question.answerIndex;
+    const correctText = rebound.question.options[rebound.question.answerIndex];
+    const node = this.board.nodes[rebound.nodeId];
+    this.rebound = null;
+
+    player.streak = correct ? player.streak + 1 : 0;
+    if (!player.isBot) {
+      const profile = this.profileOf(player);
+      profile.stats.questionsAnswered += 1;
+      if (correct) {
+        profile.stats.questionsCorrect += 1;
+        profile.stats.correct[rebound.question.category] += 1;
+        profile.stats.bestStreak = Math.max(profile.stats.bestStreak, player.streak);
+      }
+    }
+
+    this.emit({ kind: 'answered', playerId, correct, correctText });
+
+    if (correct) {
+      // El premio es quedarse el sitio del que falló, con su queso si lo había.
+      team.nodeId = rebound.nodeId;
+      this.emit({ kind: 'reboundWon', teamId: team.id, playerId, nodeId: rebound.nodeId });
+      if (node.kind === 'hq' && node.category && !team.wedges.includes(node.category)) {
+        team.wedges.push(node.category);
+        if (!player.isBot) this.profileOf(player).stats.wedgesEarned += 1;
+        this.emit({ kind: 'wedgeEarned', teamId: team.id, playerId, category: node.category });
+        if (team.wedges.length === CATEGORIES.length) {
+          this.emit({ kind: 'allWedgesEarned', teamId: team.id });
+        }
+      }
+    }
+
+    this.saveProgressOf(player);
+    this.nextTurn();
+  }
+
+  /** Para los temporizadores del pulsador (cierre y pulsación de bot). */
+  private closeReboundWindow(): void {
+    if (this.cancelRebound) {
+      this.cancelRebound();
+      this.cancelRebound = null;
+    }
+    if (this.cancelBotBuzz) {
+      this.cancelBotBuzz();
+      this.cancelBotBuzz = null;
+    }
   }
 
   /** Comprueba logros y guarda, solo si el jugador es una persona. */
@@ -751,6 +968,9 @@ export class Room {
 
   /** Pasa el turno al siguiente bando jugable, rotando el miembro que responde. */
   private nextTurn(): void {
+    // Cualquier rebote pendiente muere con el turno que lo abrió.
+    this.closeReboundWindow();
+    this.rebound = null;
     if (!this.anyTeamPlayable()) return;
 
     // El bando que acaba de jugar rota su miembro: así responden todos.
@@ -882,6 +1102,15 @@ export class Room {
       const difficulty = acting.difficulty ?? 'normal';
       return () => this.answer(acting.id, botAnswerIndex(question, difficulty));
     }
+    // Rebote pulsado por un bot: contesta él, no el jugador del turno.
+    if (this.phase === 'awaitRebound' && this.rebound?.claimedByPlayerId) {
+      const claimer = this.playerById(this.rebound.claimedByPlayerId);
+      if (claimer?.isBot) {
+        const question = this.rebound.question;
+        const difficulty = claimer.difficulty ?? 'normal';
+        return () => this.answer(claimer.id, botAnswerIndex(question, difficulty));
+      }
+    }
     if (this.phase === 'awaitFinalCategory') {
       // La categoría la eligen los rivales. Si hay algún rival humano conectado
       // se le deja elegir; si solo hay bots, elige un bot.
@@ -926,7 +1155,12 @@ export class Room {
       players,
       teams,
       currentTeamIndex: this.currentTeamIndex,
-      actingPlayerId: this.actingPlayer()?.id ?? null,
+      // En el rebote responde quien pulsó, no el jugador del turno; mientras el
+      // pulsador sigue abierto no actúa nadie todavía.
+      actingPlayerId:
+        this.phase === 'awaitRebound'
+          ? (this.rebound?.claimedByPlayerId ?? null)
+          : (this.actingPlayer()?.id ?? null),
       packs: this.packViews(),
     };
 
@@ -946,6 +1180,21 @@ export class Room {
         forWin: this.question.forWin,
       };
       view.question = publicQuestion;
+    }
+
+    // En el rebote sigue en pantalla la misma pregunta: es la que está en juego.
+    if (this.phase === 'awaitRebound' && this.rebound) {
+      view.question = {
+        id: this.rebound.question.id,
+        category: this.rebound.question.category,
+        text: this.rebound.question.text,
+        options: [...this.rebound.question.options],
+        forWin: false,
+      };
+      view.rebound = {
+        eligibleTeamIds: this.rebound.eligibleTeamIndices.map((i) => this.teams[i].id),
+        seconds: Math.round(this.reboundMs / 1000),
+      };
     }
 
     if (this.winnerTeamId) view.winnerTeamId = this.winnerTeamId;

@@ -228,6 +228,13 @@ kbd {
 .options { display: grid; gap: 0.5rem; }
 .options button { text-align: left; background: var(--panel-2); color: var(--text); }
 
+/* Pulsador del rebote: grande y sin confundirlo con una respuesta. */
+.buzzer {
+  font-size: 1.25rem;
+  padding: 0.9rem 1.2rem;
+  font-weight: 700;
+}
+
 /* Opciones que ven los rivales: se leen, no se pulsan. */
 .options-readonly { margin: 0.25rem 0; padding-left: 1.6rem; }
 .options-readonly li { background: var(--panel-2); border-radius: 6px; padding: 0.35rem 0.6rem; margin-bottom: 0.4rem; }

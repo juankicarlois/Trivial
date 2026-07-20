@@ -57,6 +57,36 @@ export function chooseBotMove(
   return best;
 }
 
+/**
+ * @brief Decide si un bot pulsa el rebote y cuánto tarda en hacerlo.
+ *
+ * Pulsa con la misma probabilidad con la que acierta: un bot fácil se lanza
+ * pocas veces, uno difícil casi siempre. El retardo reparte la ventana para que
+ * el mejor sea también el más rápido, pero **nunca antes de un tercio** de la
+ * ventana: si los bots pulsaran al instante, una persona no llegaría jamás y el
+ * pulsador sería decorativo.
+ *
+ * @param difficulty Dificultad del bot.
+ * @param windowMs Duración del pulsador.
+ * @param random Fuente de aleatoriedad (inyectable para test).
+ * @return Milisegundos hasta pulsar, o null si este bot no pulsa.
+ */
+export function botBuzzDelayMs(
+  difficulty: BotDifficulty,
+  windowMs: number,
+  random: () => number = Math.random,
+): number | null {
+  const accuracy = botAccuracy(difficulty);
+  if (random() > accuracy) return null;
+
+  // Cuanto mejor es el bot, antes reacciona dentro del margen permitido.
+  const earliest = windowMs / 3;
+  const latest = windowMs * 0.9;
+  const span = latest - earliest;
+  const speed = 1 - accuracy; // 0 el mejor, 1 el peor
+  return Math.round(earliest + span * speed * random());
+}
+
 /** Casilla objetivo del bot: el centro con todos los quesos, o la sede que falta más cercana. */
 function targetNode(
   board: Board,

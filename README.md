@@ -110,6 +110,12 @@ npm test               # tests del tablero y del motor
 - **Tope de 3 aciertos por turno:** al tercer acierto seguido cedes la vez aunque
   hayas acertado, para que nadie acapare la partida.
 - Acertar en una **sede** de categoría te da su **queso**.
+- **Rebote:** cuando alguien falla, su pregunta queda en el aire 8 segundos y
+  cualquier rival puede **pulsar** para quedársela. Quien pulsa primero contesta:
+  si acierta, **se planta en la casilla del que falló** y se lleva su queso si era
+  una sede. Fallar el rebote no cuesta nada, así que se puede arriesgar. La
+  pregunta final no rebota. El aviso llega a toda la mesa a la vez y el botón
+  queda enfocado: se pulsa con **Intro**, sin buscar nada.
 - Con los 6 quesos, vuelve al centro: **tus rivales eligen la categoría** de la
   pregunta final (para ponértelo difícil) y, si aciertas, **ganas**.
 - La pregunta la ve **toda la mesa**, pero solo contesta quien tiene el turno. Al
@@ -128,7 +134,7 @@ así que un atajo de una letra nunca les llegaría. Activar un botón sí funcio
 | Tecla | Acción |
 |-------|--------|
 | `Tab` / `Mayús+Tab` | Moverse entre los mandos |
-| `Intro` / `Espacio` | Activar el mando o botón enfocado |
+| `Intro` / `Espacio` | Activar el mando o botón enfocado (incluido el **pulsador del rebote**, que se enfoca solo) |
 | `B` · `R` · `Q` · `L` | Sedes · rivales · quesos · logros (**vía secundaria**: solo con el lector en modo foco o sin lector) |
 
 El foco salta solo al mando principal cuando te toca actuar (tirar, elegir
@@ -173,6 +179,10 @@ se acerca y aleja si entras o sales del centro — y como suena para el movimien
 de todos, también oyes por dónde van los rivales. Es refuerzo, no el canal
 principal: cada sonido tiene su anuncio de texto equivalente y el juego funciona
 igual sin audio (si una muestra falta o el navegador no la decodifica, no suena).
+
+Falta una muestra por añadir: `rebound.ogg`, el aviso de que se abre el pulsador
+del rebote. Mientras no exista suena el aviso de turno, que ya significa «te toca
+reaccionar»; es mejor que el silencio justo cuando hay que correr.
 
 Las muestras están **niveladas** para que ninguna retumbe ni desaparezca: los
 sonidos con cuerpo se normalizaron por loudness a ~-17 LUFS (ffmpeg `loudnorm`) y

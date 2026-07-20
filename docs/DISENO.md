@@ -116,6 +116,21 @@ dentro); **hub** = 6 (un radio por categoría).
   contando aciertos seguidos a lo largo de la partida. La pregunta final para
   ganar queda fuera del tope: si se acierta, se gana.
 - Caer en una **sede** y acertar → ganas el **queso** de esa categoría.
+- **Rebote** (fase `awaitRebound`): una pregunta fallada no se tira, queda en el
+  aire. Se abre un **pulsador** de `REBOUND_MS` (8 s) para todos los bandos menos
+  el que falló; el primero que pulsa se queda la pregunta y la responde. Si
+  acierta, **se planta en la casilla del que falló** y, si era una sede cuyo queso
+  le faltaba, se lo lleva. Fallar el rebote no cuesta nada: sin eso, nadie
+  pulsaría nunca y el pulsador sobraría. Si no pulsa nadie, la pregunta caduca y
+  el turno sigue su curso.
+  - La **pregunta final no rebota**: decide la partida y no se regala.
+  - Los bots pulsan con su probabilidad de acierto y **nunca antes de un tercio**
+    de la ventana (`botBuzzDelayMs`): si se lanzaran al instante, una persona no
+    llegaría jamás. Solo se programa el más rápido, porque el primer pulsador
+    cierra la ventana.
+  - Accesibilidad: la carrera arranca con el **anuncio** del rebote, que llega a
+    toda la mesa a la vez, y el botón **recibe el foco** al aparecer, así que
+    basta con Intro. Nadie tiene que leer nada antes de poder pulsar.
 - Con los 6 quesos, al llegar al **hub** se abre la fase `awaitFinalCategory`:
   cualquier **rival** elige la categoría de la pregunta final (el primero que la
   elige la fija). Si aciertas, ganas. Sin rivales conectados (solitario o todos

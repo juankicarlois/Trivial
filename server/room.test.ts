@@ -4,6 +4,8 @@ import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CATEGORIES } from '../shared/categories.js';
+import { buildBoard } from '../shared/board.js';
+import { chooseBotMove } from './bot.js';
 import { Room, type Scheduler, type Transport } from './room.js';
 import { createDefaultRepository, QuestionRepository } from './questions_repo.js';
 import { loadContent } from './content.js';
@@ -145,6 +147,41 @@ function stubRepository(): QuestionRepository {
   const repo = new QuestionRepository();
   repo.loadBaseFile(path);
   return repo;
+}
+
+/**
+ * Scheduler manual con varias acciones a la vez (el de arriba solo guarda una).
+ * Hace falta cuando conviven el temporizador del rebote y el de un bot.
+ */
+function queuedScheduler() {
+  let pending: { action: () => void; delayMs: number }[] = [];
+  const scheduler: Scheduler = (action, delayMs) => {
+    const entry = { action, delayMs };
+    pending.push(entry);
+    return () => {
+      pending = pending.filter((p) => p !== entry);
+    };
+  };
+  return {
+    scheduler,
+    /** Dispara la acción pendiente más próxima; false si no quedaba ninguna. */
+    runNext(): boolean {
+      pending.sort((a, b) => a.delayMs - b.delayMs);
+      const next = pending.shift();
+      if (!next) return false;
+      next.action();
+      return true;
+    },
+  };
+}
+
+/**
+ * Deja pasar el rebote que abre una respuesta fallada: nadie pulsa y la
+ * pregunta caduca. Sin esto la partida se queda esperando al pulsador.
+ */
+function nadiePulsa(room: Room, timers: { runNext(): boolean }): void {
+  for (let i = 0; i < 10 && room.toView().phase === 'awaitRebound'; i++) timers.runNext();
+  assert.notEqual(room.toView().phase, 'awaitRebound', 'el rebote debería haber caducado');
 }
 
 /** Avanza hasta que haya pregunta y falla a propósito, para ceder el turno. */
@@ -289,7 +326,10 @@ test('no se puede empezar por equipos si alguien no ha elegido', () => {
 });
 
 test('dentro del equipo, los miembros rotan al responder', () => {
-  const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+  const timers = queuedScheduler();
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent, {
+    scheduler: timers.scheduler,
+  });
   const ana = room.addOrReattach('Ana', 'perfil-ana')!;
   const carlos = room.addOrReattach('Carlos', 'perfil-carlos')!;
   const bea = room.addOrReattach('Bea', 'perfil-bea')!;
@@ -303,10 +343,13 @@ test('dentro del equipo, los miembros rotan al responder', () => {
   assert.ok([ana, carlos].includes(primero));
 
   // Falla para ceder el turno al Equipo 2, y este también falla para volver.
+  // Nadie pulsa el rebote que abre cada fallo: aquí interesa la rotación.
   falla(room, primero);
+  nadiePulsa(room, timers);
   const turnoRival = room.toView().actingPlayerId!;
   assert.equal(turnoRival, bea, 'ahora juega el Equipo 2');
   falla(room, bea);
+  nadiePulsa(room, timers);
 
   const segundo = room.toView().actingPlayerId!;
   assert.ok([ana, carlos].includes(segundo), 'vuelve el Equipo 1');
@@ -459,4 +502,168 @@ test('los packs no se pueden cambiar con la partida en curso', () => {
     !room.toView().packs.find((p) => p.id === pack.id)?.enabled,
     'cambiar el repertorio a mitad de partida no debe permitirse',
   );
+});
+
+// --- Rebote -----------------------------------------------------------------
+
+/**
+ * Juega turnos acertando y navegando hacia las sedes (igual que un bot) hasta
+ * que quien responde está plantado en una sede con la pregunta ya planteada.
+ *
+ * @return true si se ha llegado a esa situación dentro de los intentos previstos.
+ */
+function jugarHastaPreguntaEnSede(room: Room): boolean {
+  for (let intentos = 0; intentos < 80; intentos++) {
+    const view = room.toView();
+    const equipo = view.teams[view.currentTeamIndex];
+    if (view.phase === 'awaitAnswer') {
+      if (equipo.nodeId.startsWith('hq-')) return true;
+      room.answer(view.actingPlayerId!, view.question!.options.indexOf('CORRECTA'));
+    } else if (view.phase === 'awaitRoll') {
+      room.roll(view.actingPlayerId!);
+    } else if (view.phase === 'moving' && view.movement) {
+      const destino = chooseBotMove(
+        buildBoard(),
+        equipo.nodeId,
+        view.movement.options,
+        view.movement.remaining,
+        equipo.wedges,
+      );
+      room.move(view.actingPlayerId!, destino);
+    } else {
+      return false;
+    }
+  }
+  return false;
+}
+
+/** Sala de dos jugadores con temporizadores controlados, lista para el rebote. */
+function salaConRebote() {
+  const timers = queuedScheduler();
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent, {
+    scheduler: timers.scheduler,
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+  return { room, ana, bea, timers };
+}
+
+test('fallar abre el rebote para los rivales, no para quien ha fallado', () => {
+  const { room, ana, bea } = salaConRebote();
+  falla(room, ana);
+
+  const view = room.toView();
+  assert.equal(view.phase, 'awaitRebound');
+  assert.equal(view.actingPlayerId, null, 'mientras nadie pulsa no actúa nadie');
+  assert.ok(view.question, 'la pregunta sigue en juego');
+
+  const equipoDeBea = view.teams.find((t) => t.memberIds.includes(bea))!;
+  const equipoDeAna = view.teams.find((t) => t.memberIds.includes(ana))!;
+  assert.deepEqual(view.rebound?.eligibleTeamIds, [equipoDeBea.id]);
+  assert.ok(
+    !view.rebound?.eligibleTeamIds.includes(equipoDeAna.id),
+    'quien falla no puede rebotar su propia pregunta',
+  );
+});
+
+test('quien pulsa se queda la pregunta y nadie más puede pulsar', () => {
+  const { room, ana, bea } = salaConRebote();
+  falla(room, ana);
+
+  room.buzz(bea);
+  assert.equal(room.toView().actingPlayerId, bea, 'responde quien ha pulsado');
+
+  // Ana no puede robar el rebote ya adjudicado.
+  room.buzz(ana);
+  assert.equal(room.toView().actingPlayerId, bea, 'el rebote sigue siendo de Bea');
+});
+
+test('acertar el rebote da la casilla del que falló', () => {
+  const { room, ana, bea } = salaConRebote();
+  falla(room, ana);
+  // La casilla en juego es donde Ana se quedó al fallar, no donde empezó.
+  const casillaDeAna = room.toView().teams.find((t) => t.memberIds.includes(ana))!.nodeId;
+
+  room.buzz(bea);
+  const pregunta = room.toView().question!;
+  room.answer(bea, pregunta.options.indexOf('CORRECTA'));
+
+  const equipoDeBea = room.toView().teams.find((t) => t.memberIds.includes(bea))!;
+  assert.equal(equipoDeBea.nodeId, casillaDeAna, 'Bea se planta donde estaba Ana');
+});
+
+test('robar un rebote en una sede da también su queso', () => {
+  const timers = queuedScheduler();
+  const room = new Room('TEST', stubRepository(), content, newStore(), silent, {
+    scheduler: timers.scheduler,
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+
+  // Se juega en serio (moviendo hacia las sedes, como hace un bot) hasta pillar
+  // a quien responde plantado en una sede: ahí es donde el rebote reparte queso.
+  const enSede = jugarHastaPreguntaEnSede(room);
+  assert.ok(enSede, 'debería haberse llegado a una sede en los intentos previstos');
+
+  const fallando = room.toView().actingPlayerId!;
+  const sede = room.toView().teams[room.toView().currentTeamIndex].nodeId;
+  const categoria = sede.replace('hq-', '');
+  const mala = room.toView().question!.options.findIndex((o) => o !== 'CORRECTA');
+  room.answer(fallando, mala);
+
+  assert.equal(room.toView().phase, 'awaitRebound');
+  const rival = fallando === ana ? bea : ana;
+  room.buzz(rival);
+  const pregunta = room.toView().question!;
+  room.answer(rival, pregunta.options.indexOf('CORRECTA'));
+
+  const equipoRival = room.toView().teams.find((t) => t.memberIds.includes(rival))!;
+  assert.equal(equipoRival.nodeId, sede, 'se queda la sede');
+  assert.deepEqual(equipoRival.wedges, [categoria], 'y el queso que había en juego');
+});
+
+test('fallar el rebote no cuesta nada: sigue la partida', () => {
+  const { room, ana, bea } = salaConRebote();
+  const sitioDeBea = room.toView().teams.find((t) => t.memberIds.includes(bea))!.nodeId;
+  falla(room, ana);
+
+  room.buzz(bea);
+  const pregunta = room.toView().question!;
+  room.answer(bea, pregunta.options.findIndex((o) => o !== 'CORRECTA'));
+
+  const view = room.toView();
+  const equipoDeBea = view.teams.find((t) => t.memberIds.includes(bea))!;
+  assert.equal(equipoDeBea.nodeId, sitioDeBea, 'no se mueve de donde estaba');
+  assert.deepEqual(equipoDeBea.wedges, [], 'ni gana quesos');
+  assert.equal(view.phase, 'awaitRoll');
+  assert.equal(view.actingPlayerId, bea, 'el turno pasa con normalidad');
+});
+
+test('si nadie pulsa a tiempo, el rebote caduca y sigue la partida', () => {
+  const { room, ana, bea, timers } = salaConRebote();
+  falla(room, ana);
+  assert.equal(room.toView().phase, 'awaitRebound');
+
+  nadiePulsa(room, timers);
+  const view = room.toView();
+  assert.equal(view.phase, 'awaitRoll');
+  assert.equal(view.actingPlayerId, bea);
+});
+
+test('sin rivales conectados no se abre rebote', () => {
+  const { room, ana, bea } = salaConRebote();
+  room.markDisconnected(bea);
+  falla(room, ana);
+  assert.notEqual(room.toView().phase, 'awaitRebound', 'no hay a quién ofrecerle la pregunta');
+});
+
+test('si quien pulsó se cae, la pregunta se pierde y sigue la partida', () => {
+  const { room, ana, bea } = salaConRebote();
+  falla(room, ana);
+  room.buzz(bea);
+
+  room.markDisconnected(bea);
+  assert.notEqual(room.toView().phase, 'awaitRebound', 'nadie puede responder por él');
 });

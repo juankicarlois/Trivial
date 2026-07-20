@@ -23,6 +23,7 @@ const SOUND_FILES = {
   join: 'join.ogg',
   turn: 'turn.ogg',
   start: 'start.ogg',
+  rebound: 'rebound.ogg',
 } as const;
 
 type SoundName = keyof typeof SOUND_FILES;
@@ -159,5 +160,15 @@ export class SoundEngine {
   /** Arranca la partida. */
   start(): void {
     this.play('start');
+  }
+
+  /**
+   * Se abre el pulsador del rebote. Mientras no exista `rebound.ogg` suena el
+   * aviso de turno, que ya significa "te toca reaccionar": es preferible a
+   * quedarse en silencio justo cuando hay que correr.
+   */
+  rebound(): void {
+    if (this.buffers.has('rebound')) this.play('rebound');
+    else this.play('turn');
   }
 }

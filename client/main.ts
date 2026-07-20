@@ -291,6 +291,35 @@ function handleEvent(event: GameEvent): void {
           : `${sideName(event.teamId)} encadena ${event.limit} aciertos y cede la vez.`,
       );
       break;
+    case 'reboundOpened': {
+      sound.rebound();
+      // El aviso es lo que arranca la carrera: llega a la vez a toda la mesa, y
+      // dice ya qué hacer, para no gastar segundos preguntándose cómo se pulsa.
+      const puedo = !isMySide(event.failedTeamId);
+      announce(
+        puedo
+          ? `¡Rebote! ${event.seconds} segundos para pulsar y quedarte la pregunta.`
+          : `¡Rebote! Tus rivales pueden quedarse la pregunta durante ${event.seconds} segundos.`,
+      );
+      break;
+    }
+    case 'reboundClaimed':
+      announce(
+        event.playerId === myId
+          ? '¡Has pulsado primero! La pregunta es tuya.'
+          : `${nameOf(event.playerId)} pulsa primero y se queda la pregunta.`,
+      );
+      break;
+    case 'reboundExpired':
+      announce('Nadie pulsa a tiempo. La pregunta se queda sin dueño.');
+      break;
+    case 'reboundWon':
+      announce(
+        isMySide(event.teamId)
+          ? `¡Rebote ganado! Te quedas su casilla: ${board.nodes[event.nodeId]?.label ?? 'la casilla'}.`
+          : `${sideName(event.teamId)} gana el rebote y se queda la casilla: ${board.nodes[event.nodeId]?.label ?? 'la casilla'}.`,
+      );
+      break;
     case 'turnChanged': {
       const meToca = event.playerId === myId;
       if (meToca) sound.turn(); // aviso sonoro de que te toca
@@ -748,6 +777,8 @@ function renderActions(state: GameView): void {
     focusTarget = again;
   } else if (state.phase === 'awaitAnswer' && state.question) {
     renderQuestion(state, iAmActingNow, (btn) => (focusTarget = btn));
+  } else if (state.phase === 'awaitRebound' && state.question) {
+    renderRebound(state, (btn) => (focusTarget = btn));
   } else if (state.phase === 'awaitFinalCategory') {
     // La categoría de la pregunta final la eligen los rivales, no el bando que va
     // a ganar: por eso este caso va antes del "esperando" genérico de no-turno.
@@ -860,6 +891,57 @@ function renderQuestion(
     // El rival no tiene mandos donde poner el foco: se le lee todo de una vez.
     const spoken = q.options.map((o, i) => `${i + 1}, ${o}`).join('. ');
     announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ${asker}: ${q.text}. Opciones: ${spoken}`);
+  }
+}
+
+/**
+ * Pinta el rebote: mientras el pulsador está abierto, quien puede quedarse la
+ * pregunta ve un botón grande; cuando alguien pulsa, la pregunta pasa a ser suya
+ * y se pinta como cualquier otra.
+ *
+ * El botón recibe el foco al aparecer para que baste con **Intro** o **espacio**:
+ * en una carrera de segundos, buscar el botón con el lector de pantalla sería
+ * perder de salida.
+ *
+ * @param state Estado actual de la partida.
+ * @param setFocus Callback para marcar el mando que debe recibir el foco.
+ */
+function renderRebound(state: GameView, setFocus: (el: HTMLElement) => void): void {
+  // Ya hay dueño: responde él y el resto mira, como en una pregunta normal.
+  if (state.actingPlayerId != null) {
+    renderQuestion(state, state.actingPlayerId === myId, setFocus);
+    return;
+  }
+
+  const q = state.question!;
+  const cat = categoryById(q.category).name;
+  const puedoPulsar =
+    myTeam() != null && (state.rebound?.eligibleTeamIds.includes(myTeam()!.id) ?? false);
+
+  const heading = document.createElement('p');
+  heading.className = 'question-text';
+  heading.textContent = `Rebote — ${cat}: ${q.text}`;
+  actions.append(heading);
+
+  const list = document.createElement('ol');
+  list.className = 'options-readonly';
+  for (const text of q.options) {
+    const li = document.createElement('li');
+    li.textContent = text;
+    list.append(li);
+  }
+  actions.append(list);
+
+  if (puedoPulsar) {
+    const buzzer = button('¡Pulsar! Quedarme la pregunta', () => net.send({ type: 'buzz' }));
+    buzzer.classList.add('buzzer');
+    actions.append(buzzer);
+    setFocus(buzzer);
+  } else {
+    const hint = document.createElement('p');
+    hint.className = 'hint';
+    hint.textContent = 'Tus rivales pueden pulsar para quedarse la pregunta…';
+    actions.append(hint);
   }
 }
 

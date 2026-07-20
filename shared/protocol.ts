@@ -35,6 +35,11 @@ export type TurnPhase =
   | 'awaitFinalCategory'
   /** Pregunta planteada: se espera respuesta del jugador actual. */
   | 'awaitAnswer'
+  /**
+   * El jugador del turno ha fallado y la pregunta queda en el aire: cualquier
+   * rival puede pulsar para quedársela, durante un tiempo limitado.
+   */
+  | 'awaitRebound'
   /** Partida terminada. */
   | 'gameOver';
 
@@ -127,8 +132,15 @@ export interface GameView {
     /** Nodos a los que puede avanzar la ficha en este paso. */
     options: string[];
   };
-  /** Pregunta activa, si `phase === 'awaitAnswer'`. */
+  /** Pregunta activa, si `phase === 'awaitAnswer'` o `'awaitRebound'`. */
   question?: PublicQuestion;
+  /** Rebote abierto, si `phase === 'awaitRebound'`. */
+  rebound?: {
+    /** Bandos que pueden pulsar (todos menos el que ha fallado). */
+    eligibleTeamIds: string[];
+    /** Segundos que dura el pulsador desde que se abre. */
+    seconds: number;
+  };
   /** Bando ganador, si la partida ha terminado. */
   winnerTeamId?: string;
 }
@@ -154,6 +166,18 @@ export type GameEvent =
   | { kind: 'turnChanged'; teamId: string; playerId: string }
   /** Ha alcanzado el tope de aciertos seguidos en un turno y cede la vez. */
   | { kind: 'turnLimitReached'; teamId: string; limit: number }
+  /** La pregunta fallada queda libre: los rivales pueden pulsar `seconds` segundos. */
+  | { kind: 'reboundOpened'; failedTeamId: string; seconds: number }
+  /** `playerId` ha pulsado primero: la pregunta es suya. */
+  | { kind: 'reboundClaimed'; teamId: string; playerId: string }
+  /** Nadie ha pulsado a tiempo: la pregunta se pierde y sigue el juego. */
+  | { kind: 'reboundExpired' }
+  /**
+   * Rebote acertado: el bando salta a la casilla del que falló (`nodeId`) y, si
+   * era una sede cuyo queso le faltaba, se lo lleva (llega aparte en
+   * `wedgeEarned`).
+   */
+  | { kind: 'reboundWon'; teamId: string; playerId: string; nodeId: string }
   | { kind: 'gameWon'; teamId: string }
   /** `teamId` va a por la victoria; sus rivales deben elegir la categoría. */
   | { kind: 'awaitingFinalCategory'; teamId: string }
@@ -170,6 +194,8 @@ export type ClientMessage =
   | { type: 'roll' }
   | { type: 'move'; toNodeId: string }
   | { type: 'answer'; optionIndex: number }
+  /** Pulsador del rebote: quien llega primero se queda la pregunta fallada. */
+  | { type: 'buzz' }
   /** Un rival elige la categoría de la pregunta final del bando actual. */
   | { type: 'chooseFinalCategory'; category: CategoryId }
   /** Fija el modo de la sala; solo lo puede hacer quien la creó. */
