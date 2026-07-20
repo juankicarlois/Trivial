@@ -219,6 +219,13 @@ Las preguntas de un pack están repartidas entre las 6 categorías (como las
 ediciones temáticas del Trivial de mesa), así que el tablero no cambia: al
 activarlo, sus preguntas se suman a las normales.
 
+Se sortean con **cuota**, no a bulto: un porcentaje de las preguntas sale de los
+packs activos (25 % con uno, +5 % por cada pack de más, con tope del 40 %). Sin
+cuota los packs no se notaban — un pack aporta 2 preguntas por categoría frente a
+las ~205 del banco, así que salía una el 1 % de las veces y una partida entera
+podía pasar sin ninguna. Con la cuota, un pack activo da unas **5 preguntas
+temáticas por partida** de 30, y con los diez puestos, unas 12.
+
 Los packs se activan **en el vestíbulo**, antes de empezar. Basta con que **una
 persona de la sala** lo tenga desbloqueado para traerlo a la mesa: se juega con
 él para todos. Pulsa `L` para oír tus logros y lo que te falta.

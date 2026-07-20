@@ -29,6 +29,36 @@ export interface PickOptions {
   packIds?: readonly string[];
   /** Preguntas ya planteadas en la partida en curso. */
   askedThisGame?: ReadonlySet<string>;
+  /** Fuente de aleatoriedad; inyectable para test. */
+  random?: () => number;
+}
+
+/**
+ * Proporción de preguntas que salen de los packs activos con **un** pack puesto.
+ *
+ * Sin cuota, los packs eran invisibles: un pack aporta 2 preguntas por categoría
+ * frente a las ~205 del banco base, así que salía una del pack el 1 % de las
+ * veces — en una partida entera, ninguna. Quien desbloquea un pack quiere notarlo.
+ */
+const PACK_SHARE_BASE = 0.25;
+
+/** Cuánto sube la cuota por cada pack activo de más. */
+const PACK_SHARE_STEP = 0.05;
+
+/**
+ * Tope de la cuota. Con muchos packs activos la partida seguiría siendo de
+ * cultura general: el banco base nunca baja del 60 %.
+ */
+const PACK_SHARE_MAX = 0.4;
+
+/**
+ * @brief Proporción de preguntas que deben salir de los packs activos.
+ * @param packCount Número de packs activos con preguntas de la categoría.
+ * @return Proporción entre 0 y `PACK_SHARE_MAX`.
+ */
+export function packShare(packCount: number): number {
+  if (packCount <= 0) return 0;
+  return Math.min(PACK_SHARE_MAX, PACK_SHARE_BASE + PACK_SHARE_STEP * (packCount - 1));
 }
 
 /** Agrupa preguntas por categoría. */
@@ -69,12 +99,22 @@ export class QuestionRepository {
    * @return Lista combinada (no barajada).
    */
   private pool(category: CategoryId, packIds: readonly string[]): Question[] {
-    const pool = [...(this.base.get(category) ?? [])];
+    return [...(this.base.get(category) ?? []), ...this.packPool(category, packIds)];
+  }
+
+  /** Preguntas de esa categoría aportadas por los packs activos. */
+  private packPool(category: CategoryId, packIds: readonly string[]): Question[] {
+    const pool: Question[] = [];
     for (const packId of packIds) {
       const pack = this.packs.get(packId);
       if (pack) pool.push(...(pack.get(category) ?? []));
     }
     return pool;
+  }
+
+  /** Packs activos que aportan alguna pregunta de esa categoría. */
+  private packsWithQuestions(category: CategoryId, packIds: readonly string[]): number {
+    return packIds.filter((id) => (this.packs.get(id)?.get(category)?.length ?? 0) > 0).length;
   }
 
   /** Número de preguntas disponibles de una categoría con esos packs activos. */
@@ -86,11 +126,17 @@ export class QuestionRepository {
    * @brief Sortea una pregunta de la categoría, con las opciones barajadas y el
    *        índice de la respuesta correcta recalculado.
    *
+   * El sorteo es en dos pasos: primero **de dónde** sale (banco base o packs
+   * activos, según `packShare`) y luego **cuál**. Sorteando sobre los dos
+   * montones juntos, las 2 preguntas por categoría de un pack se perdían entre
+   * las ~205 del banco y no salía ninguna en toda la partida.
+   *
    * Se evitan las preguntas ya planteadas en la partida en curso: como la carta
    * usada del Trivial de mesa, no vuelve al montón. Es una **preferencia, no una
    * condición**: el banco es finito y una partida larga puede agotar una
    * categoría; quedarse sin pregunta que ofrecer dejaría la partida atascada, así
-   * que llegado el caso se repite antes que fallar.
+   * que llegado el caso se repite antes que fallar. Por eso, si la fuente que
+   * tocaba está agotada, se tira de la otra antes de repetir.
    *
    * @param category Categoría solicitada.
    * @param options Packs activos y preguntas ya salidas en la partida.
@@ -98,14 +144,32 @@ export class QuestionRepository {
    * @throws Error si la categoría no tiene ninguna pregunta cargada.
    */
   pick(category: CategoryId, options: PickOptions = {}): Question {
-    const { packIds = [], askedThisGame } = options;
-    const pool = this.pool(category, packIds);
-    if (pool.length === 0) throw new Error(`Sin preguntas para la categoría ${category}`);
+    const { packIds = [], askedThisGame, random = Math.random } = options;
+    const base = this.base.get(category) ?? [];
+    const fromPacks = this.packPool(category, packIds);
+    if (base.length === 0 && fromPacks.length === 0) {
+      throw new Error(`Sin preguntas para la categoría ${category}`);
+    }
 
-    const unseen = pool.filter((q) => !askedThisGame?.has(q.id));
-    const candidates = unseen.length > 0 ? unseen : pool;
+    // Primero se decide de dónde sale (cuota de packs), y solo después qué
+    // pregunta: sorteando sobre el montón junto, los packs no aparecerían nunca.
+    const share = packShare(this.packsWithQuestions(category, packIds));
+    const tocaPack = fromPacks.length > 0 && random() < share;
 
-    return shuffleOptions(candidates[Math.floor(Math.random() * candidates.length)]);
+    // Si la fuente elegida ya está agotada en esta partida, se tira de la otra
+    // antes que repetir una pregunta ya vista.
+    const preferida = tocaPack ? fromPacks : base;
+    const alternativa = tocaPack ? base : fromPacks;
+    const sinVer = (list: readonly Question[]) => list.filter((q) => !askedThisGame?.has(q.id));
+
+    const candidates =
+      sinVer(preferida).length > 0
+        ? sinVer(preferida)
+        : sinVer(alternativa).length > 0
+          ? sinVer(alternativa)
+          : [...preferida, ...alternativa];
+
+    return shuffleOptions(candidates[Math.floor(random() * candidates.length)]);
   }
 }
 

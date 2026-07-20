@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { CATEGORIES } from '../shared/categories.js';
 import type { Question, QuestionBank } from '../shared/questions.js';
-import { baseQuestionFiles, createDefaultRepository } from './questions_repo.js';
+import { baseQuestionFiles, createDefaultRepository, packShare } from './questions_repo.js';
 import { loadContent } from './content.js';
 
 // El banco base se reparte en varios ficheros: se validan todos.
@@ -252,5 +252,54 @@ test('el historial de una partida no afecta a la siguiente', () => {
   assert.ok(vistas.size > 1, 'la partida nueva debe volver a sortear entre todas');
   for (const id of vistas) {
     assert.ok(partidaAnterior.has(id), `${id}: debería seguir en el montón`);
+  }
+});
+
+// --- Cuota de packs ---------------------------------------------------------
+
+test('la cuota de packs crece con los packs activos, pero tiene tope', () => {
+  assert.equal(packShare(0), 0, 'sin packs, todo sale del banco base');
+  assert.ok(packShare(1) > 0.2, 'con un pack se debe notar');
+  assert.ok(packShare(2) > packShare(1), 'más packs, más presencia temática');
+  assert.ok(packShare(10) <= 0.4, 'el banco base nunca baja del 60 %');
+  assert.equal(packShare(50), packShare(10), 'por encima del tope no sigue subiendo');
+});
+
+test('con un pack activo, sus preguntas salen de verdad', () => {
+  const repo = createDefaultRepository(content.packs);
+  const pack = content.packs[0];
+  const packIds = [pack.id];
+  const suyas = new Set(pack.questions.map((q) => q.id));
+  const category = pack.questions[0].category;
+
+  let temáticas = 0;
+  for (let i = 0; i < 400; i++) {
+    if (suyas.has(repo.pick(category, { packIds }).id)) temáticas += 1;
+  }
+  // Antes de la cuota salían ~1 de cada 100; ahora deben rondar la cuota.
+  const proporción = temáticas / 400;
+  assert.ok(
+    proporción > 0.15,
+    `demasiado pocas preguntas del pack: ${(proporción * 100).toFixed(1)} %`,
+  );
+  assert.ok(
+    proporción < 0.45,
+    `el pack se come la partida: ${(proporción * 100).toFixed(1)} %`,
+  );
+});
+
+test('la cuota respeta las preguntas ya vistas: no repite si queda banco', () => {
+  const repo = createDefaultRepository(content.packs);
+  const pack = content.packs[0];
+  const category = pack.questions[0].category;
+  const packIds = [pack.id];
+
+  // Se agotan las preguntas del pack en esta partida: debe tirar del banco base
+  // en vez de repetir una temática ya salida.
+  const askedThisGame = new Set(pack.questions.filter((q) => q.category === category).map((q) => q.id));
+  const suyas = new Set(pack.questions.map((q) => q.id));
+  for (let i = 0; i < 60; i++) {
+    const picked = repo.pick(category, { packIds, askedThisGame, random: () => 0 });
+    assert.ok(!suyas.has(picked.id), `repitió la temática ${picked.id} teniendo banco base sin usar`);
   }
 });

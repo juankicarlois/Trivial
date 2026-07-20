@@ -217,6 +217,15 @@ normales**, como en las ediciones temáticas del Trivial de mesa: así el tabler
 no cambia y basta con sumarlas al repertorio. Un pack **no** tiene por qué cubrir
 las 6 categorías.
 
+**Cuota de packs** (`packShare` en `questions_repo.ts`). El sorteo va en dos
+pasos: primero se decide si la pregunta sale del banco base o de los packs
+activos, y luego cuál. Sorteando sobre los dos montones juntos los packs eran
+invisibles: 2 preguntas por categoría contra ~205 del banco → 1 %, o sea ninguna
+en toda la partida. La cuota es del 25 % con un pack, +5 % por cada pack de más y
+tope del 40 %, para que la partida siga siendo de cultura general. Si la fuente
+que toca está agotada (todas sus preguntas ya salieron), se tira de la otra antes
+que repetir.
+
 Un pack está disponible en una sala si **cualquiera de los presentes** lo tiene
 desbloqueado: quien se lo ganó lo trae a la mesa para todos. Se activa en el
 vestíbulo (nunca a media partida: cambiar el repertorio sería injusto para quien
