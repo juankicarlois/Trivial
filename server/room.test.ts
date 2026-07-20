@@ -721,3 +721,135 @@ test('la respuesta buena no se canta a la mesa si la pregunta va a rebotar', () 
     'al resolverse el rebote, la mesa debe enterarse de cuál era la buena',
   );
 });
+
+// --- Comodines --------------------------------------------------------------
+
+/** Lleva al jugador hasta que tenga una pregunta delante (fase awaitAnswer). */
+function llevarHastaPregunta(room: Room, playerId: string): void {
+  for (let i = 0; i < 80; i++) {
+    const view = room.toView();
+    if (view.phase === 'awaitAnswer') return;
+    if (view.phase === 'awaitRoll') room.roll(playerId);
+    else if (view.phase === 'moving' && view.movement) room.move(playerId, view.movement.options[0]);
+    else break;
+  }
+  assert.equal(room.toView().phase, 'awaitAnswer', 'no se llegó a una pregunta');
+}
+
+/** Sala con banco real (muchas preguntas por categoría, para poder cambiarlas). */
+function salaConComodines() {
+  const eventos: GameEvent[] = [];
+  const room = new Room('TEST', createDefaultRepository(content.packs), content, newStore(), {
+    broadcast: (m) => {
+      if (m.type === 'event') eventos.push(m.event);
+    },
+    sendTo: () => {},
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+  return { room, ana, bea, eventos };
+}
+
+/** Comodines que le quedan a un jugador según la vista pública. */
+function comodinesDe(room: Room, playerId: string): string[] {
+  return room.toView().players.find((p) => p.id === playerId)?.wildcards ?? [];
+}
+
+test('todos empiezan la partida con el comodín de cambiar pregunta', () => {
+  const { room, ana, bea } = salaConComodines();
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion']);
+  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion']);
+});
+
+test('cambiar la pregunta da otra de la misma categoría y gasta el comodín', () => {
+  const { room, ana, eventos } = salaConComodines();
+  llevarHastaPregunta(room, ana);
+
+  const antes = room.toView().question!;
+  room.useWildcard(ana, 'changeQuestion');
+  const despues = room.toView().question!;
+
+  assert.equal(room.toView().phase, 'awaitAnswer', 'sigue habiendo pregunta que responder');
+  assert.equal(despues.category, antes.category, 'la categoría no cambia');
+  assert.notEqual(despues.id, antes.id, 'pero la pregunta es otra');
+  assert.deepEqual(comodinesDe(room, ana), [], 'el comodín queda gastado');
+  assert.ok(
+    eventos.some((e) => e.kind === 'wildcardUsed' && e.wildcard === 'changeQuestion'),
+    'se anuncia el uso del comodín',
+  );
+});
+
+test('el comodín es de un solo uso por partida', () => {
+  const errores: string[] = [];
+  const room = new Room('TEST', createDefaultRepository(content.packs), content, newStore(), {
+    broadcast: (m) => {
+      if (m.type === 'error') errores.push(m.message);
+    },
+    sendTo: () => {},
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+  llevarHastaPregunta(room, ana);
+
+  room.useWildcard(ana, 'changeQuestion');
+  room.useWildcard(ana, 'changeQuestion'); // ya gastado
+  assert.ok(errores.some((m) => /gastad/i.test(m)), 'el segundo uso debe rechazarse');
+});
+
+test('un jugador no puede usar el comodín en el turno de otro', () => {
+  const errores: string[] = [];
+  const room = new Room('TEST', createDefaultRepository(content.packs), content, newStore(), {
+    broadcast: (m) => {
+      if (m.type === 'error') errores.push(m.message);
+    },
+    sendTo: () => {},
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  const bea = room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+  llevarHastaPregunta(room, ana); // es el turno de Ana
+
+  room.useWildcard(bea, 'changeQuestion');
+  assert.ok(errores.some((m) => /turno/i.test(m)), 'no es su turno');
+  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion'], 'a Bea no se le gasta nada');
+});
+
+test('sin pregunta delante, el comodín se rechaza', () => {
+  const errores: string[] = [];
+  const room = new Room('TEST', createDefaultRepository(content.packs), content, newStore(), {
+    broadcast: (m) => {
+      if (m.type === 'error') errores.push(m.message);
+    },
+    sendTo: () => {},
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start(); // fase awaitRoll: aún no hay pregunta
+
+  room.useWildcard(ana, 'changeQuestion');
+  assert.ok(errores.some((m) => /pregunta/i.test(m)), 'sin pregunta no hay nada que cambiar');
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion'], 'no se gasta');
+});
+
+test('un comodín gastado no se repone a mitad de partida', () => {
+  const { room, ana } = salaConComodines();
+  llevarHastaPregunta(room, ana);
+  room.useWildcard(ana, 'changeQuestion');
+  assert.deepEqual(comodinesDe(room, ana), [], 'gastado en esta partida');
+
+  // Intentar "empezar" con la partida en curso se rechaza: no debe colar como
+  // atajo para recuperar el comodín.
+  room.start();
+  assert.deepEqual(comodinesDe(room, ana), [], 'sigue gastado; start() a mitad no repone');
+});
+
+test('start() repone los comodines de todos al montar la partida', () => {
+  // Se comprueba sobre el reparto inicial: dos jugadores entran y, al empezar,
+  // ambos tienen su comodín (la misma vía que repone al jugar otra vez desde el
+  // fin de partida, que es el único momento en que start() vuelve a correr).
+  const { room, ana, bea } = salaConComodines();
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion']);
+  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion']);
+});

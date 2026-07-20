@@ -21,6 +21,7 @@ import type { Question } from '../shared/questions.js';
 import { earnedAchievements, statValue } from '../shared/progress.js';
 import {
   MAX_TEAMS,
+  WILDCARDS,
   type AchievementView,
   type GameEvent,
   type GameMode,
@@ -31,6 +32,7 @@ import {
   type ServerMessage,
   type TeamView,
   type TurnPhase,
+  type WildcardId,
 } from '../shared/protocol.js';
 import { legalMoves, rollDie } from './engine.js';
 import { botAnswerIndex, botBuzzDelayMs, chooseBotFinalCategory, chooseBotMove } from './bot.js';
@@ -84,6 +86,8 @@ interface InternalPlayer {
   difficulty?: BotDifficulty;
   /** Equipo elegido en el vestíbulo (1..MAX_TEAMS); null si no ha elegido. */
   team: number | null;
+  /** Comodines que le quedan por gastar en la partida en curso. */
+  wildcards: WildcardId[];
 }
 
 /** Bando en juego: dueño de la ficha y de los quesos. */
@@ -230,6 +234,7 @@ export class Room {
       streak: 0,
       isBot: false,
       team: null,
+      wildcards: [...WILDCARDS],
     };
     this.players.push(player);
     // Quien crea la sala (primera persona en entrar) decide el modo de juego.
@@ -304,6 +309,7 @@ export class Room {
       isBot: true,
       difficulty,
       team: null,
+      wildcards: [...WILDCARDS],
     };
     this.players.push(player);
     this.emit({ kind: 'playerJoined', playerId: player.id, name: player.name });
@@ -476,7 +482,10 @@ export class Room {
     this.teams = this.buildTeams();
     if (this.teams.length === 0) return this.reject('No hay bandos para jugar.');
 
-    for (const p of this.players) p.streak = 0;
+    for (const p of this.players) {
+      p.streak = 0;
+      p.wildcards = [...WILDCARDS]; // cada partida se juega con todos los comodines
+    }
     this.currentTeamIndex = 0;
     this.movement = null;
     this.question = null;
@@ -622,6 +631,47 @@ export class Room {
     // Acertar da turno extra: el mismo bando vuelve a tirar.
     this.phase = 'awaitRoll';
     this.sync();
+  }
+
+  // --- Comodines ------------------------------------------------------------
+
+  /**
+   * @brief Usa un comodín sobre la pregunta en curso.
+   * @param playerId Quien lo usa.
+   * @param wildcard Comodín a gastar.
+   *
+   * Solo lo puede usar el jugador del turno y solo sobre una pregunta normal en
+   * juego (no la final, que decide la partida). Cada comodín es de un solo uso
+   * por partida.
+   */
+  useWildcard(playerId: string, wildcard: WildcardId): void {
+    if (!this.isActing(playerId)) return this.reject('No es tu turno.');
+    if (this.phase !== 'awaitAnswer' || !this.question) return this.reject('No hay pregunta que cambiar.');
+    if (this.question.forWin) return this.reject('En la pregunta final no valen comodines.');
+
+    const player = this.playerById(playerId)!;
+    if (!player.wildcards.includes(wildcard)) return this.reject('Ese comodín ya lo has gastado.');
+
+    if (wildcard === 'changeQuestion') {
+      this.spendWildcard(player, wildcard);
+      // Otra pregunta de la misma categoría, sin re-anunciar la caída: no te has
+      // movido, solo cambias de pregunta. La actual ya está en askedThisGame, así
+      // que no vuelve a salir mientras quede alguna sin usar en la categoría.
+      const category = this.question.category;
+      const picked = this.repo.pick(category, {
+        packIds: [...this.enabledPacks],
+        askedThisGame: this.askedThisGame,
+      });
+      this.askedThisGame.add(picked.id);
+      this.question = { ...picked, forWin: false };
+      this.emit({ kind: 'wildcardUsed', playerId, wildcard });
+      this.sync();
+    }
+  }
+
+  /** Retira un comodín del inventario del jugador (un solo uso por partida). */
+  private spendWildcard(player: InternalPlayer, wildcard: WildcardId): void {
+    player.wildcards = player.wildcards.filter((w) => w !== wildcard);
   }
 
   // --- Rebote ---------------------------------------------------------------
@@ -1156,6 +1206,7 @@ export class Room {
       connected: p.connected,
       isBot: p.isBot,
       team: p.team,
+      wildcards: [...p.wildcards],
       ...(p.difficulty ? { difficulty: p.difficulty } : {}),
     }));
 

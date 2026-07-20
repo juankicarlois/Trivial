@@ -182,6 +182,9 @@ wss.on('connection', (socket: WebSocket) => {
       case 'buzz':
         room.buzz(meta.playerId);
         break;
+      case 'useWildcard':
+        room.useWildcard(meta.playerId, msg.wildcard);
+        break;
       case 'chooseFinalCategory':
         room.chooseFinalCategory(meta.playerId, msg.category);
         break;

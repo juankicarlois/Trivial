@@ -115,6 +115,9 @@ npm test               # tests del tablero y del motor
 - **Tope de 3 aciertos por turno:** al tercer acierto seguido cedes la vez aunque
   hayas acertado, para que nadie acapare la partida.
 - Acertar en una **sede** de categoría te da su **queso**.
+- **Comodín — cambiar la pregunta:** una vez por partida, cuando te toque
+  responder, puedes descartar la pregunta y que te planteen otra de la misma
+  categoría. Sale como un botón bajo las opciones; no vale en la pregunta final.
 - **Rebote:** cuando alguien falla, su pregunta queda en el aire 8 segundos y
   cualquier rival puede **pulsar** para quedársela. Quien pulsa primero contesta:
   si acierta, **se planta en la casilla del que falló** y se lleva su queso si era

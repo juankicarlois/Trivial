@@ -17,7 +17,9 @@ import {
   type GameEvent,
   type GameMode,
   type GameView,
+  type PublicQuestion,
   type TeamView,
+  type WildcardId,
 } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
@@ -107,6 +109,11 @@ const timeAttack = new TimeAttackScreen(
 );
 
 // --- Estado local -----------------------------------------------------------
+
+/** Texto del botón de cada comodín. */
+const WILDCARD_LABELS: Record<WildcardId, string> = {
+  changeQuestion: 'Comodín: cambiar la pregunta',
+};
 
 let myId: string | null = null;
 let roomCode = '';
@@ -309,6 +316,17 @@ function handleEvent(event: GameEvent): void {
       break;
     case 'answerRevealed':
       announce(`La respuesta era: ${event.correctText}.`);
+      break;
+    case 'wildcardUsed':
+      // La pregunta nueva llega en el estado y se lee sola al repintar; aquí solo
+      // se dice que se ha usado el comodín, y a quien lo usó se le tutea.
+      if (event.wildcard === 'changeQuestion') {
+        announce(
+          event.playerId === myId
+            ? 'Cambias la pregunta.'
+            : `${nameOf(event.playerId)} cambia la pregunta.`,
+        );
+      }
       break;
     case 'wedgeEarned': {
       sound.wedge();
@@ -934,6 +952,7 @@ function renderQuestion(
       opts.append(btn);
     });
     actions.append(opts);
+    appendWildcards(state, q);
     // Las opciones no se anuncian: el foco cae en la primera y el lector las
     // recorre una a una, así que repetirlas aquí sería ruido.
     announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ti: ${q.text}`);
@@ -953,6 +972,30 @@ function renderQuestion(
     const spoken = q.options.map((o, i) => `${i + 1}, ${o}`).join('. ');
     announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ${asker}: ${q.text}. Opciones: ${spoken}`);
   }
+}
+
+/**
+ * Añade los botones de comodín disponibles bajo las opciones de respuesta.
+ * Solo salen los que te quedan por gastar, y nunca en la pregunta final (ahí no
+ * valen). Van tras las respuestas para que el foco caiga primero en éstas.
+ *
+ * @param state Estado actual.
+ * @param q Pregunta en juego (para no ofrecerlos en la final).
+ */
+function appendWildcards(state: GameView, q: PublicQuestion): void {
+  if (q.forWin) return;
+  const mine = state.players.find((p) => p.id === myId)?.wildcards ?? [];
+  if (mine.length === 0) return;
+
+  const row = document.createElement('div');
+  row.className = 'action-row';
+  row.setAttribute('role', 'group');
+  row.setAttribute('aria-label', 'Comodines');
+  for (const wildcard of mine) {
+    const btn = button(WILDCARD_LABELS[wildcard], () => net.send({ type: 'useWildcard', wildcard }), 'secondary');
+    row.append(btn);
+  }
+  actions.append(row);
 }
 
 /**

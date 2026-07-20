@@ -128,6 +128,16 @@ dentro); **hub** = 6 (un radio por categoría).
   contando aciertos seguidos a lo largo de la partida. La pregunta final para
   ganar queda fuera del tope: si se acierta, se gana.
 - Caer en una **sede** y acertar → ganas el **queso** de esa categoría.
+- **Comodines** (`WildcardId` en `protocol.ts`, inventario por jugador en `Room`).
+  Cada jugador empieza la partida con un uso de cada comodín (`WILDCARDS`), que se
+  reponen en `start()`. Hoy solo hay uno, **`changeQuestion`**: en `awaitAnswer`,
+  el jugador del turno descarta la pregunta y `useWildcard` saca otra de la misma
+  categoría (la actual ya está en `askedThisGame`, así que no repite mientras
+  quede alguna sin usar). No re-emite `landed` (no te mueves) y **no vale en la
+  pregunta final** (la decide la mesa, no se regala re-tirar). El enum y el
+  andamiaje (mensaje `useWildcard`, evento `wildcardUsed`, `PlayerView.wildcards`,
+  botones en el cliente) están pensados para añadir más comodines sin tocar la
+  estructura.
 - **Rebote** (fase `awaitRebound`): una pregunta fallada no se tira, queda en el
   aire. Se abre un **pulsador** de `REBOUND_MS` (8 s) para todos los bandos menos
   el que falló; el primero que pulsa se queda la pregunta y la responde. Si

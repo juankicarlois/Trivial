@@ -69,6 +69,19 @@ export interface TeamView {
   memberIds: string[];
 }
 
+/**
+ * Comodines de un jugador. Cada uno se puede usar una vez por partida. De
+ * momento solo hay uno; el tipo es un enum para poder añadir más sin tocar el
+ * andamiaje (inventario, mensajes, vista).
+ *
+ * - `changeQuestion`: descarta la pregunta actual y plantea otra de la misma
+ *   categoría. Para cuando no tienes ni idea del tema que te ha tocado.
+ */
+export type WildcardId = 'changeQuestion';
+
+/** Todos los comodines que existen, en el orden en que se ofrecen. */
+export const WILDCARDS: readonly WildcardId[] = ['changeQuestion'];
+
 export interface PlayerView {
   id: string;
   name: string;
@@ -79,6 +92,8 @@ export interface PlayerView {
   difficulty?: BotDifficulty;
   /** Equipo elegido en el vestíbulo (1..MAX_TEAMS); null si aún no ha elegido. */
   team: number | null;
+  /** Comodines que le quedan por gastar en esta partida. */
+  wildcards: WildcardId[];
 }
 
 /** Un pack temático tal como lo ve la sala. */
@@ -169,6 +184,8 @@ export type GameEvent =
    * rebote sigue abierto (él ya no puede volver a contestarla).
    */
   | { kind: 'answerRevealed'; correctText: string }
+  /** `playerId` ha usado un comodín; la interfaz lo anuncia. */
+  | { kind: 'wildcardUsed'; playerId: string; wildcard: WildcardId }
   | { kind: 'wedgeEarned'; teamId: string; playerId: string; category: CategoryId }
   /** El bando ha completado los seis quesos: ahora debe volver al centro. */
   | { kind: 'allWedgesEarned'; teamId: string }
@@ -206,6 +223,8 @@ export type ClientMessage =
   | { type: 'answer'; optionIndex: number }
   /** Pulsador del rebote: quien llega primero se queda la pregunta fallada. */
   | { type: 'buzz' }
+  /** Usa un comodín sobre la pregunta en curso. */
+  | { type: 'useWildcard'; wildcard: WildcardId }
   /** Empieza una sesión de contrarreloj (en solitario, al margen de la sala). */
   | { type: 'startTimeAttack' }
   | { type: 'answerTimeAttack'; optionIndex: number }
