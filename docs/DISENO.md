@@ -357,5 +357,4 @@ sin socket ni perfil (no acumula estadísticas ni logros).
 
 ## Fuera de alcance por ahora
 
-- Bots (fase 3).
-- Juego fuera de la LAN (fase 3).
+- Juego fuera de la LAN.
