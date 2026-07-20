@@ -16,6 +16,7 @@ import { Room, type Transport } from './room.js';
 import { createDefaultRepository } from './questions_repo.js';
 import { loadContent } from './content.js';
 import { ProfileStore } from './profiles.js';
+import { canPlayTimeAttack, TimeAttackSession } from './time_attack.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(here, '..', 'public');
@@ -66,6 +67,10 @@ function getOrCreateRoom(code: string): RoomEntry {
 interface SocketMeta {
   roomCode: string | null;
   playerId: string | null;
+  /** Identidad persistente, para el contrarreloj (que no pasa por la sala). */
+  profileId: string | null;
+  /** Sesión de contrarreloj en marcha, si la hay. Es de la conexión, no de la sala. */
+  timeAttack: TimeAttackSession | null;
 }
 
 // --- Servidor HTTP estático -------------------------------------------------
@@ -112,7 +117,7 @@ const httpServer = createServer((req, res) => {
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
 wss.on('connection', (socket: WebSocket) => {
-  const meta: SocketMeta = { roomCode: null, playerId: null };
+  const meta: SocketMeta = { roomCode: null, playerId: null, profileId: null, timeAttack: null };
 
   const send = (message: ServerMessage): void => {
     if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
@@ -145,6 +150,7 @@ wss.on('connection', (socket: WebSocket) => {
       }
       meta.roomCode = code;
       meta.playerId = playerId;
+      meta.profileId = profileId;
       entry.byPlayer.set(playerId, socket);
       send({ type: 'joined', playerId });
       // Envía el estado actual y su progreso al recién llegado.
@@ -197,12 +203,41 @@ wss.on('connection', (socket: WebSocket) => {
       case 'setPack':
         room.setPack(msg.packId, msg.enabled);
         break;
+      case 'startTimeAttack': {
+        if (meta.timeAttack?.running) break; // ya está jugando una
+        const profile = profiles.getOrCreate(meta.profileId!, 'Jugador');
+        if (!canPlayTimeAttack(profile, content.achievements)) {
+          send({ type: 'error', message: 'El contrarreloj se desbloquea con su logro.' });
+          break;
+        }
+        meta.timeAttack = new TimeAttackSession(
+          repo,
+          profiles,
+          meta.profileId!,
+          content.achievements,
+          send,
+        );
+        meta.timeAttack.start();
+        break;
+      }
+      case 'answerTimeAttack':
+        meta.timeAttack?.answer(msg.optionIndex);
+        // Al acabar puede haber caído algún logro: se refresca su progreso.
+        if (meta.timeAttack && !meta.timeAttack.running) room.sendProfileTo(meta.playerId);
+        break;
+      case 'quitTimeAttack':
+        meta.timeAttack?.quit();
+        if (meta.playerId) room.sendProfileTo(meta.playerId);
+        break;
       default:
         send({ type: 'error', message: 'Acción desconocida.' });
     }
   });
 
   socket.on('close', () => {
+    // El contrarreloj muere con la conexión: es de esta persona y de este rato.
+    meta.timeAttack?.dispose();
+    meta.timeAttack = null;
     if (!meta.roomCode) return;
     const entry = rooms.get(meta.roomCode);
     if (!entry) return;

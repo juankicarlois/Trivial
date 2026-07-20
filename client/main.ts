@@ -23,6 +23,8 @@ import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
 import { BoardView } from './board_view.js';
 import { DiceView } from './dice_view.js';
+import { TimeAttackScreen } from './time_attack.js';
+import { TIME_ATTACK_ACHIEVEMENT } from '../shared/progress.js';
 import { loadProfileId } from './identity.js';
 import {
   achievementsSummary,
@@ -77,6 +79,23 @@ const boardView = new BoardView(boardPanel, board);
 /** Dado visual; igual que el tablero, complemento para quien ve. */
 const diceView = new DiceView(dicePanel);
 
+/** Pantalla del contrarreloj (modo en solitario, al margen de la sala). */
+const timeAttack = new TimeAttackScreen(
+  $('time-attack-screen'),
+  $('time-attack-status'),
+  $('time-attack-actions'),
+  {
+    answer: (optionIndex) => net.send({ type: 'answerTimeAttack', optionIndex }),
+    quit: () => net.send({ type: 'quitTimeAttack' }),
+    announce: (text) => announce(text),
+    sound: {
+      correct: () => sound.correct(),
+      wrong: () => sound.wrong(),
+      turn: () => sound.turn(),
+    },
+  },
+);
+
 // --- Estado local -----------------------------------------------------------
 
 let myId: string | null = null;
@@ -114,9 +133,23 @@ const net = new Net({
       case 'profile':
         myAchievements = message.achievements;
         renderAchievements();
+        // El progreso llega después del estado, y de él depende si se ofrece el
+        // contrarreloj: sin repintar, el acceso no aparecería hasta el siguiente
+        // cambio de estado.
+        if (lastState) renderActions(lastState);
         break;
       case 'event':
         handleEvent(message.event);
+        break;
+      case 'timeAttack':
+        timeAttack.update(message.view);
+        // La sala sigue viva por debajo: al acabar hay que volver a verla.
+        gameScreen.hidden = timeAttack.active;
+        break;
+      case 'timeAttackResult':
+        timeAttack.finish(message.result);
+        gameScreen.hidden = false;
+        renderActions(lastState!);
         break;
       case 'error':
         showError(message.message);
@@ -743,6 +776,19 @@ function renderBoard(state: GameView): void {
   boardView.update(state, myId);
 }
 
+/**
+ * Añade el acceso al contrarreloj cuando el logro que lo abre está conseguido.
+ * Solo aparece fuera de partida: empezarlo a media mesa dejaría a los demás
+ * esperando a alguien que se ha ido a jugar solo.
+ */
+function appendTimeAttackButton(): void {
+  const logro = myAchievements.find((a) => a.id === TIME_ATTACK_ACHIEVEMENT);
+  if (!logro?.unlocked) return;
+  const btn = button('Contrarreloj (en solitario)', () => net.send({ type: 'startTimeAttack' }), 'secondary');
+  btn.id = 'start-time-attack';
+  actions.append(btn);
+}
+
 // --- Acciones ---------------------------------------------------------------
 
 function renderActions(state: GameView): void {
@@ -779,10 +825,12 @@ function renderActions(state: GameView): void {
 
     const startBtn = button('Empezar partida', () => net.send({ type: 'start' }));
     actions.append(bots, startBtn);
+    appendTimeAttackButton();
     focusTarget = startBtn;
   } else if (state.phase === 'gameOver') {
     const again = button('Jugar otra vez', () => net.send({ type: 'start' }));
     actions.append(again);
+    appendTimeAttackButton();
     focusTarget = again;
   } else if (state.phase === 'awaitAnswer' && state.question) {
     renderQuestion(state, iAmActingNow, (btn) => (focusTarget = btn));

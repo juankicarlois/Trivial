@@ -12,6 +12,13 @@
 import { CATEGORIES, type CategoryId } from './categories.js';
 import type { Question } from './questions.js';
 
+/**
+ * Logro que desbloquea el modo contrarreloj. Vive aquí, y no en el servidor,
+ * porque el cliente también lo necesita para saber si enseñar el acceso al modo
+ * (la comprobación de verdad la hace el servidor al empezar la sesión).
+ */
+export const TIME_ATTACK_ACHIEVEMENT = 'contrarreloj';
+
 /** Estadísticas acumuladas de un perfil, a lo largo de todas sus partidas. */
 export interface ProfileStats {
   gamesPlayed: number;
@@ -23,6 +30,8 @@ export interface ProfileStats {
   bestStreak: number;
   /** Aciertos por categoría. */
   correct: Record<CategoryId, number>;
+  /** Mejor marca en el modo contrarreloj (aciertos en una sola sesión). */
+  timeAttackBest: number;
 }
 
 /** Estadística sobre la que se mide un logro. */
@@ -33,6 +42,7 @@ export type StatKey =
   | 'questionsAnswered'
   | 'questionsCorrect'
   | 'bestStreak'
+  | 'timeAttackBest'
   | `correct.${CategoryId}`;
 
 export interface AchievementDef {
@@ -66,6 +76,7 @@ export function emptyStats(): ProfileStats {
     questionsCorrect: 0,
     bestStreak: 0,
     correct,
+    timeAttackBest: 0,
   };
 }
 

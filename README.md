@@ -217,6 +217,9 @@ temáticos** de preguntas:
 | Tiflotecnología | **Científico** — 10 aciertos de Ciencia y Naturaleza |
 | Dibujos de nuestra infancia | **Historiador** — 10 aciertos de Historia |
 
+El logro **Contrarreloj** (juega 3 partidas) no abre un pack, sino el **modo
+contrarreloj** que se describe más abajo.
+
 Las preguntas de un pack están repartidas entre las 6 categorías (como las
 ediciones temáticas del Trivial de mesa), así que el tablero no cambia: al
 activarlo, sus preguntas se suman a las normales.
@@ -234,6 +237,18 @@ persona de la sala** lo tenga desbloqueado para traerlo a la mesa: se juega con
 
 Tu identidad se guarda en el navegador, así que el progreso es por navegador y
 equipo. Las estadísticas viven en el servidor (`data/profiles.json`).
+
+### Contrarreloj (en solitario)
+
+Se desbloquea con el logro **Contrarreloj** (juega 3 partidas) y aparece como un
+botón en el vestíbulo. Son **3 minutos** de preguntas seguidas: cada acierto suma
+un punto y cada fallo te quita **10 segundos**. Tu mejor marca se guarda en el
+perfil y es lo que hay que batir la próxima vez.
+
+El reloj se avisa por voz al quedar un minuto, 30 segundos y 10 segundos, y hay
+un botón «Cuánto tiempo queda» para consultarlo cuando quieras: mirar un número
+en pantalla no vale si juegas oyendo. Los aciertos cuentan para tus estadísticas
+y logros como los de cualquier partida.
 
 ### Añadir logros y packs
 

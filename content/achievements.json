@@ -29,6 +29,13 @@
       "atLeast": 50
     },
     {
+      "id": "contrarreloj",
+      "name": "Contrarreloj",
+      "description": "Juega 3 partidas. Desbloquea el modo contrarreloj en solitario.",
+      "stat": "gamesPlayed",
+      "atLeast": 3
+    },
+    {
       "id": "veterano",
       "name": "Veterano",
       "description": "Juega 5 partidas.",

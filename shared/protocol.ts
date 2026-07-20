@@ -206,6 +206,11 @@ export type ClientMessage =
   | { type: 'answer'; optionIndex: number }
   /** Pulsador del rebote: quien llega primero se queda la pregunta fallada. */
   | { type: 'buzz' }
+  /** Empieza una sesión de contrarreloj (en solitario, al margen de la sala). */
+  | { type: 'startTimeAttack' }
+  | { type: 'answerTimeAttack'; optionIndex: number }
+  /** Deja el contrarreloj antes de que se acabe el tiempo. */
+  | { type: 'quitTimeAttack' }
   /** Un rival elige la categoría de la pregunta final del bando actual. */
   | { type: 'chooseFinalCategory'; category: CategoryId }
   /** Fija el modo de la sala; solo lo puede hacer quien la creó. */
@@ -227,4 +232,43 @@ export type ServerMessage =
   /** Progreso propio; solo se envía a su dueño. */
   | { type: 'profile'; stats: ProfileStats; achievements: AchievementView[] }
   | { type: 'event'; event: GameEvent }
+  /** Estado del contrarreloj propio; `null` cuando no hay sesión en marcha. */
+  | { type: 'timeAttack'; view: TimeAttackView | null }
+  /** Se acabó el contrarreloj: marca final y si es récord. */
+  | { type: 'timeAttackResult'; result: TimeAttackResult }
   | { type: 'error'; message: string };
+
+/**
+ * Estado de una sesión de contrarreloj. Es **de un solo jugador**: no viaja a la
+ * sala, solo a quien la está jugando.
+ */
+export interface TimeAttackView {
+  /** Segundos que quedan (ya descontadas las penalizaciones por fallo). */
+  secondsLeft: number;
+  /** Aciertos acumulados en esta sesión. */
+  score: number;
+  /** Pregunta que hay que contestar ahora. */
+  question: PublicQuestion;
+  /** Mejor marca del jugador antes de esta sesión, para saber qué batir. */
+  best: number;
+  /** Segundos que cuesta cada fallo. */
+  penaltySeconds: number;
+  /**
+   * Cómo fue la respuesta anterior, para poder cantarla al plantear la
+   * siguiente. Ausente en la primera pregunta de la sesión.
+   */
+  lastAnswer?: { correct: boolean; correctText: string };
+}
+
+/** Resultado de una sesión de contrarreloj terminada. */
+export interface TimeAttackResult {
+  score: number;
+  /** Mejor marca previa (la que había que batir). */
+  previousBest: number;
+  /** true si esta sesión ha establecido un récord nuevo. */
+  isRecord: boolean;
+  /** Aciertos seguidos más largos de la sesión. */
+  bestStreak: number;
+  /** true si se dejó a medias en vez de agotarse el tiempo. */
+  endedEarly: boolean;
+}

@@ -265,6 +265,30 @@ fuera del tabulador, así que para el lector no existe. Regla para lo que venga:
 todo lo que se pueda hacer en el dibujo tiene que poder hacerse también con los
 mandos de texto.
 
+## Contrarreloj
+
+Modo **en solitario** que se desbloquea con el logro `contrarreloj` (3 partidas
+jugadas). Vive en `server/time_attack.ts`, **fuera de `Room`**: no comparte nada
+con la partida de mesa salvo el banco de preguntas y el perfil, y meterlo en la
+sala habría obligado a que cada regla del tablero preguntara antes "¿y si es
+contrarreloj?". La sesión es de la **conexión**, no de la sala: se puede jugar
+mientras la mesa está en el vestíbulo, y muere al cerrarse el socket.
+
+Reglas: 3 minutos, preguntas encadenadas de categoría al azar. Cada acierto suma
+un punto; cada fallo **descuenta 10 segundos** en vez de terminar la partida (un
+fallo tonto no debe echarte, pero tiene que doler). La marca se guarda en
+`stats.timeAttackBest` y solo sube. Los aciertos cuentan como cualquier otro para
+el resto de estadísticas y logros, así que aquí también se desbloquean packs.
+
+El desbloqueo se comprueba **en el servidor** (`canPlayTimeAttack`), no solo al
+pintar el botón.
+
+Accesibilidad del reloj: un número que baja en pantalla no sirve a quien juega
+oyendo. El tiempo se avisa por voz solo en tres momentos (un minuto, 30 s, 10 s),
+hay un botón para preguntarlo cuando se quiera, y el resto del rato hay silencio
+para no pisar la lectura de la pregunta. Cada pregunta se lee entera con sus
+opciones: aquí no hay tablero ni turnos que den contexto.
+
 ## Bandos: individual y por equipos
 
 La ficha y los quesos pertenecen a un **bando**, no a una persona. En modo
