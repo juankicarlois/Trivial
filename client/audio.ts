@@ -163,8 +163,8 @@ export class SoundEngine {
   }
 
   /**
-   * Se abre el pulsador del rebote. Mientras no exista `rebound.ogg` suena el
-   * aviso de turno, que ya significa "te toca reaccionar": es preferible a
+   * Se abre el pulsador del rebote. Si la muestra propia no cargara, suena el
+   * aviso de turno: ya significa "te toca reaccionar", y es preferible a
    * quedarse en silencio justo cuando hay que correr.
    */
   rebound(): void {

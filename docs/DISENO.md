@@ -309,6 +309,24 @@ hay un botón para preguntarlo cuando se quiera, y el resto del rato hay silenci
 para no pisar la lectura de la pregunta. Cada pregunta se lee entera con sus
 opciones: aquí no hay tablero ni turnos que den contexto.
 
+### El aviso del rebote
+
+`public/sounds/rebound.ogg` es el único sonido propio del juego: dos notas
+ascendentes (700 Hz y 1046 Hz) con caída exponencial, sintetizadas con ffmpeg.
+Sube de tono porque anuncia una carrera, y dura medio segundo para no pisar al
+lector de pantalla, que habla justo detrás. Receta para regenerarlo:
+
+```sh
+ffmpeg -y \
+ -f lavfi -i "aevalsrc='0.85*(sin(2*PI*700*t)+0.3*sin(2*PI*1400*t))*exp(-16*t)':d=0.13:s=48000" \
+ -f lavfi -i "aevalsrc='0.9*(sin(2*PI*1046*t)+0.35*sin(2*PI*2092*t)+0.12*sin(2*PI*3138*t))*exp(-6.5*t)':d=0.40:s=48000" \
+ -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[c];[c]aformat=channel_layouts=stereo[out]" \
+ -map "[out]" -af "volume=0.8dB" -c:a libvorbis -q:a 5 public/sounds/rebound.ogg
+```
+
+El `volume=0.8dB` deja el pico en −1,5 dBFS, que es como están nivelados los
+demás sonidos cortos.
+
 ## Bandos: individual y por equipos
 
 La ficha y los quesos pertenecen a un **bando**, no a una persona. En modo

@@ -180,17 +180,18 @@ de todos, también oyes por dónde van los rivales. Es refuerzo, no el canal
 principal: cada sonido tiene su anuncio de texto equivalente y el juego funciona
 igual sin audio (si una muestra falta o el navegador no la decodifica, no suena).
 
-Falta una muestra por añadir: `rebound.ogg`, el aviso de que se abre el pulsador
-del rebote. Mientras no exista suena el aviso de turno, que ya significa «te toca
-reaccionar»; es mejor que el silencio justo cuando hay que correr.
+El aviso del rebote (`rebound.ogg`) es el único sonido **propio**: dos notas
+ascendentes sintetizadas con ffmpeg, sin muestras de terceros. Sube de tono
+porque anuncia una carrera, y es corto (medio segundo) para no pisar al lector de
+pantalla, que habla justo detrás.
 
 Las muestras están **niveladas** para que ninguna retumbe ni desaparezca: los
 sonidos con cuerpo se normalizaron por loudness a ~-17 LUFS (ffmpeg `loudnorm`) y
 los muy cortos por pico a -1,5 dBFS. Si añades o sustituyes un sonido, conviene
 nivelarlo igual.
 
-> ⚠️ **Procedencia y licencia.** Las muestras incluidas provienen de la
-> plataforma de audiojuegos **PlayPalace** y se usan aquí de forma provisional.
+> ⚠️ **Procedencia y licencia.** Todas las muestras salvo `rebound.ogg` provienen
+> de la plataforma de audiojuegos **PlayPalace** y se usan aquí de forma provisional.
 > Están dentro del repositorio porque es **privado** y se comparte solo con
 > gente conocida. Antes de hacerlo público o distribuir el juego hay que
 > **verificar su licencia** o sustituirlas por sonidos propios o de una
