@@ -269,14 +269,18 @@ function handleEvent(event: GameEvent): void {
     case 'allWedgesEarned':
       announce(
         isMySide(event.teamId)
-          ? '¡Ya tenéis los seis quesos! Ahora volved al centro de la rueda: al caer justo en él os harán la pregunta final para ganar.'
+          ? esPorEquipos()
+            ? '¡Ya tenéis los seis quesos! Ahora volved al centro de la rueda: al caer justo en él os harán la pregunta final para ganar.'
+            : '¡Ya tienes los seis quesos! Ahora vuelve al centro de la rueda: al caer justo en él te harán la pregunta final para ganar.'
           : `${sideName(event.teamId)} ya tiene los seis quesos y va camino del centro a por la victoria.`,
       );
       break;
     case 'turnLimitReached':
       announce(
         isMySide(event.teamId)
-          ? `¡${event.limit} aciertos seguidos! Habéis llegado al tope del turno y cedéis la vez.`
+          ? esPorEquipos()
+            ? `¡${event.limit} aciertos seguidos! Habéis llegado al tope del turno y cedéis la vez.`
+            : `¡${event.limit} aciertos seguidos! Has llegado al tope del turno y cedes la vez.`
           : `${sideName(event.teamId)} encadena ${event.limit} aciertos y cede la vez.`,
       );
       break;
@@ -287,7 +291,15 @@ function handleEvent(event: GameEvent): void {
       // tablero a la vista es fácil olvidar que ya solo falta llegar al centro.
       const equipo = teamById(event.teamId);
       const conTodos = equipo != null && equipo.wedges.length === CATEGORIES.length;
-      const recuerdo = conTodos ? ' Tenéis los seis quesos: id al centro.' : '';
+      // El recordatorio va en la persona que corresponda: a quien le toca se le
+      // habla de tú (o de vosotros si juega en equipo) y del resto en tercera.
+      const recuerdoPropio = esPorEquipos()
+        ? ' Tenéis los seis quesos: id al centro.'
+        : ' Tienes los seis quesos: ve al centro.';
+      const recuerdoAjeno = esPorEquipos()
+        ? ' Tienen los seis quesos: van al centro.'
+        : ' Tiene los seis quesos: va al centro.';
+      const recuerdo = conTodos ? (isMySide(event.teamId) ? recuerdoPropio : recuerdoAjeno) : '';
       if (meToca) {
         announce(`Es tu turno.${recuerdo}`);
       } else if (esPorEquipos()) {
@@ -304,7 +316,9 @@ function handleEvent(event: GameEvent): void {
     case 'awaitingFinalCategory':
       announce(
         isMySide(event.teamId)
-          ? '¡Tenéis los seis quesos y llegáis al centro! Vuestros rivales van a elegir la categoría de la pregunta final.'
+          ? esPorEquipos()
+            ? '¡Tenéis los seis quesos y llegáis al centro! Vuestros rivales van a elegir la categoría de la pregunta final.'
+            : '¡Tienes los seis quesos y llegas al centro! Tus rivales van a elegir la categoría de la pregunta final.'
           : `${sideName(event.teamId)} llega al centro con los seis quesos. Elegid la categoría de su pregunta final.`,
       );
       break;
@@ -502,7 +516,9 @@ function renderStatus(state: GameView): void {
       // que el objetivo esté siempre a la vista, no solo en el aviso del momento.
       if (team.wedges.length === CATEGORIES.length) {
         text += myId && team.memberIds.includes(myId)
-          ? ' Tenéis los seis quesos: id al centro para la pregunta final.'
+          ? state.mode === 'teams'
+            ? ' Tenéis los seis quesos: id al centro para la pregunta final.'
+            : ' Tienes los seis quesos: ve al centro para la pregunta final.'
           : ' ¡Tiene los seis quesos y va a por la victoria!';
       }
     }
@@ -728,7 +744,9 @@ function renderActions(state: GameView): void {
     if (myTeamPlays) {
       const hint = document.createElement('p');
       hint.className = 'hint';
-      hint.textContent = 'Tenéis los seis quesos. Vuestros rivales eligen la categoría de la pregunta final…';
+      hint.textContent = esPorEquipos()
+        ? 'Tenéis los seis quesos. Vuestros rivales eligen la categoría de la pregunta final…'
+        : 'Tienes los seis quesos. Tus rivales eligen la categoría de la pregunta final…';
       actions.append(hint);
     } else {
       const hint = document.createElement('p');
