@@ -30,7 +30,7 @@
     },
     {
       "id": "wot-004",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "¿Cómo se llama la fuerza mágica que mueve la Rueda del Tiempo?",
       "options": ["El Poder Único", "La Chispa", "El Maná", "La Niebla"],
       "answerIndex": 0,
@@ -62,7 +62,7 @@
     },
     {
       "id": "wot-008",
-      "category": "historia",
+      "category": "arte",
       "text": "¿De cuántos libros consta la saga principal de \"La Rueda del Tiempo\"?",
       "options": ["7", "10", "14", "20"],
       "answerIndex": 2,

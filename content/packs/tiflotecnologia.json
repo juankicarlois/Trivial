@@ -67,7 +67,7 @@
     },
     {
       "id": "tif-008",
-      "category": "arte",
+      "category": "cultura",
       "text": "¿Qué hace un lector de pantalla?",
       "options": [
         "Amplía el texto en pantalla",
@@ -104,7 +104,7 @@
     },
     {
       "id": "tif-012",
-      "category": "arte",
+      "category": "cultura",
       "text": "¿De qué color suele ser el bastón que usan las personas ciegas para desplazarse?",
       "options": ["Negro", "Blanco", "Rojo", "Azul"],
       "answerIndex": 1,

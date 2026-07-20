@@ -22,7 +22,7 @@
     },
     {
       "id": "lotr-003",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "¿A qué pueblo pertenece Frodo Bolsón?",
       "options": ["Los elfos", "Los enanos", "Los hobbits", "Los orcos"],
       "answerIndex": 2,
@@ -62,7 +62,7 @@
     },
     {
       "id": "lotr-008",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "¿A qué pueblo pertenece el arquero Legolas?",
       "options": ["Los enanos", "Los elfos", "Los hombres", "Los ents"],
       "answerIndex": 1,

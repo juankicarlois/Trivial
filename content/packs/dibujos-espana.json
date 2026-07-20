@@ -14,7 +14,7 @@
     },
     {
       "id": "dib-002",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "En \"Bola de Dragón\", ¿cuántas esferas del dragón hay que reunir?",
       "options": ["5", "7", "9", "12"],
       "answerIndex": 1,
@@ -22,7 +22,7 @@
     },
     {
       "id": "dib-003",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "¿Qué es Doraemon?",
       "options": ["Un perro", "Un gato robot del futuro", "Un oso de peluche", "Un extraterrestre"],
       "answerIndex": 1,

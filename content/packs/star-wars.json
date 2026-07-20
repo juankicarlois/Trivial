@@ -78,7 +78,7 @@
     },
     {
       "id": "sw-010",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "¿De qué color es la piel del maestro Yoda?",
       "options": ["Azul", "Verde", "Gris", "Marrón"],
       "answerIndex": 1,
@@ -94,7 +94,7 @@
     },
     {
       "id": "sw-012",
-      "category": "geografia",
+      "category": "cultura",
       "text": "¿Cómo se llama la estación espacial capaz de destruir planetas?",
       "options": ["La Ciudadela", "La Estrella de la Muerte", "Starkiller", "El Halcón"],
       "answerIndex": 1,

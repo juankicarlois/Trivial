@@ -35,7 +35,7 @@
     },
     {
       "id": "sim-004",
-      "category": "ciencia",
+      "category": "cultura",
       "text": "¿Cuántos hijos tienen Homer y Marge?",
       "options": ["2", "3", "4", "5"],
       "answerIndex": 1,
@@ -75,7 +75,7 @@
     },
     {
       "id": "sim-009",
-      "category": "arte",
+      "category": "cultura",
       "text": "¿De qué color son los Simpson?",
       "options": ["Verde", "Amarillo", "Naranja", "Rosa"],
       "answerIndex": 1,

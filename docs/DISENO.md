@@ -217,6 +217,26 @@ normales**, como en las ediciones temáticas del Trivial de mesa: así el tabler
 no cambia y basta con sumarlas al repertorio. Un pack **no** tiene por qué cubrir
 las 6 categorías.
 
+**Qué categoría lleva cada pregunta de pack.** La categoría es el **tipo de saber
+que se pregunta**, no el tema del pack: si caes en la sede de Deportes te tienen
+que preguntar de deporte, aunque el pack sea de flamenco, y el queso que ganes
+sea el de Deportes. Como guía:
+
+| Categoría | Qué va aquí |
+|-----------|-------------|
+| Arte y Literatura | autores, obras, música, versos, títulos |
+| Historia | fechas, fundadores, hechos y pueblos del pasado |
+| Geografía | lugares, también los inventados (Hogwarts, Tatooine) |
+| Ciencia y Naturaleza | animales, plantas, técnica |
+| Deportes y Ocio | deportes y juegos |
+| Cultura y Tecnología | personajes, marcas, tele, tecnología de consumo |
+
+**No fuerces las categorías para cubrirlas todas**: un pack no tiene por qué
+tener de las seis, y es normal que uno de cultura popular cargue en «Cultura y
+Tecnología». Rellenar Deportes con una pregunta que no es de deportes es peor que
+dejar Deportes vacío (pasó con la bulería de Camarón y el perro guía de
+Tiflotecnología, y se corrigió).
+
 **Cuota de packs** (`packShare` en `questions_repo.ts`). El sorteo va en dos
 pasos: primero se decide si la pregunta sale del banco base o de los packs
 activos, y luego cuál. Sorteando sobre los dos montones juntos los packs eran

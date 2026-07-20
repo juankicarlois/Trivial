@@ -62,7 +62,7 @@
     },
     {
       "id": "vg-008",
-      "category": "arte",
+      "category": "cultura",
       "text": "En el clásico Pac-Man, ¿de qué debe huir el protagonista?",
       "options": ["De unos fantasmas", "De unos zombis", "De unos perros", "De unos aliens"],
       "answerIndex": 0,
@@ -94,7 +94,7 @@
     },
     {
       "id": "vg-012",
-      "category": "arte",
+      "category": "cultura",
       "text": "En Super Mario, ¿a qué princesa suele rescatar Mario?",
       "options": ["La princesa Daisy", "La princesa Peach", "La princesa Zelda", "La princesa Rosalina"],
       "answerIndex": 1,

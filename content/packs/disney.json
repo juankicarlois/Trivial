@@ -78,7 +78,7 @@
     },
     {
       "id": "dis-010",
-      "category": "cultura",
+      "category": "historia",
       "text": "¿En qué año se estrenó la película \"El rey león\"?",
       "options": ["1989", "1991", "1994", "1998"],
       "answerIndex": 2,
