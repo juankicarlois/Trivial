@@ -88,6 +88,18 @@ Las frases están en `client/narration.ts`, **aparte del DOM y con tests**
 casillas" o un plural mal puesto no es un detalle estético, y sin tests no se
 detecta.
 
+**Narrador con chispa** (`client/flavor.ts`). Los avisos de cada momento —tirada,
+acierto, fallo, queso, victoria, turno, arranque, rebote sin dueño— no son una
+frase fija, sino un repertorio de variantes entre las que se elige al azar,
+evitando repetir la anterior (`nextIndex`), para que quien juega a menudo no oiga
+siempre lo mismo. La regla dura: **cada variante lleva el dato esencial** (quién,
+qué número, qué categoría) y las de acierto/fallo dicen siempre "acierta/correcto"
+o "falla/incorrecto"; la chispa es la envoltura, nunca a costa de la información.
+`client/flavor.test.ts` audita variante por variante que el dato no se pierde, y
+que hay repertorio de sobra (≥5 por situación). Las frases con lógica de persona
+delicada (recordatorio de los seis quesos, instrucciones del rebote) siguen en
+`main.ts`: ahí el riesgo de decir algo incorrecto pesa más que la variedad.
+
 ## Modelo del tablero (rueda Pursuit)
 
 Grafo de nodos con adyacencias (`shared/board.ts` lo genera):

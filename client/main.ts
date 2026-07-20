@@ -25,6 +25,7 @@ import { BoardView } from './board_view.js';
 import { DiceView } from './dice_view.js';
 import { TimeAttackScreen } from './time_attack.js';
 import { HelpScreen } from './help.js';
+import * as flavor from './flavor.js';
 import { TIME_ATTACK_ACHIEVEMENT } from '../shared/progress.js';
 import { loadProfileId } from './identity.js';
 import {
@@ -275,12 +276,12 @@ function handleEvent(event: GameEvent): void {
     case 'gameStarted':
       sound.start();
       diceView.clear(); // la tirada de la partida anterior ya no viene a cuento
-      announce('¡Empieza la partida!');
+      announce(flavor.startLine());
       break;
     case 'diceRolled':
       sound.dice();
       diceView.show(event.value, nameOf(event.playerId));
-      announce(`${nameOf(event.playerId)} saca un ${event.value}.`);
+      announce(flavor.diceLine(nameOf(event.playerId), event.value));
       break;
     case 'moved':
       {
@@ -290,23 +291,20 @@ function handleEvent(event: GameEvent): void {
       break;
     case 'landed': {
       const label = board.nodes[event.nodeId]?.label ?? 'una casilla';
-      announce(`${nameOf(event.playerId)} cae en ${label}.`);
+      announce(flavor.landedLine(nameOf(event.playerId), label));
       break;
     }
     case 'answered':
       if (event.correct) {
         sound.correct();
-        announce(`${nameOf(event.playerId)} responde: ¡correcto!`);
+        announce(flavor.correctLine(nameOf(event.playerId)));
       } else {
         // Al fallar se revela la respuesta buena: si no, la mesa se queda sin
         // saberla. Cuando la pregunta va a rebotar no viene (la cantaría a quien
         // puede quedársela): llega luego, por `answerRevealed`.
         sound.wrong();
-        announce(
-          event.correctText
-            ? `${nameOf(event.playerId)} responde: incorrecto. La respuesta era: ${event.correctText}.`
-            : `${nameOf(event.playerId)} responde: incorrecto.`,
-        );
+        const fallo = flavor.wrongLine(nameOf(event.playerId));
+        announce(event.correctText ? `${fallo} La respuesta era: ${event.correctText}.` : fallo);
       }
       break;
     case 'answerRevealed':
@@ -315,13 +313,10 @@ function handleEvent(event: GameEvent): void {
     case 'wedgeEarned': {
       sound.wedge();
       const queso = categoryById(event.category).name;
-      // En equipos se nombra al equipo y a quien lo consiguió; en individual
-      // ambos son la misma persona, así que basta con el nombre.
-      announce(
-        esPorEquipos()
-          ? `${sideName(event.teamId)} gana el queso de ${queso}, con ${nameOf(event.playerId)}.`
-          : `${nameOf(event.playerId)} gana el queso de ${queso}.`,
-      );
+      // En equipos se nombra al equipo (chispa) y aparte a quien lo consiguió;
+      // en individual el bando ya es la persona, así que basta con su nombre.
+      const base = flavor.wedgeLine(sideName(event.teamId), queso);
+      announce(esPorEquipos() ? `${base} Lo consigue ${nameOf(event.playerId)}.` : base);
       break;
     }
     case 'allWedgesEarned':
@@ -362,7 +357,7 @@ function handleEvent(event: GameEvent): void {
       );
       break;
     case 'reboundExpired':
-      announce('Nadie pulsa a tiempo. La pregunta se queda sin dueño.');
+      announce(flavor.reboundExpiredLine());
       break;
     case 'reboundWon':
       announce(
@@ -388,17 +383,17 @@ function handleEvent(event: GameEvent): void {
         : ' Tiene los seis quesos: va al centro.';
       const recuerdo = conTodos ? (isMySide(event.teamId) ? recuerdoPropio : recuerdoAjeno) : '';
       if (meToca) {
-        announce(`Es tu turno.${recuerdo}`);
+        announce(`${flavor.yourTurnLine()}${recuerdo}`);
       } else if (esPorEquipos()) {
         announce(`Turno de ${sideName(event.teamId)}: responde ${nameOf(event.playerId)}.${recuerdo}`);
       } else {
-        announce(`Turno de ${nameOf(event.playerId)}.${recuerdo}`);
+        announce(`${flavor.theirTurnLine(nameOf(event.playerId))}${recuerdo}`);
       }
       break;
     }
     case 'gameWon':
       sound.win();
-      announce(`¡${sideName(event.teamId)} gana la partida!`);
+      announce(flavor.winLine(sideName(event.teamId)));
       break;
     case 'awaitingFinalCategory':
       announce(
