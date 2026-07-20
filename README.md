@@ -241,9 +241,9 @@ que los rivales elijan la categoría de la pregunta final. Ver `docs/DISENO.md`.
 
 ### Añadir preguntas
 
-El banco base son **1.242 preguntas (más de 200 por categoría)**, repartidas en varios
-ficheros: `content/questions.base.json` y `content/questions.<categoria>.json`.
-Se cargan **todos** los `content/questions*.json`, así que para ampliar basta con
+El banco base son **1.242 preguntas (más de 200 por categoría)**, con **un fichero por
+categoría**: `content/questions.<categoria>.json`. Una pregunta nueva va al fichero de
+su categoría. Se cargan **todos** los `content/questions*.json`, así que también vale
 añadir otro fichero con ese patrón (no hace falta recompilar, solo reiniciar el
 servidor). Formato:
 
