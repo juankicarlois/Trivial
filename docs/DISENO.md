@@ -228,6 +228,13 @@ casilla se reparten alrededor del punto). Es **complemento para quien ve** y se
 marca `aria-hidden`: la misma información llega al lector por los anuncios, la
 lista de jugadores y las consultas.
 
+Al elegir dirección, las casillas destino se marcan en el dibujo y se pueden
+**pulsar** (`setMoveTargets`), lo que envía el mismo `move` que su botón de
+texto. Es un atajo de ratón, nunca la única vía: el SVG sigue `aria-hidden` y
+fuera del tabulador, así que para el lector no existe. Regla para lo que venga:
+todo lo que se pueda hacer en el dibujo tiene que poder hacerse también con los
+mandos de texto.
+
 ## Bandos: individual y por equipos
 
 La ficha y los quesos pertenecen a un **bando**, no a una persona. En modo
@@ -273,8 +280,6 @@ sin socket ni perfil (no acumula estadísticas ni logros).
 ## Pendiente / ideas
 
 - Juego fuera de la LAN (abrir puerto / túnel), más packs.
-- Que el tablero visual permita también **hacer clic** para elegir dirección
-  (hoy la interacción es solo por los botones de texto).
 
 ## Fuera de alcance por ahora
 

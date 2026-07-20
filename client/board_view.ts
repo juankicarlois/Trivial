@@ -38,6 +38,7 @@ function svg<K extends keyof SVGElementTagNameMap>(
 export class BoardView {
   private readonly board: Board;
   private readonly tokenLayer: SVGGElement;
+  private readonly targetLayer: SVGGElement;
 
   /**
    * @param container Elemento donde se inserta el SVG (se vacía y se rellena).
@@ -95,6 +96,11 @@ export class BoardView {
     // Las fichas van en su propia capa, que se rehace en cada actualización.
     this.tokenLayer = svg('g', { class: 'board-tokens' });
     root.appendChild(this.tokenLayer);
+
+    // Los destinos pulsables van encima de todo para que el clic no se lo coma
+    // una ficha que esté en la misma casilla.
+    this.targetLayer = svg('g', { class: 'board-targets' });
+    root.appendChild(this.targetLayer);
 
     container.replaceChildren(root);
   }
@@ -156,5 +162,34 @@ export class BoardView {
 
       this.tokenLayer.appendChild(token);
     });
+  }
+
+  /**
+   * @brief Marca en el dibujo las casillas a las que se puede mover y las hace
+   *        pulsables.
+   *
+   * Es un atajo **solo para quien ve**: el SVG entero está `aria-hidden`, así que
+   * ni aparece en el lector ni recibe el foco del tabulador. Los botones de texto
+   * siguen siendo el camino completo — esto no añade ninguna acción que no esté
+   * también ahí.
+   *
+   * @param nodeIds Casillas destino; lista vacía para quitar las marcas.
+   * @param onPick Se llama con la casilla elegida al pulsarla.
+   */
+  setMoveTargets(nodeIds: readonly string[], onPick: (nodeId: string) => void): void {
+    this.targetLayer.replaceChildren();
+
+    for (const nodeId of nodeIds) {
+      const node = this.board.nodes[nodeId];
+      if (!node) continue;
+      const px = node.position.x * RING_RADIUS;
+      const py = -node.position.y * RING_RADIUS;
+
+      // El círculo es más grande que la casilla: da margen de puntería, sobre
+      // todo con el ratón o el dedo en pantallas pequeñas.
+      const target = svg('circle', { cx: px, cy: py, r: 14, class: 'board-target' });
+      target.addEventListener('click', () => onPick(nodeId));
+      this.targetLayer.appendChild(target);
+    }
   }
 }

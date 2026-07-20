@@ -233,11 +233,13 @@ que lo desbloquea, más sus `questions` en el mismo formato que el banco base.
 
 ## Estado
 
-Fases 1 y 2 completas: salas en LAN, tablero, dado, movimiento por teclado, **120
-preguntas base** (más de 200 por categoría), quesos y victoria; perfiles persistentes,
-logros y packs temáticos (Harry Potter, Disney, Camarón de la Isla). Todo con
-accesibilidad y sonidos. Pendiente: bots e internet (fase 3), tablero visual y
-que los rivales elijan la categoría de la pregunta final. Ver `docs/DISENO.md`.
+Jugable de principio a fin: salas en LAN, tablero, dado, movimiento por teclado,
+**1.242 preguntas base** (más de 200 por categoría), quesos, pregunta final elegida
+por los rivales y victoria; bots con tres dificultades, perfiles persistentes, logros
+y packs temáticos (Harry Potter, Disney, Camarón de la Isla). Todo con accesibilidad
+y sonidos, más un tablero visual en SVG como complemento para quien ve (sus casillas
+destino se pueden pulsar con el ratón). Pendiente: juego fuera de la LAN y más
+contenido. Ver `docs/DISENO.md`.
 
 ### Añadir preguntas
 

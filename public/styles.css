@@ -186,6 +186,26 @@ kbd {
 .board-token-halo { fill: none; stroke: var(--focus); stroke-width: 2.5; }
 .board-token-label { fill: #ffffff; font-size: 9px; font-weight: 700; }
 
+/* Casillas a las que se puede mover: atajo de ratón para quien ve. El resto del
+   SVG no recibe eventos, así que solo estas son pulsables. */
+.board-svg { pointer-events: none; }
+.board-target {
+  pointer-events: auto;
+  cursor: pointer;
+  fill: var(--focus);
+  fill-opacity: 0.18;
+  stroke: var(--focus);
+  stroke-width: 2;
+}
+.board-target:hover { fill-opacity: 0.38; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .board-target { animation: board-target-pulse 1.4s ease-in-out infinite; }
+}
+@keyframes board-target-pulse {
+  50% { stroke-opacity: 0.45; }
+}
+
 #actions { display: grid; gap: 0.6rem; margin-top: 0.5rem; }
 .action-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .question-text { font-size: 1.2rem; font-weight: 600; }

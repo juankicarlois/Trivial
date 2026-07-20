@@ -705,6 +705,9 @@ function renderActions(state: GameView): void {
   // si el conjunto de acciones no cambia (p. ej. al añadir un bot en el vestíbulo).
   const focusedId = document.activeElement instanceof HTMLElement ? document.activeElement.id : '';
   actions.replaceChildren();
+  // Los destinos pulsables del tablero acompañan a los botones de dirección:
+  // se quitan aquí y solo se vuelven a poner si toca elegir camino.
+  boardView.setMoveTargets([], () => {});
   // "Me toca" es ser el miembro de turno de mi bando; "es mi bando" basta para
   // saber si me afecta la pregunta final (la eligen los rivales del bando).
   const iAmActingNow = state.actingPlayerId != null && state.actingPlayerId === myId;
@@ -789,6 +792,10 @@ function renderActions(state: GameView): void {
       row.append(btn);
     });
     actions.append(h, row);
+    // Mismo movimiento, pulsando la casilla en el dibujo: atajo para quien ve
+    // (el SVG está aria-hidden y fuera del tabulador, así que no cambia nada
+    // para el lector). Solo para quien tiene el turno.
+    if (iAmActingNow) boardView.setMoveTargets(state.movement.options, (nodeId) => net.send({ type: 'move', toNodeId: nodeId }));
   }
 
   manageFocus(state, focusTarget, focusedId);
