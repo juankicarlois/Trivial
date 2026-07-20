@@ -256,10 +256,19 @@ function handleEvent(event: GameEvent): void {
         sound.correct();
         announce(`${nameOf(event.playerId)} responde: ¡correcto!`);
       } else {
-        // Al fallar se revela la respuesta buena: si no, la mesa se queda sin saberla.
+        // Al fallar se revela la respuesta buena: si no, la mesa se queda sin
+        // saberla. Cuando la pregunta va a rebotar no viene (la cantaría a quien
+        // puede quedársela): llega luego, por `answerRevealed`.
         sound.wrong();
-        announce(`${nameOf(event.playerId)} responde: incorrecto. La respuesta era: ${event.correctText}.`);
+        announce(
+          event.correctText
+            ? `${nameOf(event.playerId)} responde: incorrecto. La respuesta era: ${event.correctText}.`
+            : `${nameOf(event.playerId)} responde: incorrecto.`,
+        );
       }
+      break;
+    case 'answerRevealed':
+      announce(`La respuesta era: ${event.correctText}.`);
       break;
     case 'wedgeEarned': {
       sound.wedge();

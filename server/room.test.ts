@@ -7,6 +7,7 @@ import { CATEGORIES } from '../shared/categories.js';
 import { buildBoard } from '../shared/board.js';
 import { chooseBotMove } from './bot.js';
 import { Room, type Scheduler, type Transport } from './room.js';
+import type { GameEvent } from '../shared/protocol.js';
 import { createDefaultRepository, QuestionRepository } from './questions_repo.js';
 import { loadContent } from './content.js';
 import { ProfileStore } from './profiles.js';
@@ -666,4 +667,57 @@ test('si quien pulsó se cae, la pregunta se pierde y sigue la partida', () => {
 
   room.markDisconnected(bea);
   assert.notEqual(room.toView().phase, 'awaitRebound', 'nadie puede responder por él');
+});
+
+test('la respuesta buena no se canta a la mesa si la pregunta va a rebotar', () => {
+  const difundidos: GameEvent[] = [];
+  const privados: { playerId: string; event: GameEvent }[] = [];
+  const timers = queuedScheduler();
+  const room = new Room(
+    'TEST',
+    stubRepository(),
+    content,
+    newStore(),
+    {
+      broadcast: (m) => {
+        if (m.type === 'event') difundidos.push(m.event);
+      },
+      sendTo: (playerId, m) => {
+        if (m.type === 'event') privados.push({ playerId, event: m.event });
+      },
+    },
+    { scheduler: timers.scheduler },
+  );
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+
+  falla(room, ana);
+
+  const fallo = difundidos.find((e) => e.kind === 'answered' && !e.correct);
+  assert.ok(fallo, 'debería anunciarse el fallo');
+  assert.equal(
+    fallo.kind === 'answered' ? fallo.correctText : 'sin usar',
+    undefined,
+    'cantar la respuesta aquí se la regala a quien va a rebotar',
+  );
+  assert.ok(
+    !difundidos.some((e) => e.kind === 'answerRevealed'),
+    'tampoco vale destaparla por otra vía mientras el rebote sigue abierto',
+  );
+  // A quien ha fallado sí se le dice, en privado: ya no puede contestarla.
+  const enPrivado = privados.find((p) => p.event.kind === 'answerRevealed');
+  assert.ok(enPrivado, 'quien falla debe saber cuál era la buena');
+  assert.equal(enPrivado.playerId, ana);
+  assert.equal(
+    enPrivado.event.kind === 'answerRevealed' ? enPrivado.event.correctText : '',
+    'CORRECTA',
+  );
+
+  // Al caducar el rebote ya no la puede contestar nadie: ahí sí se destapa.
+  nadiePulsa(room, timers);
+  assert.ok(
+    difundidos.some((e) => e.kind === 'answerRevealed' && e.correctText === 'CORRECTA'),
+    'al resolverse el rebote, la mesa debe enterarse de cuál era la buena',
+  );
 });

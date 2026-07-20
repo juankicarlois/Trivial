@@ -380,8 +380,10 @@ export class Room {
       // Si quien había pulsado el rebote se cae, nadie puede responder por él:
       // la pregunta se pierde y sigue la partida.
       if (this.phase === 'awaitRebound' && this.rebound?.claimedByPlayerId === playerId) {
+        const { question } = this.rebound;
         this.rebound = null;
         this.emit({ kind: 'reboundExpired' });
+        this.emit({ kind: 'answerRevealed', correctText: question.options[question.answerIndex] });
         this.nextTurn();
         return;
       }
@@ -560,16 +562,23 @@ export class Room {
       }
     }
 
-    this.emit({ kind: 'answered', playerId, correct, correctText });
-
     if (!correct) {
       this.saveProgressOf(player);
-      // La pregunta fallada no se tira: se ofrece a los rivales (menos la
-      // final, que decide la partida y no se regala).
-      if (!forWin && this.openRebound(failed, team)) return;
+      // Si la pregunta va a rebotar, la respuesta buena NO se canta todavía:
+      // sería regalársela a quien puede quedársela. Se destapa al resolverse.
+      const rebota = !forWin && this.reboundTeams(team).length > 0;
+      this.emit({ kind: 'answered', playerId, correct, ...(rebota ? {} : { correctText }) });
+      if (rebota) {
+        // A quien ha fallado sí se le dice, en privado: ya no puede contestarla.
+        this.emitTo(playerId, { kind: 'answerRevealed', correctText });
+        this.openRebound(failed, team);
+        return;
+      }
       this.nextTurn();
       return;
     }
+
+    this.emit({ kind: 'answered', playerId, correct, correctText });
 
     if (forWin) {
       this.winnerTeamId = team.id;
@@ -652,10 +661,7 @@ export class Room {
    *         y el turno debe seguir su curso.
    */
   private openRebound(question: Question, failedTeam: InternalTeam): boolean {
-    const eligible = this.teams
-      .map((team, index) => ({ team, index }))
-      .filter(({ team }) => team.id !== failedTeam.id && this.teamHasConnectedMember(team))
-      .map(({ index }) => index);
+    const eligible = this.reboundTeams(failedTeam);
     if (eligible.length === 0) return false;
 
     this.rebound = {
@@ -711,11 +717,25 @@ export class Room {
     }, bestDelay);
   }
 
+  /**
+   * Índices de los bandos que podrían rebotar una pregunta fallada por
+   * `failedTeam`: todos los que tengan a alguien conectado, menos él mismo.
+   */
+  private reboundTeams(failedTeam: InternalTeam): number[] {
+    return this.teams
+      .map((team, index) => ({ team, index }))
+      .filter(({ team }) => team.id !== failedTeam.id && this.teamHasConnectedMember(team))
+      .map(({ index }) => index);
+  }
+
   /** Nadie ha pulsado a tiempo: la pregunta se pierde y sigue la partida. */
   private expireRebound(): void {
     if (this.phase !== 'awaitRebound' || !this.rebound || this.rebound.claimedByTeamIndex !== null) return;
+    const { question } = this.rebound;
     this.rebound = null;
     this.emit({ kind: 'reboundExpired' });
+    // Ya no la puede contestar nadie: ahora sí se destapa para toda la mesa.
+    this.emit({ kind: 'answerRevealed', correctText: question.options[question.answerIndex] });
     this.nextTurn();
   }
 
@@ -1046,6 +1066,11 @@ export class Room {
 
   private emit(event: GameEvent): void {
     this.transport.broadcast({ type: 'event', event });
+  }
+
+  /** Evento para un solo jugador (lo que no debe oír el resto de la mesa). */
+  private emitTo(playerId: string, event: GameEvent): void {
+    this.transport.sendTo(playerId, { type: 'event', event });
   }
 
   private reject(message: string): void {

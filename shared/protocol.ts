@@ -157,8 +157,18 @@ export type GameEvent =
   | { kind: 'diceRolled'; playerId: string; value: number }
   | { kind: 'moved'; playerId: string; toNodeId: string }
   | { kind: 'landed'; playerId: string; nodeId: string; category: CategoryId }
-  /** `correctText` permite a la mesa saber cuál era la respuesta buena. */
-  | { kind: 'answered'; playerId: string; correct: boolean; correctText: string }
+  /**
+   * `correctText` permite a la mesa saber cuál era la respuesta buena. **Se
+   * omite si la pregunta va a rebotar**: cantarla ahí sería regalársela a quien
+   * puede quedársela. En ese caso llega después, por `answerRevealed`.
+   */
+  | { kind: 'answered'; playerId: string; correct: boolean; correctText?: string }
+  /**
+   * Se destapa la respuesta de una pregunta que quedó en el aire. Va a toda la
+   * mesa cuando el rebote se resuelve, y en privado a quien falló mientras el
+   * rebote sigue abierto (él ya no puede volver a contestarla).
+   */
+  | { kind: 'answerRevealed'; correctText: string }
   | { kind: 'wedgeEarned'; teamId: string; playerId: string; category: CategoryId }
   /** El bando ha completado los seis quesos: ahora debe volver al centro. */
   | { kind: 'allWedgesEarned'; teamId: string }
