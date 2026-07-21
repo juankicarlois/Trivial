@@ -130,14 +130,21 @@ dentro); **hub** = 6 (un radio por categoría).
 - Caer en una **sede** y acertar → ganas el **queso** de esa categoría.
 - **Comodines** (`WildcardId` en `protocol.ts`, inventario por jugador en `Room`).
   Cada jugador empieza la partida con un uso de cada comodín (`WILDCARDS`), que se
-  reponen en `start()`. Hoy solo hay uno, **`changeQuestion`**: en `awaitAnswer`,
-  el jugador del turno descarta la pregunta y `useWildcard` saca otra de la misma
-  categoría (la actual ya está en `askedThisGame`, así que no repite mientras
-  quede alguna sin usar). No re-emite `landed` (no te mueves) y **no vale en la
-  pregunta final** (la decide la mesa, no se regala re-tirar). El enum y el
-  andamiaje (mensaje `useWildcard`, evento `wildcardUsed`, `PlayerView.wildcards`,
-  botones en el cliente) están pensados para añadir más comodines sin tocar la
-  estructura.
+  reponen en `start()`. Se usan en `awaitAnswer` con `useWildcard`, solo el
+  jugador del turno y **nunca en la pregunta final** (la decide la mesa, no se
+  regala). Hay dos:
+  - **`changeQuestion`**: descarta la pregunta y saca otra de la misma categoría.
+    La actual ya está en `askedThisGame`, así que no repite mientras quede alguna
+    sin usar. No re-emite `landed` (no te mueves).
+  - **`fiftyFifty`**: descarta dos opciones incorrectas (`pickTwoWrongOptions`,
+    nunca la correcta) y las manda en `PublicQuestion.eliminatedOptions` como
+    **índices**, sin reordenar, para que `answer(optionIndex)` siga apuntando a la
+    misma opción. **El cliente solo las oculta al jugador del turno**
+    (`iAmCurrent`): si las ocultara a los rivales y la pregunta rebotara, sabrían
+    que la buena es una de dos. Los descartes se borran al cambiar de pregunta.
+  El enum y el andamiaje (mensaje `useWildcard`, evento `wildcardUsed`,
+  `PlayerView.wildcards`, botones en el cliente) están pensados para añadir más
+  comodines sin tocar la estructura.
 - **Rebote** (fase `awaitRebound`): una pregunta fallada no se tira, queda en el
   aire. Se abre un **pulsador** de `REBOUND_MS` (8 s) para todos los bandos menos
   el que falló; el primero que pulsa se queda la pregunta y la responde. Si

@@ -113,6 +113,7 @@ const timeAttack = new TimeAttackScreen(
 /** Texto del botón de cada comodín. */
 const WILDCARD_LABELS: Record<WildcardId, string> = {
   changeQuestion: 'Comodín: cambiar la pregunta',
+  fiftyFifty: 'Comodín: cincuenta cincuenta',
 };
 
 let myId: string | null = null;
@@ -318,14 +319,18 @@ function handleEvent(event: GameEvent): void {
       announce(`La respuesta era: ${event.correctText}.`);
       break;
     case 'wildcardUsed':
-      // La pregunta nueva llega en el estado y se lee sola al repintar; aquí solo
-      // se dice que se ha usado el comodín, y a quien lo usó se le tutea.
+      // Lo que cambia en pantalla (pregunta nueva, opciones descartadas) se lee
+      // solo al repintar; aquí se cuenta el uso del comodín.
       if (event.wildcard === 'changeQuestion') {
         announce(
           event.playerId === myId
             ? 'Cambias la pregunta.'
             : `${nameOf(event.playerId)} cambia la pregunta.`,
         );
+      } else if (event.wildcard === 'fiftyFifty') {
+        // A quien lo usa se lo dice su propio repintado ("Cincuenta cincuenta.
+        // Quedan…"); a los demás, que solo ven la pregunta entera, se les avisa.
+        if (event.playerId !== myId) announce(`${nameOf(event.playerId)} usa el cincuenta cincuenta.`);
       }
       break;
     case 'wedgeEarned': {
@@ -944,18 +949,36 @@ function renderQuestion(
   actions.append(heading);
 
   if (iAmCurrent) {
+    // El 50/50 solo lo aplica quien responde: si se ocultaran opciones a los
+    // rivales y la pregunta rebotara, sabrían que la buena es una de dos.
+    const eliminated = new Set(q.eliminatedOptions ?? []);
     const opts = document.createElement('div');
     opts.className = 'options';
+    let first: HTMLElement | null = null;
     q.options.forEach((text, index) => {
+      if (eliminated.has(index)) return; // descartada por el 50/50
       const btn = button(`${index + 1}. ${text}`, () => net.send({ type: 'answer', optionIndex: index }));
-      if (index === 0) setFocus(btn);
+      if (!first) {
+        first = btn;
+        setFocus(btn);
+      }
       opts.append(btn);
     });
     actions.append(opts);
     appendWildcards(state, q);
-    // Las opciones no se anuncian: el foco cae en la primera y el lector las
-    // recorre una a una, así que repetirlas aquí sería ruido.
-    announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ti: ${q.text}`);
+    // Con el 50/50 se dicen las opciones que quedan (dos): el descarte cambia el
+    // panorama y conviene oírlo sin tener que recorrer los botones. Sin él, el
+    // foco cae en la primera y el lector las recorre, así que repetirlas es ruido.
+    if (eliminated.size > 0) {
+      const quedan = q.options
+        .map((text, index) => ({ text, index }))
+        .filter(({ index }) => !eliminated.has(index))
+        .map(({ text, index }) => `${index + 1}, ${text}`)
+        .join('. ');
+      announce(`Cincuenta cincuenta. Quedan: ${quedan}.`);
+    } else {
+      announce(`${q.forWin ? 'Pregunta final' : 'Pregunta de ' + cat} para ti: ${q.text}`);
+    }
   } else {
     const list = document.createElement('ol');
     list.className = 'options-readonly';
@@ -1061,6 +1084,9 @@ function manageFocus(state: GameView, target: HTMLElement | null, previousFocusI
     state.mode,
     state.actingPlayerId ?? '',
     state.question?.id ?? '',
+    // El 50/50 no cambia la pregunta pero sí las opciones: cuenta como acción
+    // nueva para que el foco baje a la primera respuesta que queda.
+    (state.question?.eliminatedOptions ?? []).join(','),
     state.movement?.options.join(',') ?? '',
     String(state.movement?.remaining ?? ''),
   ].join('|');

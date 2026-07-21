@@ -143,6 +143,8 @@ export class Room {
   private currentTeamIndex = 0;
   private movement: Movement | null = null;
   private question: (Question & { forWin: boolean }) | null = null;
+  /** Opciones descartadas por el 50/50 en la pregunta actual (índices). */
+  private eliminatedOptions: number[] = [];
   private winnerTeamId: string | null = null;
   /** Packs temáticos activos en esta partida. */
   private enabledPacks = new Set<string>();
@@ -664,9 +666,32 @@ export class Room {
       });
       this.askedThisGame.add(picked.id);
       this.question = { ...picked, forWin: false };
+      this.eliminatedOptions = []; // pregunta nueva: los descartes previos ya no aplican
+      this.emit({ kind: 'wildcardUsed', playerId, wildcard });
+      this.sync();
+    } else if (wildcard === 'fiftyFifty') {
+      if (this.eliminatedOptions.length > 0) return this.reject('Ya has usado el 50/50 en esta pregunta.');
+      this.spendWildcard(player, wildcard);
+      this.eliminatedOptions = this.pickTwoWrongOptions(this.question);
       this.emit({ kind: 'wildcardUsed', playerId, wildcard });
       this.sync();
     }
+  }
+
+  /**
+   * Elige dos opciones incorrectas al azar para descartarlas con el 50/50,
+   * dejando siempre la correcta y una mala. Asume 4 opciones (todo el banco lo
+   * cumple); si hubiera menos de 3, descarta las que pueda sin tocar la correcta.
+   */
+  private pickTwoWrongOptions(question: Question): number[] {
+    const wrong = question.options
+      .map((_, index) => index)
+      .filter((index) => index !== question.answerIndex);
+    for (let i = wrong.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [wrong[i], wrong[j]] = [wrong[j], wrong[i]];
+    }
+    return wrong.slice(0, 2);
   }
 
   /** Retira un comodín del inventario del jugador (un solo uso por partida). */
@@ -1031,6 +1056,7 @@ export class Room {
     });
     this.askedThisGame.add(picked.id);
     this.question = { ...picked, forWin };
+    this.eliminatedOptions = []; // pregunta nueva, sin descartes previos
     this.phase = 'awaitAnswer';
     this.emit({ kind: 'landed', playerId: acting.id, nodeId: team.nodeId, category });
     this.sync();
@@ -1254,6 +1280,7 @@ export class Room {
         text: this.question.text,
         options: [...this.question.options],
         forWin: this.question.forWin,
+        ...(this.eliminatedOptions.length > 0 ? { eliminatedOptions: [...this.eliminatedOptions] } : {}),
       };
       view.question = publicQuestion;
     }

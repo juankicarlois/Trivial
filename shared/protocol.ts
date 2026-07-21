@@ -19,6 +19,13 @@ export interface PublicQuestion {
   options: string[];
   /** true si es la pregunta del centro para ganar la partida. */
   forWin: boolean;
+  /**
+   * Índices de opciones descartadas por el comodín 50/50, si se ha usado. El
+   * cliente no las muestra, pero **conserva los índices originales** de las
+   * demás: así `answer(optionIndex)` sigue apuntando a la misma opción sin
+   * reordenar nada (la respuesta correcta jamás se envía).
+   */
+  eliminatedOptions?: number[];
 }
 
 export type TurnPhase =
@@ -76,11 +83,13 @@ export interface TeamView {
  *
  * - `changeQuestion`: descarta la pregunta actual y plantea otra de la misma
  *   categoría. Para cuando no tienes ni idea del tema que te ha tocado.
+ * - `fiftyFifty`: descarta dos opciones incorrectas, dejando la correcta y una
+ *   mala. El clásico "50/50".
  */
-export type WildcardId = 'changeQuestion';
+export type WildcardId = 'changeQuestion' | 'fiftyFifty';
 
 /** Todos los comodines que existen, en el orden en que se ofrecen. */
-export const WILDCARDS: readonly WildcardId[] = ['changeQuestion'];
+export const WILDCARDS: readonly WildcardId[] = ['changeQuestion', 'fiftyFifty'];
 
 export interface PlayerView {
   id: string;

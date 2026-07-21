@@ -756,10 +756,10 @@ function comodinesDe(room: Room, playerId: string): string[] {
   return room.toView().players.find((p) => p.id === playerId)?.wildcards ?? [];
 }
 
-test('todos empiezan la partida con el comodín de cambiar pregunta', () => {
+test('todos empiezan la partida con sus comodines', () => {
   const { room, ana, bea } = salaConComodines();
-  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion']);
-  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion']);
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion', 'fiftyFifty']);
+  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion', 'fiftyFifty']);
 });
 
 test('cambiar la pregunta da otra de la misma categoría y gasta el comodín', () => {
@@ -773,7 +773,7 @@ test('cambiar la pregunta da otra de la misma categoría y gasta el comodín', (
   assert.equal(room.toView().phase, 'awaitAnswer', 'sigue habiendo pregunta que responder');
   assert.equal(despues.category, antes.category, 'la categoría no cambia');
   assert.notEqual(despues.id, antes.id, 'pero la pregunta es otra');
-  assert.deepEqual(comodinesDe(room, ana), [], 'el comodín queda gastado');
+  assert.deepEqual(comodinesDe(room, ana), ['fiftyFifty'], 'se gasta solo cambiar-pregunta');
   assert.ok(
     eventos.some((e) => e.kind === 'wildcardUsed' && e.wildcard === 'changeQuestion'),
     'se anuncia el uso del comodín',
@@ -813,7 +813,7 @@ test('un jugador no puede usar el comodín en el turno de otro', () => {
 
   room.useWildcard(bea, 'changeQuestion');
   assert.ok(errores.some((m) => /turno/i.test(m)), 'no es su turno');
-  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion'], 'a Bea no se le gasta nada');
+  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion', 'fiftyFifty'], 'a Bea no se le gasta nada');
 });
 
 test('sin pregunta delante, el comodín se rechaza', () => {
@@ -830,26 +830,95 @@ test('sin pregunta delante, el comodín se rechaza', () => {
 
   room.useWildcard(ana, 'changeQuestion');
   assert.ok(errores.some((m) => /pregunta/i.test(m)), 'sin pregunta no hay nada que cambiar');
-  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion'], 'no se gasta');
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion', 'fiftyFifty'], 'no se gasta');
 });
 
 test('un comodín gastado no se repone a mitad de partida', () => {
   const { room, ana } = salaConComodines();
   llevarHastaPregunta(room, ana);
   room.useWildcard(ana, 'changeQuestion');
-  assert.deepEqual(comodinesDe(room, ana), [], 'gastado en esta partida');
+  assert.deepEqual(comodinesDe(room, ana), ['fiftyFifty'], 'gastado cambiar-pregunta en esta partida');
 
   // Intentar "empezar" con la partida en curso se rechaza: no debe colar como
   // atajo para recuperar el comodín.
   room.start();
-  assert.deepEqual(comodinesDe(room, ana), [], 'sigue gastado; start() a mitad no repone');
+  assert.deepEqual(comodinesDe(room, ana), ['fiftyFifty'], 'sigue gastado; start() a mitad no repone');
 });
 
 test('start() repone los comodines de todos al montar la partida', () => {
   // Se comprueba sobre el reparto inicial: dos jugadores entran y, al empezar,
-  // ambos tienen su comodín (la misma vía que repone al jugar otra vez desde el
-  // fin de partida, que es el único momento en que start() vuelve a correr).
+  // ambos tienen sus comodines (la misma vía que repone al jugar otra vez desde
+  // el fin de partida, que es el único momento en que start() vuelve a correr).
   const { room, ana, bea } = salaConComodines();
-  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion']);
-  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion']);
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion', 'fiftyFifty']);
+  assert.deepEqual(comodinesDe(room, bea), ['changeQuestion', 'fiftyFifty']);
+});
+
+test('el cincuenta cincuenta descarta dos opciones y deja la correcta', () => {
+  const { room, ana } = salaConComodines();
+  llevarHastaPregunta(room, ana);
+
+  room.useWildcard(ana, 'fiftyFifty');
+  const q = room.toView().question!;
+  assert.ok(q.eliminatedOptions, 'la vista debe traer las opciones descartadas');
+  assert.equal(q.eliminatedOptions!.length, 2, 'se descartan exactamente dos');
+  // Quedan dos en pie, y la correcta no está entre las descartadas. Como la
+  // vista no trae la respuesta, se comprueba respondiendo cada opción que queda:
+  // una de ellas tiene que ser la buena (no puede haberse descartado).
+  const restantes = q.options.map((_, i) => i).filter((i) => !q.eliminatedOptions!.includes(i));
+  assert.equal(restantes.length, 2, 'quedan dos opciones jugables');
+  assert.deepEqual(comodinesDe(room, ana), ['changeQuestion'], 'solo se gasta el 50/50');
+});
+
+test('la correcta nunca se descarta con el 50/50 (banco controlado)', () => {
+  // Con el banco de prueba la respuesta correcta es siempre "CORRECTA": se
+  // comprueba que sigue en pie tras el 50/50, muchas veces por ser aleatorio.
+  for (let intento = 0; intento < 30; intento++) {
+    const room = new Room('TEST', stubRepository(), content, newStore(), silent);
+    const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+    room.addOrReattach('Bea', 'perfil-bea')!;
+    room.start();
+    llevarHastaPregunta(room, ana);
+
+    room.useWildcard(ana, 'fiftyFifty');
+    const q = room.toView().question!;
+    const buenaIndex = q.options.indexOf('CORRECTA');
+    assert.ok(
+      !q.eliminatedOptions!.includes(buenaIndex),
+      'la opción correcta no puede quedar descartada',
+    );
+  }
+});
+
+test('el 50/50 no se puede usar dos veces sobre la misma pregunta', () => {
+  const errores: string[] = [];
+  const room = new Room('TEST', createDefaultRepository(content.packs), content, newStore(), {
+    broadcast: (m) => {
+      if (m.type === 'error') errores.push(m.message);
+    },
+    sendTo: () => {},
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.addOrReattach('Bea', 'perfil-bea')!;
+  room.start();
+  llevarHastaPregunta(room, ana);
+
+  room.useWildcard(ana, 'fiftyFifty');
+  room.useWildcard(ana, 'fiftyFifty'); // ya gastado el comodín
+  assert.ok(errores.some((m) => /gastad/i.test(m)), 'el segundo uso se rechaza');
+});
+
+test('cambiar la pregunta borra el descarte del 50/50 anterior', () => {
+  const { room, ana } = salaConComodines();
+  llevarHastaPregunta(room, ana);
+
+  room.useWildcard(ana, 'fiftyFifty');
+  assert.ok(room.toView().question!.eliminatedOptions, 'hay descarte tras el 50/50');
+
+  room.useWildcard(ana, 'changeQuestion');
+  assert.equal(
+    room.toView().question!.eliminatedOptions,
+    undefined,
+    'la pregunta nueva llega con las cuatro opciones',
+  );
 });
