@@ -67,6 +67,7 @@ const announceRegion = $('announce');
 const statusLine = $('status');
 const myWedgesTitle = $('my-wedges-title');
 const myWedgesList = $('my-wedges');
+const wedgesWheel = $('my-wedges-wheel');
 const playersTitle = $('players-title');
 const playersList = $('players');
 const boardPanel = $('board');
@@ -561,6 +562,7 @@ function renderMyWedges(state: GameView): void {
   const yo = myId;
   const team = yo == null ? undefined : state.teams.find((t) => t.memberIds.includes(yo));
   myWedgesList.replaceChildren();
+  wedgesWheel.replaceChildren();
   if (!team) {
     myWedgesTitle.textContent = 'Tus quesos';
     return;
@@ -569,6 +571,7 @@ function renderMyWedges(state: GameView): void {
   // En equipos los quesos son del equipo, no tuyos: el título lo deja claro.
   const titulo = state.mode === 'teams' ? `Quesos de ${team.name}` : 'Tus quesos';
   myWedgesTitle.textContent = `${titulo} (${team.wedges.length} de ${CATEGORIES.length})`;
+  wedgesWheel.append(buildWedgeWheel(new Set(team.wedges)));
 
   for (const cat of CATEGORIES) {
     const earned = team.wedges.includes(cat.id);
@@ -589,6 +592,61 @@ function renderMyWedges(state: GameView): void {
   }
 }
 
+
+/**
+ * Dibuja la rueda de quesos como un SVG: seis porciones, una por categoría en su
+ * color, encendidas las conseguidas y apagadas las que faltan. Es **apoyo visual
+ * y va `aria-hidden`**: la lista de debajo (`#my-wedges`) es la fuente accesible,
+ * con cada categoría nombrada y su estado.
+ *
+ * @param earned Categorías cuyo queso ya se tiene.
+ * @return Elemento SVG de la rueda.
+ */
+function buildWedgeWheel(earned: Set<CategoryId>): SVGSVGElement {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const cx = 60;
+  const cy = 60;
+  const r = 52;
+  const wheel = document.createElementNS(SVG_NS, 'svg');
+  wheel.setAttribute('viewBox', '0 0 120 120');
+  wheel.setAttribute('class', 'wedge-wheel-svg');
+  wheel.setAttribute('role', 'presentation');
+
+  // Cada porción abarca 60°; se empieza arriba (-90°) para que la primera
+  // categoría quede en lo alto, igual que las sedes del tablero.
+  const punto = (grados: number): [number, number] => {
+    const a = ((grados - 90) * Math.PI) / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  CATEGORIES.forEach((cat, i) => {
+    const [x0, y0] = punto(i * 60);
+    const [x1, y1] = punto((i + 1) * 60);
+    const slice = document.createElementNS(SVG_NS, 'path');
+    slice.setAttribute(
+      'd',
+      `M ${cx} ${cy} L ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`,
+    );
+    slice.setAttribute('fill', cat.color);
+    slice.setAttribute('class', 'wedge-slice' + (earned.has(cat.id) ? ' earned' : ''));
+    wheel.appendChild(slice);
+  });
+
+  const ring = document.createElementNS(SVG_NS, 'circle');
+  ring.setAttribute('cx', String(cx));
+  ring.setAttribute('cy', String(cy));
+  ring.setAttribute('r', String(r));
+  ring.setAttribute('class', 'wedge-wheel-ring');
+  wheel.appendChild(ring);
+
+  const hub = document.createElementNS(SVG_NS, 'circle');
+  hub.setAttribute('cx', String(cx));
+  hub.setAttribute('cy', String(cy));
+  hub.setAttribute('r', '13');
+  hub.setAttribute('class', 'wedge-wheel-hub');
+  wheel.appendChild(hub);
+
+  return wheel;
+}
 
 /** true si la partida se juega por equipos. */
 function esPorEquipos(): boolean {

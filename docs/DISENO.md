@@ -304,8 +304,13 @@ lector. En la práctica:
   no toca el marcado.
 - Lo que sí añade DOM es **solo decorativo y `aria-hidden`**: los avatares de
   color de la lista de jugadores (`avatarChip`, misma paleta que las fichas del
-  tablero, `tokenColor`). El nombre sigue en texto al lado, así que el lector no
-  pierde nada.
+  tablero, `tokenColor`) y la **rueda de quesos** (`buildWedgeWheel`, SVG con las
+  seis porciones que se encienden al conseguirlas). En ambos casos la fuente
+  accesible sigue en texto al lado (el nombre del jugador, la lista `#my-wedges`
+  con cada categoría y su estado), así que el lector no pierde nada.
+- Las **fichas del tablero se reutilizan** entre actualizaciones (un `<g>` por
+  bando en un `Map`), de modo que al moverse el CSS las desliza a la casilla
+  nueva en vez de saltar.
 - El color de la **categoría en juego** se pasa como variable CSS `--cat-color`
   (la fija el cliente sobre la pregunta y los quesos); es apoyo visual, el título
   ya nombra la categoría.

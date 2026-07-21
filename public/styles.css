@@ -351,6 +351,21 @@ button:active { transform: translateY(1px); }
 }
 .my-wedge.earned .wedge-pip { box-shadow: 0 0 8px var(--cat-color); }
 
+/* Rueda de quesos: dibujo de apoyo; la lista de debajo es la fuente accesible. */
+.wedge-wheel { display: flex; justify-content: center; margin: 0.25rem 0 0.6rem; }
+.wedge-wheel-svg {
+  width: 128px;
+  height: 128px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
+}
+.wedge-slice { opacity: 0.16; stroke: var(--panel); stroke-width: 1.5; }
+.wedge-slice.earned { opacity: 1; }
+.wedge-wheel-ring { fill: none; stroke: var(--panel-2); stroke-width: 2.5; }
+.wedge-wheel-hub { fill: var(--panel-2); stroke: var(--muted); stroke-width: 1.5; }
+@media (prefers-reduced-motion: no-preference) {
+  .wedge-slice { transition: opacity 0.45s ease; }
+}
+
 /* Logros y packs, con un poco de relieve. */
 .achievement, .pack { box-shadow: var(--shadow-sm); }
 
@@ -369,6 +384,8 @@ button:active { transform: translateY(1px); }
   @keyframes token-glow {
     50% { stroke-opacity: 0.45; stroke-width: 3.5; }
   }
+  /* Al moverse, la ficha se desliza a su casilla nueva en vez de saltar. */
+  .board-token { transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1); }
 }
 
 /* Pregunta: tarjeta prominente con el color de su categoría. */

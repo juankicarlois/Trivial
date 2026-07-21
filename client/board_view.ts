@@ -44,6 +44,8 @@ export class BoardView {
   private readonly board: Board;
   private readonly tokenLayer: SVGGElement;
   private readonly targetLayer: SVGGElement;
+  /** Ficha (`<g>`) de cada bando, reutilizada para animar su movimiento. */
+  private readonly tokens = new Map<string, SVGGElement>();
 
   /**
    * @param container Elemento donde se inserta el SVG (se vacía y se rellena).
@@ -118,10 +120,14 @@ export class BoardView {
    * @brief Redibuja las fichas, una por bando (jugador o equipo).
    * @param state Estado de la partida.
    * @param myId Id propio, para resaltar la ficha del bando en que juegas.
+   *
+   * Cada ficha es un `<g>` colocado con `transform: translate`, que se
+   * **reutiliza** entre actualizaciones: así, al cambiar su posición, el CSS la
+   * desliza a la casilla nueva en vez de saltar (se apaga con
+   * `prefers-reduced-motion`). El contenido interior (color, inicial, halo) se
+   * rehace en cada tick, que es barato y no corta la transición del `translate`.
    */
   update(state: GameView, myId: string | null): void {
-    this.tokenLayer.replaceChildren();
-
     // Varias fichas pueden compartir casilla; se reparten alrededor del punto.
     const sameNode = new Map<string, string[]>();
     for (const team of state.teams) {
@@ -134,9 +140,11 @@ export class BoardView {
     const anyMemberConnected = (memberIds: string[]) =>
       memberIds.some((id) => state.players.find((p) => p.id === id)?.connected);
 
+    const vivos = new Set<string>();
     state.teams.forEach((team, index) => {
       const node = this.board.nodes[team.nodeId];
       if (!node) return;
+      vivos.add(team.id);
 
       const group = sameNode.get(team.nodeId) ?? [team.id];
       const slot = group.indexOf(team.id);
@@ -148,29 +156,46 @@ export class BoardView {
         py += 11 * Math.sin(angle);
       }
 
-      const isCurrent = team.id === currentTeamId;
-      const token = svg('g', { class: 'board-token' + (isCurrent ? ' current' : '') });
-      if (isCurrent) {
-        token.appendChild(svg('circle', { cx: px, cy: py, r: 11, class: 'board-token-halo' }));
+      // Reutiliza el `<g>` del bando si ya existe: mover su transform lo desliza.
+      let token = this.tokens.get(team.id);
+      if (!token) {
+        token = svg('g', {});
+        this.tokenLayer.appendChild(token);
+        this.tokens.set(team.id, token);
       }
-      const dot = svg('circle', { cx: px, cy: py, r: 7.5, class: 'board-token-dot' });
-      dot.setAttribute('fill', TOKEN_COLORS[index % TOKEN_COLORS.length]);
+      const isCurrent = team.id === currentTeamId;
+      token.setAttribute('class', 'board-token' + (isCurrent ? ' current' : ''));
+      token.setAttribute('transform', `translate(${px} ${py})`);
+
+      // Contenido interior, dibujado en el origen local del grupo.
+      token.replaceChildren();
+      if (isCurrent) {
+        token.appendChild(svg('circle', { cx: 0, cy: 0, r: 11, class: 'board-token-halo' }));
+      }
+      const dot = svg('circle', { cx: 0, cy: 0, r: 7.5, class: 'board-token-dot' });
+      dot.setAttribute('fill', tokenColor(index));
       if (myId && team.memberIds.includes(myId)) dot.classList.add('me'); // tu bando
       if (!anyMemberConnected(team.memberIds)) dot.classList.add('offline');
       token.appendChild(dot);
 
       const initial = svg('text', {
-        x: px,
-        y: py,
+        x: 0,
+        y: 0,
         class: 'board-token-label',
         'text-anchor': 'middle',
         'dominant-baseline': 'central',
       });
       initial.textContent = tokenInitial(team.name);
       token.appendChild(initial);
-
-      this.tokenLayer.appendChild(token);
     });
+
+    // Retira las fichas de bandos que ya no están (p. ej. al reiniciar partida).
+    for (const [teamId, token] of this.tokens) {
+      if (!vivos.has(teamId)) {
+        token.remove();
+        this.tokens.delete(teamId);
+      }
+    }
   }
 
   /**
