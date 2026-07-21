@@ -47,8 +47,14 @@ import type { BotDifficulty } from '../shared/bot.js';
  */
 export type Scheduler = (action: () => void, delayMs: number) => () => void;
 
-/** Retardo de las acciones de los bots, para que la mesa las pueda seguir. */
-const BOT_DELAY_MS = 1100;
+/**
+ * Retardo de las acciones de los bots, para que la mesa las pueda seguir. Se
+ * sortea en cada acción dentro de esta franja: con un retardo fijo los bots
+ * juegan a un tictac mecánico que atropella la conversación de la mesa, y quien
+ * escucha con lector de pantalla no llega a enterarse de lo que ha pasado.
+ */
+const BOT_DELAY_MIN_MS = 10_000;
+const BOT_DELAY_MAX_MS = 15_000;
 
 /**
  * Aciertos seguidos que puede encadenar un bando en un mismo turno antes de
@@ -159,7 +165,8 @@ export class Room {
   /** Cancela la pulsación programada de un bot, si la hay. */
   private cancelBotBuzz: (() => void) | null = null;
   private readonly schedule: Scheduler;
-  private readonly botDelayMs: number;
+  private readonly botDelayMinMs: number;
+  private readonly botDelayMaxMs: number;
   private readonly reboundMs: number;
   /** Cancela la próxima acción de bot pendiente, si la hay. */
   private cancelBot: (() => void) | null = null;
@@ -171,7 +178,12 @@ export class Room {
     content: GameContent,
     profiles: ProfileStore,
     transport: Transport,
-    options: { scheduler?: Scheduler; botDelayMs?: number; reboundMs?: number } = {},
+    options: {
+      scheduler?: Scheduler;
+      botDelayMinMs?: number;
+      botDelayMaxMs?: number;
+      reboundMs?: number;
+    } = {},
   ) {
     this.code = code;
     this.repo = repo;
@@ -184,7 +196,8 @@ export class Room {
         const handle = setTimeout(action, delayMs);
         return () => clearTimeout(handle);
       });
-    this.botDelayMs = options.botDelayMs ?? BOT_DELAY_MS;
+    this.botDelayMinMs = options.botDelayMinMs ?? BOT_DELAY_MIN_MS;
+    this.botDelayMaxMs = options.botDelayMaxMs ?? BOT_DELAY_MAX_MS;
     this.reboundMs = options.reboundMs ?? REBOUND_MS;
   }
 
@@ -1177,7 +1190,13 @@ export class Room {
       this.cancelBot = null;
       const action = this.botAction();
       if (action) action();
-    }, this.botDelayMs);
+    }, this.botDelay());
+  }
+
+  /** Retardo sorteado para la próxima acción de bot, dentro de la franja. */
+  private botDelay(): number {
+    const span = this.botDelayMaxMs - this.botDelayMinMs;
+    return Math.round(this.botDelayMinMs + Math.random() * span);
   }
 
   /**
