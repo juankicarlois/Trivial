@@ -145,10 +145,18 @@ así que un atajo de una letra nunca les llegaría. Activar un botón sí funcio
 | `Tab` / `Mayús+Tab` | Moverse entre los mandos |
 | `Intro` / `Espacio` | Activar el mando o botón enfocado (incluido el **pulsador del rebote**, que se enfoca solo) |
 | `B` · `R` · `Q` · `L` | Sedes · rivales · quesos · logros (**vía secundaria**: solo con el lector en modo foco o sin lector) |
+| `Alt+1` … `Alt+9`, `Alt+0` | Repetir uno de los diez últimos avisos (`Alt+1` el último, `Alt+0` el décimo) |
 | `Escape` | Cerrar el manual «Cómo se juega» |
 
 El foco salta solo al mando principal cuando te toca actuar (tirar, elegir
 dirección o responder).
+
+**Repetir lo que se ha dicho.** Los anuncios son efímeros: si el lector pisa uno
+o te distraes, ese mensaje se pierde (quien ve la pantalla siempre puede releer).
+Con `Alt+número` se repiten los diez últimos, del más reciente al más antiguo, en
+una región aparte para no chocar con los anuncios en directo. Llevan modificador
+a propósito: el lector no captura `Alt+1` como navegación rápida, así que
+funciona también en modo exploración.
 
 ### Saber hacia dónde moverte sin ver el tablero
 

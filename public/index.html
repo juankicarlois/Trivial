@@ -51,6 +51,12 @@
           <!-- Región de anuncios para el lector de pantalla -->
           <div id="announce" class="sr-only" role="status" aria-live="assertive"></div>
 
+          <!--
+            Repetición de avisos anteriores (Alt+número). Va en su propia región
+            para no pisar ni ser pisada por los anuncios en directo.
+          -->
+          <div id="history" class="sr-only" role="status" aria-live="assertive"></div>
+
           <p>
             <button type="button" id="btn-help-game" class="secondary">Cómo se juega</button>
           </p>
@@ -277,6 +283,15 @@
           <kbd>Q</kbd> (quesos) y <kbd>L</kbd> (logros), si tu lector de pantalla
           no las intercepta. Para moverte entre los botones usa el tabulador, y
           <kbd>Intro</kbd> o <kbd>Espacio</kbd> para activarlos.
+        </p>
+
+        <h2>Repetir lo que se ha dicho</h2>
+        <p>
+          Si un aviso se pierde (lo pisa el lector, te distraes un momento),
+          <kbd>Alt</kbd> más un número repite uno de los diez últimos:
+          <kbd>Alt+1</kbd> el último, <kbd>Alt+2</kbd> el anterior… y
+          <kbd>Alt+0</kbd> el décimo. Al llevar <kbd>Alt</kbd> el lector no se
+          queda la tecla, así que funciona también en modo exploración.
         </p>
 
         <h2>Logros y packs de preguntas</h2>

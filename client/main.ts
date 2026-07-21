@@ -30,6 +30,7 @@ import { HelpScreen } from './help.js';
 import * as flavor from './flavor.js';
 import { TIME_ATTACK_ACHIEVEMENT } from '../shared/progress.js';
 import { loadProfileId } from './identity.js';
+import { MessageHistory, historyIndexFromKey } from './history.js';
 import {
   achievementsSummary,
   boardRadarSummary,
@@ -64,6 +65,7 @@ const nameInput = $<HTMLInputElement>('name-input');
 const joinError = $('join-error');
 const roomLabel = $('room-label');
 const announceRegion = $('announce');
+const historyRegion = $('history');
 const statusLine = $('status');
 const myWedgesTitle = $('my-wedges-title');
 const myWedgesList = $('my-wedges');
@@ -131,6 +133,10 @@ let pendingAnnouncements: string[] = [];
 let announceTimer: number | null = null;
 /** Ventana de agrupación: cubre los mensajes de una acción sin notarse lento. */
 const ANNOUNCE_BATCH_MS = 150;
+/** Últimos avisos anunciados, para poder repetirlos con Alt+número. */
+const messageHistory = new MessageHistory();
+/** Alterna el carácter invisible también en la región del historial. */
+let historyToggle = false;
 
 // --- Red --------------------------------------------------------------------
 
@@ -241,6 +247,8 @@ function flushAnnouncements(): void {
   announceTimer = null;
   const text = pendingAnnouncements.join(' ');
   pendingAnnouncements = [];
+  // Se guarda la ráfaga entera: es lo que el jugador oye como un solo mensaje.
+  messageHistory.record(text);
   // El carácter invisible alterna el contenido: si el texto fuese idéntico al
   // anterior, el lector no lo repetiría.
   announceToggle = !announceToggle;
@@ -1215,6 +1223,20 @@ function announceAchievements(): void {
   announce(achievementsSummary(myAchievements));
 }
 
+/**
+ * @brief Repite un aviso anterior en la región del historial.
+ *
+ * Va en una región aparte de los anuncios en directo: si compartieran región, la
+ * repetición pisaría un aviso recién llegado (o al revés) y se perdería justo lo
+ * que se estaba intentando recuperar. Tampoco pasa por `announce()`, para no
+ * meter en el historial lo que solo es una relectura de él.
+ */
+function announceHistory(n: number): void {
+  const text = messageHistory.recall(n);
+  historyToggle = !historyToggle;
+  historyRegion.textContent = historyToggle ? text : text + '​';
+}
+
 // Botones de consulta: la vía principal. Funcionan con el lector en modo
 // exploración, donde las teclas sueltas se las queda el propio lector.
 $<HTMLButtonElement>('btn-radar').addEventListener('click', announceRadar);
@@ -1230,6 +1252,17 @@ $<HTMLButtonElement>('btn-achievements').addEventListener('click', announceAchie
  * pisar nada.
  */
 document.addEventListener('keydown', (ev) => {
+  // Alt+número repite un aviso ya dicho: Alt+1 el último, Alt+0 el décimo. Con
+  // Alt sí llega al llevar modificador, que el lector no captura como navegación
+  // rápida, así que funciona también en modo exploración y al escribir.
+  if (ev.altKey && !ev.ctrlKey && !ev.metaKey) {
+    const n = historyIndexFromKey(ev.key, ev.code);
+    if (n !== null) {
+      ev.preventDefault();
+      announceHistory(n);
+    }
+    return;
+  }
   if (ev.ctrlKey || ev.altKey || ev.metaKey) return;
   if (ev.target instanceof HTMLInputElement || ev.target instanceof HTMLTextAreaElement) return;
   // En el manual estas letras aparecen como texto (menciona las teclas B, R…):

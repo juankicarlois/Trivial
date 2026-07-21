@@ -78,6 +78,14 @@ sí funciona en ese modo. Las teclas se mantienen como vía secundaria (modo foc
 sin lector), nunca como única. Regla general: **no depender de teclas de un solo
 carácter imprimible para funciones del juego.**
 
+La excepción son las **combinaciones con modificador**: el lector no las captura
+como navegación rápida, así que sí llegan en modo exploración. De ahí que
+`Alt+1`…`Alt+0` repitan los diez últimos avisos (`client/history.ts`), la única
+forma de releer que tiene quien no ve la pantalla. La repetición usa una región
+`aria-live` propia, separada de la de anuncios: compartiéndola, un aviso nuevo
+pisaría justo lo que se está intentando recuperar. En algunos teclados `Alt`
+cambia el carácter de la tecla, por lo que se mira también `KeyboardEvent.code`.
+
 La regla de por dónde se puede avanzar (`forwardMoves`) vive en `shared/` y el
 servidor la usa a través de `legalMoves`: **una sola implementación**. Si el
 cliente tuviera la suya para las previsiones, acabarían diciendo cosas distintas
