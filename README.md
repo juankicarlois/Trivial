@@ -119,6 +119,9 @@ npm test               # tests del tablero y del motor
   la pregunta** (otra de la misma categoría) y **cincuenta cincuenta** (descarta
   dos opciones malas, y solo tú ves las que quedan). Salen como botones bajo las
   opciones; no valen en la pregunta final.
+- **Resumen final:** al acabar, cada jugador recibe (por voz y en pantalla) su
+  ficha de la partida: aciertos y porcentaje, mejor racha, categoría fuerte y
+  floja, quesos, rebotes y comodines.
 - **Rebote:** cuando alguien falla, su pregunta queda en el aire 8 segundos y
   cualquier rival puede **pulsar** para quedársela. Quien pulsa primero contesta:
   si acierta, **se planta en la casilla del que falló** y se lleva su queso si era

@@ -357,6 +357,24 @@ fuera del tabulador, así que para el lector no existe. Regla para lo que venga:
 todo lo que se pueda hacer en el dibujo tiene que poder hacerse también con los
 mandos de texto.
 
+## Resumen final
+
+Al ganar, cada persona conectada recibe un **resumen personal de la partida**
+(mensaje `gameSummary`, `GameSummaryView`). Es de **esta** partida, no el
+acumulado del perfil: `Room` lleva un marcador aparte por jugador
+(`PlayerGameStats`, en `InternalPlayer.game`) que se pone a cero en `start()` y
+se va anotando en `answer`/`answerRebound` (`recordGameAnswer`), al ganar quesos
+y al gastar comodines. `buildSummary` compone aciertos y porcentaje, mejor racha,
+categoría fuerte (`topCategory` sobre los aciertos) y floja (sobre los fallos),
+quesos, rebotes ganados y comodines usados. Se envía **en privado** a cada
+jugador (como el progreso), y su bando decide el `won`.
+
+En el cliente, el resumen se guarda (`lastSummary`), se **anuncia** por voz
+(`spokenSummary`) y se pinta como una tarjeta en la pantalla de fin
+(`buildSummaryPanel`, `<section>` + lista, contenido accesible normal). Se limpia
+al empezar otra partida. Las frases se comparten entre voz y panel
+(`summaryLines`) para no divergir.
+
 ## Contrarreloj
 
 Modo **en solitario** que se desbloquea con el logro `contrarreloj` (3 partidas

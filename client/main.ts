@@ -16,6 +16,7 @@ import {
   type AchievementView,
   type GameEvent,
   type GameMode,
+  type GameSummaryView,
   type GameView,
   type PublicQuestion,
   type TeamView,
@@ -125,6 +126,8 @@ let myName = '';
 let lastState: GameView | null = null;
 /** Logros propios con su progreso; solo el servidor los conoce. */
 let myAchievements: AchievementView[] = [];
+/** Resumen de la última partida, mientras estamos en la pantalla de fin. */
+let lastSummary: GameSummaryView | null = null;
 let lastActionKey = '';
 /** Alterna un carácter invisible para forzar que el lector repita anuncios. */
 let announceToggle = false;
@@ -175,6 +178,12 @@ const net = new Net({
         timeAttack.finish(message.result);
         gameScreen.hidden = false;
         renderActions(lastState!);
+        break;
+      case 'gameSummary':
+        // Llega junto con el fin de partida; se guarda para pintarlo y se anuncia.
+        lastSummary = message.summary;
+        announce(spokenSummary(message.summary));
+        if (lastState) renderActions(lastState);
         break;
       case 'error':
         showError(message.message);
@@ -293,6 +302,7 @@ function handleEvent(event: GameEvent): void {
     case 'gameStarted':
       sound.start();
       diceView.clear(); // la tirada de la partida anterior ya no viene a cuento
+      lastSummary = null; // el resumen anterior ya no aplica
       announce(flavor.startLine());
       break;
     case 'diceRolled':
@@ -905,6 +915,50 @@ function appendTimeAttackButton(): void {
   actions.append(btn);
 }
 
+// --- Resumen final ----------------------------------------------------------
+
+/** Frase de cada dato del resumen; se comparte entre el panel y la voz. */
+function summaryLines(s: GameSummaryView): string[] {
+  const lines = [
+    `${s.correct} de ${s.answered} aciertos (${s.accuracy}%).`,
+    `Mejor racha: ${s.bestStreak}.`,
+  ];
+  if (s.strongestCategory) lines.push(`Tu fuerte: ${categoryById(s.strongestCategory).name}.`);
+  if (s.weakestCategory) lines.push(`Donde más fallaste: ${categoryById(s.weakestCategory).name}.`);
+  if (s.wedges > 0) lines.push(`Quesos ganados: ${s.wedges}.`);
+  if (s.reboundsWon > 0) lines.push(`Rebotes robados: ${s.reboundsWon}.`);
+  if (s.wildcardsUsed > 0) lines.push(`Comodines usados: ${s.wildcardsUsed}.`);
+  return lines;
+}
+
+/** Texto hablado del resumen (una sola frase), para el lector al acabar. */
+function spokenSummary(s: GameSummaryView): string {
+  const cabecera = s.won ? '¡Has ganado! Tu resumen:' : 'Se acabó. Tu resumen:';
+  return `${cabecera} ${summaryLines(s).join(' ')}`;
+}
+
+/** Panel visible del resumen para la pantalla de fin de partida. */
+function buildSummaryPanel(s: GameSummaryView): HTMLElement {
+  const panel = document.createElement('section');
+  panel.className = 'summary';
+  panel.setAttribute('aria-label', 'Resumen de la partida');
+
+  const title = document.createElement('h3');
+  title.className = 'summary-title';
+  title.textContent = s.won ? '¡Has ganado! Tu resumen' : 'Tu resumen';
+  panel.append(title);
+
+  const list = document.createElement('ul');
+  list.className = 'summary-list';
+  for (const linea of summaryLines(s)) {
+    const li = document.createElement('li');
+    li.textContent = linea;
+    list.append(li);
+  }
+  panel.append(list);
+  return panel;
+}
+
 // --- Acciones ---------------------------------------------------------------
 
 function renderActions(state: GameView): void {
@@ -947,6 +1001,7 @@ function renderActions(state: GameView): void {
     appendTimeAttackButton();
     focusTarget = startBtn;
   } else if (state.phase === 'gameOver') {
+    if (lastSummary) actions.append(buildSummaryPanel(lastSummary));
     const again = button('Jugar otra vez', () => net.send({ type: 'start' }));
     actions.append(again);
     appendTimeAttackButton();

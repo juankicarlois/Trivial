@@ -7,7 +7,7 @@ import { CATEGORIES } from '../shared/categories.js';
 import { buildBoard } from '../shared/board.js';
 import { chooseBotMove } from './bot.js';
 import { Room, type Scheduler, type Transport } from './room.js';
-import type { GameEvent } from '../shared/protocol.js';
+import type { GameEvent, GameSummaryView } from '../shared/protocol.js';
 import { createDefaultRepository, QuestionRepository } from './questions_repo.js';
 import { loadContent } from './content.js';
 import { ProfileStore } from './profiles.js';
@@ -921,4 +921,82 @@ test('cambiar la pregunta borra el descarte del 50/50 anterior', () => {
     undefined,
     'la pregunta nueva llega con las cuatro opciones',
   );
+});
+
+// --- Resumen final ----------------------------------------------------------
+
+/**
+ * Juega una partida en solitario acertando siempre y navegando hacia las sedes
+ * (como un bot) hasta ganar. En solitario no hay rivales que elijan la categoría
+ * final, así que la pregunta final se plantea sola al llegar al centro.
+ *
+ * @return true si se llegó a fin de partida dentro de los intentos previstos.
+ */
+function jugarSolitarioHastaGanar(room: Room, playerId: string): boolean {
+  const board = buildBoard();
+  for (let i = 0; i < 600; i++) {
+    const view = room.toView();
+    if (view.phase === 'gameOver') return true;
+    if (view.phase === 'awaitRoll') {
+      room.roll(playerId);
+    } else if (view.phase === 'moving' && view.movement) {
+      const team = view.teams[view.currentTeamIndex];
+      const destino = chooseBotMove(board, team.nodeId, view.movement.options, view.movement.remaining, team.wedges);
+      room.move(playerId, destino);
+    } else if (view.phase === 'awaitAnswer' && view.question) {
+      room.answer(playerId, view.question.options.indexOf('CORRECTA'));
+    } else {
+      return false; // fase inesperada
+    }
+  }
+  return false;
+}
+
+test('al ganar, el jugador recibe su resumen de la partida', () => {
+  const resumenes: { playerId: string; summary: GameSummaryView }[] = [];
+  const room = new Room('TEST', stubRepository(), content, newStore(), {
+    broadcast: () => {},
+    sendTo: (playerId, m) => {
+      if (m.type === 'gameSummary') resumenes.push({ playerId, summary: m.summary });
+    },
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.start();
+
+  assert.ok(jugarSolitarioHastaGanar(room, ana), 'la partida en solitario debería ganarse');
+  assert.equal(room.toView().phase, 'gameOver');
+
+  assert.equal(resumenes.length, 1, 'un resumen, para el único jugador');
+  const s = resumenes[0].summary;
+  assert.equal(resumenes[0].playerId, ana);
+  assert.equal(s.won, true);
+  assert.ok(s.answered >= 7, `respondió al menos los 6 quesos y la final (fueron ${s.answered})`);
+  assert.equal(s.correct, s.answered, 'acertó todas: respondía siempre CORRECTA');
+  assert.equal(s.accuracy, 100);
+  assert.equal(s.wedges, 6, 'consiguió los seis quesos');
+  assert.ok(s.strongestCategory !== null, 'debe tener categoría fuerte');
+  assert.equal(s.weakestCategory, null, 'no falló ninguna, no hay categoría floja');
+});
+
+test('el resumen anota los fallos: baja el porcentaje y hay categoría floja', () => {
+  const resumenes: GameSummaryView[] = [];
+  const room = new Room('TEST', stubRepository(), content, newStore(), {
+    broadcast: () => {},
+    sendTo: (_id, m) => {
+      if (m.type === 'gameSummary') resumenes.push(m.summary);
+    },
+  });
+  const ana = room.addOrReattach('Ana', 'perfil-ana')!;
+  room.start();
+
+  // En solitario no hay rebote (no hay rivales): fallar solo cede el turno, que
+  // vuelve al mismo jugador. Se falla una vez a propósito y luego se gana.
+  falla(room, ana);
+  assert.ok(jugarSolitarioHastaGanar(room, ana), 'debería poder ganar tras el fallo');
+
+  const s = resumenes.at(-1)!;
+  assert.equal(s.won, true);
+  assert.ok(s.correct < s.answered, 'el fallo debe reflejarse');
+  assert.ok(s.accuracy < 100, 'el porcentaje baja del 100 %');
+  assert.ok(s.weakestCategory !== null, 'con un fallo hay categoría floja');
 });

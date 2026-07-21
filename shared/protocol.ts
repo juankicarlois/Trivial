@@ -264,6 +264,8 @@ export type ServerMessage =
   | { type: 'timeAttack'; view: TimeAttackView | null }
   /** Se acabó el contrarreloj: marca final y si es récord. */
   | { type: 'timeAttackResult'; result: TimeAttackResult }
+  /** Resumen personal al terminar la partida; solo a su dueño. */
+  | { type: 'gameSummary'; summary: GameSummaryView }
   | { type: 'error'; message: string };
 
 /**
@@ -286,6 +288,34 @@ export interface TimeAttackView {
    * siguiente. Ausente en la primera pregunta de la sesión.
    */
   lastAnswer?: { correct: boolean; correctText: string };
+}
+
+/**
+ * Resumen personal de una partida, para el jugador que lo recibe. Es de **esta**
+ * partida (no el acumulado del perfil): se lleva un marcador aparte durante el
+ * juego. Se envía a cada jugador al terminar.
+ */
+export interface GameSummaryView {
+  /** true si ganó el bando de este jugador. */
+  won: boolean;
+  /** Preguntas respondidas en la partida (incluidos rebotes). */
+  answered: number;
+  /** Aciertos en la partida. */
+  correct: number;
+  /** Porcentaje de acierto, 0 a 100 (0 si no respondió ninguna). */
+  accuracy: number;
+  /** Racha de aciertos seguidos más larga de la partida. */
+  bestStreak: number;
+  /** Categoría en la que más acertó; `null` si no acertó ninguna. */
+  strongestCategory: CategoryId | null;
+  /** Categoría en la que más falló; `null` si no falló ninguna. */
+  weakestCategory: CategoryId | null;
+  /** Quesos que consiguió en la partida. */
+  wedges: number;
+  /** Rebotes que ganó (pulsó y acertó). */
+  reboundsWon: number;
+  /** Comodines que gastó. */
+  wildcardsUsed: number;
 }
 
 /** Resultado de una sesión de contrarreloj terminada. */

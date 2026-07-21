@@ -434,4 +434,16 @@ button:active { transform: translateY(1px); }
 /* Comodines y pulsador del rebote, con un guiño de color. */
 .buzzer { box-shadow: var(--shadow); }
 
+/* Resumen final: tarjeta con la lista de datos de la partida. */
+.summary {
+  background: var(--panel);
+  border-left: 5px solid var(--ok);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+.summary-title { margin: 0 0 0.5rem; font-size: 1.25rem; }
+.summary-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.summary-list li { color: var(--text); }
+
 [hidden] { display: none !important; }

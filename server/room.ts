@@ -25,6 +25,7 @@ import {
   type AchievementView,
   type GameEvent,
   type GameMode,
+  type GameSummaryView,
   type GameView,
   type PackView,
   type PlayerView,
@@ -94,6 +95,39 @@ interface InternalPlayer {
   team: number | null;
   /** Comodines que le quedan por gastar en la partida en curso. */
   wildcards: WildcardId[];
+  /** Marcador de la partida en curso, para el resumen final. */
+  game: PlayerGameStats;
+}
+
+/** Lo que se cuenta de un jugador durante una partida, para su resumen final. */
+interface PlayerGameStats {
+  answered: number;
+  correct: number;
+  correctByCategory: Record<CategoryId, number>;
+  wrongByCategory: Record<CategoryId, number>;
+  bestStreak: number;
+  wedges: number;
+  reboundsWon: number;
+  wildcardsUsed: number;
+}
+
+/** @brief Marcador de partida a cero, con todas las categorías presentes. */
+function emptyGameStats(): PlayerGameStats {
+  const porCategoria = (): Record<CategoryId, number> => {
+    const map = {} as Record<CategoryId, number>;
+    for (const cat of CATEGORIES) map[cat.id] = 0;
+    return map;
+  };
+  return {
+    answered: 0,
+    correct: 0,
+    correctByCategory: porCategoria(),
+    wrongByCategory: porCategoria(),
+    bestStreak: 0,
+    wedges: 0,
+    reboundsWon: 0,
+    wildcardsUsed: 0,
+  };
 }
 
 /** Bando en juego: dueño de la ficha y de los quesos. */
@@ -250,6 +284,7 @@ export class Room {
       isBot: false,
       team: null,
       wildcards: [...WILDCARDS],
+      game: emptyGameStats(),
     };
     this.players.push(player);
     // Quien crea la sala (primera persona en entrar) decide el modo de juego.
@@ -325,6 +360,7 @@ export class Room {
       difficulty,
       team: null,
       wildcards: [...WILDCARDS],
+      game: emptyGameStats(),
     };
     this.players.push(player);
     this.emit({ kind: 'playerJoined', playerId: player.id, name: player.name });
@@ -500,6 +536,7 @@ export class Room {
     for (const p of this.players) {
       p.streak = 0;
       p.wildcards = [...WILDCARDS]; // cada partida se juega con todos los comodines
+      p.game = emptyGameStats(); // marcador limpio para el resumen final
     }
     this.currentTeamIndex = 0;
     this.movement = null;
@@ -575,6 +612,7 @@ export class Room {
     this.question = null;
 
     player.streak = correct ? player.streak + 1 : 0;
+    this.recordGameAnswer(player, category, correct);
     // Estadísticas y racha se guardan solo para personas: los bots no tienen perfil.
     if (!player.isBot) {
       const profile = this.profileOf(player);
@@ -615,6 +653,7 @@ export class Room {
       }
       this.emit({ kind: 'gameWon', teamId: team.id });
       for (const p of this.players) if (!p.isBot) this.checkAchievements(p);
+      this.sendSummaries(team.id);
       this.profiles.scheduleSave();
       this.sync();
       return;
@@ -623,6 +662,7 @@ export class Room {
     // Acertar en una sede otorga su queso al bando (bots incluidos).
     if (node.kind === 'hq' && node.category && !team.wedges.includes(node.category)) {
       team.wedges.push(node.category);
+      player.game.wedges += 1;
       if (!player.isBot) this.profileOf(player).stats.wedgesEarned += 1;
       this.emit({ kind: 'wedgeEarned', teamId: team.id, playerId, category: node.category });
       // Completar los seis cambia el objetivo (ahora hay que volver al centro):
@@ -710,6 +750,62 @@ export class Room {
   /** Retira un comodín del inventario del jugador (un solo uso por partida). */
   private spendWildcard(player: InternalPlayer, wildcard: WildcardId): void {
     player.wildcards = player.wildcards.filter((w) => w !== wildcard);
+    player.game.wildcardsUsed += 1;
+  }
+
+  // --- Resumen final --------------------------------------------------------
+
+  /** Anota una respuesta en el marcador de la partida (para el resumen final). */
+  private recordGameAnswer(player: InternalPlayer, category: CategoryId, correct: boolean): void {
+    const g = player.game;
+    g.answered += 1;
+    if (correct) {
+      g.correct += 1;
+      g.correctByCategory[category] += 1;
+      g.bestStreak = Math.max(g.bestStreak, player.streak);
+    } else {
+      g.wrongByCategory[category] += 1;
+    }
+  }
+
+  /** Categoría con el recuento más alto (>0); null si todas están a cero. */
+  private topCategory(counts: Record<CategoryId, number>): CategoryId | null {
+    let best: CategoryId | null = null;
+    let max = 0;
+    for (const cat of CATEGORIES) {
+      if (counts[cat.id] > max) {
+        max = counts[cat.id];
+        best = cat.id;
+      }
+    }
+    return best;
+  }
+
+  /** Compone el resumen de la partida para un jugador. */
+  private buildSummary(player: InternalPlayer, won: boolean): GameSummaryView {
+    const g = player.game;
+    return {
+      won,
+      answered: g.answered,
+      correct: g.correct,
+      accuracy: g.answered > 0 ? Math.round((g.correct / g.answered) * 100) : 0,
+      bestStreak: g.bestStreak,
+      strongestCategory: this.topCategory(g.correctByCategory),
+      weakestCategory: this.topCategory(g.wrongByCategory),
+      wedges: g.wedges,
+      reboundsWon: g.reboundsWon,
+      wildcardsUsed: g.wildcardsUsed,
+    };
+  }
+
+  /** Envía a cada persona conectada su resumen de la partida recién acabada. */
+  private sendSummaries(winnerTeamId: string): void {
+    const winner = this.teams.find((t) => t.id === winnerTeamId);
+    for (const player of this.players) {
+      if (player.isBot || !player.connected) continue;
+      const won = winner?.memberIds.includes(player.id) ?? false;
+      this.transport.sendTo(player.id, { type: 'gameSummary', summary: this.buildSummary(player, won) });
+    }
   }
 
   // --- Rebote ---------------------------------------------------------------
@@ -845,6 +941,7 @@ export class Room {
     this.rebound = null;
 
     player.streak = correct ? player.streak + 1 : 0;
+    this.recordGameAnswer(player, rebound.question.category, correct);
     if (!player.isBot) {
       const profile = this.profileOf(player);
       profile.stats.questionsAnswered += 1;
@@ -859,10 +956,12 @@ export class Room {
 
     if (correct) {
       // El premio es quedarse el sitio del que falló, con su queso si lo había.
+      player.game.reboundsWon += 1;
       team.nodeId = rebound.nodeId;
       this.emit({ kind: 'reboundWon', teamId: team.id, playerId, nodeId: rebound.nodeId });
       if (node.kind === 'hq' && node.category && !team.wedges.includes(node.category)) {
         team.wedges.push(node.category);
+        player.game.wedges += 1;
         if (!player.isBot) this.profileOf(player).stats.wedgesEarned += 1;
         this.emit({ kind: 'wedgeEarned', teamId: team.id, playerId, category: node.category });
         if (team.wedges.length === CATEGORIES.length) {
