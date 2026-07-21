@@ -23,7 +23,7 @@ import {
 } from '../shared/protocol.js';
 import { SoundEngine } from './audio.js';
 import { Net } from './net.js';
-import { BoardView } from './board_view.js';
+import { BoardView, tokenColor } from './board_view.js';
 import { DiceView } from './dice_view.js';
 import { TimeAttackScreen } from './time_attack.js';
 import { HelpScreen } from './help.js';
@@ -574,6 +574,7 @@ function renderMyWedges(state: GameView): void {
     const earned = team.wedges.includes(cat.id);
     const li = document.createElement('li');
     li.className = 'my-wedge' + (earned ? ' earned' : '');
+    li.style.setProperty('--cat-color', cat.color);
 
     const pip = document.createElement('span');
     pip.className = 'wedge-pip' + (earned ? '' : ' empty');
@@ -642,9 +643,10 @@ function renderPlayers(state: GameView): void {
     state.phase === 'lobby' ? 'Jugadores' : state.mode === 'teams' ? 'Equipos' : 'Jugadores';
 
   if (state.phase === 'lobby') {
-    for (const player of state.players) {
+    state.players.forEach((player, index) => {
       const li = document.createElement('li');
       li.className = 'player';
+      li.append(avatarChip(player, index));
 
       const name = document.createElement('span');
       name.className = 'name';
@@ -673,13 +675,14 @@ function renderPlayers(state: GameView): void {
         li.append(remove);
       }
       playersList.append(li);
-    }
+    });
     return;
   }
 
   state.teams.forEach((team, index) => {
     const li = document.createElement('li');
     li.className = 'player' + (index === state.currentTeamIndex ? ' current' : '');
+    li.append(avatarChip(team, index));
 
     const name = document.createElement('span');
     name.className = 'name';
@@ -698,6 +701,26 @@ function renderPlayers(state: GameView): void {
     li.append(name, meta, buildWedges(team.wedges));
     playersList.append(li);
   });
+}
+
+/**
+ * Ficha visual (círculo con inicial) de un jugador o bando, solo para quien ve:
+ * el mismo color que su ficha en el tablero, para reconocerlo de un vistazo. Va
+ * `aria-hidden` porque el nombre ya está en texto justo al lado.
+ *
+ * @param who Jugador (vestíbulo) o bando (partida).
+ * @param index Posición, que fija el color (igual que la ficha del tablero).
+ * @return Elemento del avatar.
+ */
+function avatarChip(who: { name: string; isBot?: boolean }, index: number): HTMLElement {
+  const chip = document.createElement('span');
+  chip.className = 'player-avatar';
+  chip.setAttribute('aria-hidden', 'true');
+  chip.style.background = tokenColor(index);
+  // Bots con un robotito; personas y equipos con su número o inicial.
+  const numero = who.name.match(/(\d+)/);
+  chip.textContent = who.isBot ? '🤖' : (numero ? numero[1] : (who.name.trim()[0] ?? '?').toUpperCase());
+  return chip;
 }
 
 /**
@@ -823,6 +846,9 @@ function renderActions(state: GameView): void {
   // si el conjunto de acciones no cambia (p. ej. al añadir un bot en el vestíbulo).
   const focusedId = document.activeElement instanceof HTMLElement ? document.activeElement.id : '';
   actions.replaceChildren();
+  // El acento de color por categoría (--cat-color) solo aplica a la pregunta; se
+  // limpia en cada repintado para que no tiña otras fases.
+  actions.style.removeProperty('--cat-color');
   // Los destinos pulsables del tablero acompañan a los botones de dirección:
   // se quitan aquí y solo se vuelven a poner si toca elegir camino.
   boardView.setMoveTargets([], () => {});
@@ -938,10 +964,13 @@ function renderQuestion(
   setFocus: (el: HTMLElement) => void,
 ): void {
   const q = state.question!;
-  const cat = categoryById(q.category).name;
+  const category = categoryById(q.category);
+  const cat = category.name;
   // Quien responde es el miembro de turno del bando (en individual, él mismo).
   const asker = state.players.find((p) => p.id === state.actingPlayerId)?.name ?? 'el jugador';
   const title = q.forWin ? 'Pregunta final' : cat;
+  // Acento de color de la categoría, solo visual (el título ya la nombra).
+  actions.style.setProperty('--cat-color', category.color);
 
   const heading = document.createElement('p');
   heading.className = 'question-text';
@@ -1041,13 +1070,14 @@ function renderRebound(state: GameView, setFocus: (el: HTMLElement) => void): vo
   }
 
   const q = state.question!;
-  const cat = categoryById(q.category).name;
+  const category = categoryById(q.category);
   const puedoPulsar =
     myTeam() != null && (state.rebound?.eligibleTeamIds.includes(myTeam()!.id) ?? false);
+  actions.style.setProperty('--cat-color', category.color);
 
   const heading = document.createElement('p');
   heading.className = 'question-text';
-  heading.textContent = `Rebote — ${cat}: ${q.text}`;
+  heading.textContent = `Rebote — ${category.name}: ${q.text}`;
   actions.append(heading);
 
   const list = document.createElement('ol');

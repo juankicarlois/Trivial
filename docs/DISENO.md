@@ -291,6 +291,27 @@ tenga desbloqueado.
 - **Fase 3:** bots IA con dificultad; juego por internet (abrir puerto / túnel);
   más contenido y herramienta de autoría.
 
+## Capa visual
+
+Muchos jugadores usan lector de pantalla, pero no todos: la interfaz tiene una
+**capa visual** (color, tarjetas, relieve, micro-animaciones) para que a quien ve
+le entre por los ojos y le sea cómoda. **Regla que no se toca: la capa visual es
+puro añadido.** No cambia el DOM semántico, ni las etiquetas, ni el foco, ni los
+anuncios del lector; si se quitara entera, el juego sería idéntico para quien usa
+lector. En la práctica:
+
+- Casi todo vive en `public/styles.css` (un bloque «Capa visual» al final), que
+  no toca el marcado.
+- Lo que sí añade DOM es **solo decorativo y `aria-hidden`**: los avatares de
+  color de la lista de jugadores (`avatarChip`, misma paleta que las fichas del
+  tablero, `tokenColor`). El nombre sigue en texto al lado, así que el lector no
+  pierde nada.
+- El color de la **categoría en juego** se pasa como variable CSS `--cat-color`
+  (la fija el cliente sobre la pregunta y los quesos); es apoyo visual, el título
+  ya nombra la categoría.
+- Respeta `prefers-color-scheme` (claro/oscuro) y `prefers-reduced-motion` (las
+  animaciones —halo del turno, latido de la ficha— se apagan si se pide).
+
 ## Tablero visual
 
 `client/board_view.ts` dibuja la rueda como un **SVG** a partir de

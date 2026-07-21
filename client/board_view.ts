@@ -14,7 +14,12 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Radio del anillo en unidades del viewBox. */
 const RING_RADIUS = 100;
 /** Colores de ficha, distintos entre sí; se reparten por orden de jugador. */
-const TOKEN_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#00b4b4'];
+export const TOKEN_COLORS = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#00b4b4'];
+
+/** Color de la ficha del bando número `index` (se repite si hay muchos). */
+export function tokenColor(index: number): string {
+  return TOKEN_COLORS[index % TOKEN_COLORS.length];
+}
 
 /**
  * Marca de la ficha: el número en los equipos ("Equipo 2" → "2") y la inicial
@@ -65,9 +70,13 @@ export class BoardView {
         continue;
       }
 
-      // Un solo trazo por radio (de la sede al centro) dibuja todo el radio.
+      // Un solo trazo por radio (de la sede al centro) dibuja todo el radio, con
+      // el color de su categoría: la rueda se lee de un vistazo (solo apoyo
+      // visual; el lector nunca depende del color).
       if (node.kind === 'hq') {
-        root.appendChild(svg('line', { x1: px, y1: py, x2: 0, y2: 0, class: 'board-spoke' }));
+        const spoke = svg('line', { x1: px, y1: py, x2: 0, y2: 0, class: 'board-spoke' });
+        if (node.category) spoke.setAttribute('stroke', categoryById(node.category).color);
+        root.appendChild(spoke);
       }
 
       const dot = svg('circle', {

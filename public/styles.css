@@ -9,6 +9,13 @@
   --focus: #ffd166;
   --error: #ff6b6b;
   --ok: #34d399;
+
+  /* Radios y sombras compartidos por las tarjetas. */
+  --radius: 12px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.22);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.32);
+  /* Color de la categoría en juego; lo fija el cliente sobre cada elemento. */
+  --cat-color: var(--accent);
 }
 
 @media (prefers-color-scheme: light) {
@@ -21,6 +28,8 @@
     --accent: #1e6fd9;
     --error: #c0341d;
     --ok: #0f8a52;
+    --shadow-sm: 0 2px 8px rgba(20, 30, 60, 0.10);
+    --shadow: 0 10px 30px rgba(20, 30, 60, 0.14);
   }
 }
 
@@ -269,5 +278,120 @@ kbd {
   z-index: 10;
 }
 .skip-link:focus { left: 0; }
+
+/* ==========================================================================
+   Capa visual. Todo lo de aquí es apoyo para quien ve: color, tarjetas,
+   relieve y micro-animaciones. No cambia el DOM, ni las etiquetas, ni el foco,
+   ni los anuncios del lector; si se quitara, el juego seguiría siendo el mismo
+   para quien usa lector de pantalla. Respeta los dos temas (claro/oscuro) y
+   `prefers-reduced-motion`.
+   ========================================================================== */
+
+/* Fondo con un halo suave, para que no sea un plano liso. */
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 520px at 50% -8%, rgba(59, 130, 246, 0.12), transparent 60%),
+    var(--bg);
+}
+
+/* Botones con relieve y respuesta al pasar/pulsar. */
+button {
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.08s ease, box-shadow 0.14s ease, filter 0.14s ease;
+}
+button:hover { filter: brightness(1.07); }
+button:active { transform: translateY(1px); }
+
+/* La barra de estado, como una cinta destacada con el acento a la izquierda. */
+.status {
+  border-left: 5px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Vestíbulo: el formulario de entrada, centrado como una tarjeta. */
+#join-screen {
+  max-width: 34rem;
+  margin: 2rem auto 0;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+/* Jugadores: ficha con avatar de color y realce del turno. */
+.player { box-shadow: var(--shadow-sm); }
+.player-avatar {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+.player.current {
+  box-shadow: 0 0 0 2px var(--accent), var(--shadow-sm);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .player.current { animation: turn-glow 1.9s ease-in-out infinite; }
+  @keyframes turn-glow {
+    50% { box-shadow: 0 0 0 2px var(--accent), 0 0 18px rgba(59, 130, 246, 0.45); }
+  }
+}
+
+/* Quesos propios: acento de color por categoría y brillo al conseguirlos. */
+.my-wedge { border-left: 4px solid transparent; }
+.my-wedge.earned {
+  border-left-color: var(--cat-color);
+  box-shadow: var(--shadow-sm);
+}
+.my-wedge.earned .wedge-pip { box-shadow: 0 0 8px var(--cat-color); }
+
+/* Logros y packs, con un poco de relieve. */
+.achievement, .pack { box-shadow: var(--shadow-sm); }
+
+/* Tablero y dado, sobre su propia tarjeta. */
+.board, .dice {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 0.6rem;
+}
+.dice-body { filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3)); }
+
+/* Ficha del turno en el tablero: halo que late (sin movimiento si se pide). */
+@media (prefers-reduced-motion: no-preference) {
+  .board-token.current .board-token-halo { animation: token-glow 1.6s ease-in-out infinite; }
+  @keyframes token-glow {
+    50% { stroke-opacity: 0.45; stroke-width: 3.5; }
+  }
+}
+
+/* Pregunta: tarjeta prominente con el color de su categoría. */
+.question-text {
+  background: var(--panel);
+  border-left: 6px solid var(--cat-color);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.05rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Opciones de respuesta: tarjetas que responden al ratón y al foco. */
+.options button {
+  border-left: 4px solid var(--cat-color);
+  padding: 0.8rem 1rem;
+  transition: transform 0.08s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+.options button:hover { transform: translateX(3px); background: var(--panel); }
+
+/* Opciones que ven los rivales: barra de color a juego, sin ser pulsables. */
+.options-readonly li { border-left: 4px solid var(--cat-color); }
+
+/* Comodines y pulsador del rebote, con un guiño de color. */
+.buzzer { box-shadow: var(--shadow); }
 
 [hidden] { display: none !important; }
