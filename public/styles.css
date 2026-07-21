@@ -295,6 +295,29 @@ body {
     var(--bg);
 }
 
+/* Dos columnas en pantallas anchas: el tablero y el dado pasan a una barra
+   lateral fija (sticky) a la derecha, para tenerlos a la vista junto a la
+   pregunta sin bajar. Solo cambia la disposición visual: el contenido va todo en
+   `.main-col`, en el mismo orden del DOM, y la barra lateral es solo lo
+   decorativo (aria-hidden, nada enfocable). En pantallas estrechas se apilan y
+   el dibujo queda debajo del contenido. */
+.side-col { margin-top: 1rem; }
+@media (min-width: 1040px) {
+  .layout { max-width: 1220px; }
+  #game-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+    column-gap: 2rem;
+  }
+  .main-col { min-width: 0; }
+  .side-col {
+    position: sticky;
+    top: 1rem;
+    margin-top: 0;
+  }
+}
+
 /* Botones con relieve y respuesta al pasar/pulsar. */
 button {
   box-shadow: var(--shadow-sm);

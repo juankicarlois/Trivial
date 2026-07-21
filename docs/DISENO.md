@@ -311,6 +311,15 @@ lector. En la práctica:
 - Las **fichas del tablero se reutilizan** entre actualizaciones (un `<g>` por
   bando en un `Map`), de modo que al moverse el CSS las desliza a la casilla
   nueva en vez de saltar.
+- **Dos columnas en pantallas anchas** (`@media (min-width: 1040px)`): el
+  contenido va todo en `.main-col` (en el mismo orden del DOM) y el tablero y el
+  dado pasan a una barra lateral fija (`.side-col`, `position: sticky`), para
+  verlos junto a la pregunta sin bajar. Es seguro **porque a la barra solo van
+  esos dos, que son `aria-hidden` y no tienen nada enfocable**: su posición no
+  afecta al orden de lectura ni al de tabulación (el lector los salta esté donde
+  estén). Mover contenido semántico o enfocable a un lateral sí lo haría, así que
+  no se hace. En pantallas estrechas las dos columnas se apilan y el dibujo queda
+  debajo del contenido.
 - El color de la **categoría en juego** se pasa como variable CSS `--cat-color`
   (la fija el cliente sobre la pregunta y los quesos); es apoyo visual, el título
   ya nombra la categoría.

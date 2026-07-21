@@ -36,70 +36,80 @@
         </p>
       </section>
 
-      <!-- Partida -->
+      <!--
+        Partida. En pantallas anchas se muestra a dos columnas: todo el contenido
+        (semántico y enfocable) va en `.main-col`, y solo el tablero y el dado
+        —decorativos y sin nada enfocable— pasan a `.side-col`. Como esos dos van
+        `aria-hidden` y no reciben foco, moverlos a la barra lateral no cambia ni
+        el orden de lectura ni el de tabulación: el lector los salta esté donde
+        estén. En pantallas estrechas, ambas columnas se apilan.
+      -->
       <section id="game-screen" aria-labelledby="game-title" hidden>
-        <h1 id="game-title">Sala <span id="room-label"></span></h1>
+        <div class="main-col">
+          <h1 id="game-title">Sala <span id="room-label"></span></h1>
 
-        <!-- Región de anuncios para el lector de pantalla -->
-        <div id="announce" class="sr-only" role="status" aria-live="assertive"></div>
+          <!-- Región de anuncios para el lector de pantalla -->
+          <div id="announce" class="sr-only" role="status" aria-live="assertive"></div>
 
-        <p>
-          <button type="button" id="btn-help-game" class="secondary">Cómo se juega</button>
-        </p>
+          <p>
+            <button type="button" id="btn-help-game" class="secondary">Cómo se juega</button>
+          </p>
 
-        <p id="status" class="status"></p>
+          <p id="status" class="status"></p>
 
-        <!--
-          Botones de consulta. Son botones (no atajos de una tecla) a propósito:
-          los lectores de pantalla en modo exploración capturan las teclas
-          sueltas (B, L, Q…) como navegación rápida y nunca llegarían a la
-          página. Activar un botón sí funciona en ese modo.
-        -->
-        <div class="toolbar" role="group" aria-label="Consultas rápidas">
-          <button type="button" id="btn-radar">Dónde tengo cada sede</button>
-          <button type="button" id="btn-rivals">Dónde están los rivales</button>
-          <button type="button" id="btn-wedges">Mis quesos</button>
-          <button type="button" id="btn-achievements">Mis logros</button>
+          <!--
+            Botones de consulta. Son botones (no atajos de una tecla) a propósito:
+            los lectores de pantalla en modo exploración capturan las teclas
+            sueltas (B, L, Q…) como navegación rápida y nunca llegarían a la
+            página. Activar un botón sí funciona en ese modo.
+          -->
+          <div class="toolbar" role="group" aria-label="Consultas rápidas">
+            <button type="button" id="btn-radar">Dónde tengo cada sede</button>
+            <button type="button" id="btn-rivals">Dónde están los rivales</button>
+            <button type="button" id="btn-wedges">Mis quesos</button>
+            <button type="button" id="btn-achievements">Mis logros</button>
+          </div>
+
+          <h2 id="my-wedges-title">Tus quesos</h2>
+          <!-- Rueda de quesos: dibujo de apoyo para quien ve. La lista de abajo es
+               la fuente accesible (cada categoría con su nombre y estado). -->
+          <div id="my-wedges-wheel" class="wedge-wheel" aria-hidden="true"></div>
+          <ul id="my-wedges" class="my-wedges"></ul>
+          <p class="hint">
+            Usa los botones de arriba para oír tu situación. Si tu lector de
+            pantalla no los intercepta, también valen las teclas <kbd>B</kbd>
+            (sedes), <kbd>R</kbd> (rivales), <kbd>Q</kbd> (quesos) y <kbd>L</kbd>
+            (logros).
+          </p>
+
+          <section id="packs-section" hidden>
+            <h2>Packs temáticos</h2>
+            <p class="hint">
+              Se desbloquean con logros. Cualquiera de la sala puede traer a la mesa
+              los suyos.
+            </p>
+            <ul id="packs" class="packs"></ul>
+          </section>
+
+          <h2 id="players-title">Jugadores</h2>
+          <ul id="players" class="players"></ul>
+
+          <h2>Tu turno</h2>
+          <div id="actions" tabindex="-1"></div>
+
+          <h2 id="achievements-title">Tus logros</h2>
+          <ul id="achievements" class="achievements"></ul>
         </div>
 
-        <h2 id="my-wedges-title">Tus quesos</h2>
-        <!-- Rueda de quesos: dibujo de apoyo para quien ve. La lista de abajo es
-             la fuente accesible (cada categoría con su nombre y estado). -->
-        <div id="my-wedges-wheel" class="wedge-wheel" aria-hidden="true"></div>
-        <ul id="my-wedges" class="my-wedges"></ul>
-        <p class="hint">
-          Usa los botones de arriba para oír tu situación. Si tu lector de
-          pantalla no los intercepta, también valen las teclas <kbd>B</kbd>
-          (sedes), <kbd>R</kbd> (rivales), <kbd>Q</kbd> (quesos) y <kbd>L</kbd>
-          (logros).
-        </p>
-
-        <section id="packs-section" hidden>
-          <h2>Packs temáticos</h2>
-          <p class="hint">
-            Se desbloquean con logros. Cualquiera de la sala puede traer a la mesa
-            los suyos.
-          </p>
-          <ul id="packs" class="packs"></ul>
-        </section>
-
-        <h2 id="players-title">Jugadores</h2>
-        <ul id="players" class="players"></ul>
-
         <!--
-          Dado y tablero visuales: complemento para quien ve. Van marcados
-          aria-hidden porque lo que muestran ya se anuncia al lector (la tirada,
-          las casillas y las consultas rápidas).
+          Barra lateral SOLO visual: dado y tablero. El contenedor va aria-hidden
+          porque lo que muestran ya se anuncia al lector (la tirada, las casillas
+          y las consultas rápidas), y no contiene nada enfocable.
         -->
-        <div id="dice" class="dice" aria-hidden="true" hidden></div>
-
-        <div id="board" class="board" aria-hidden="false"></div>
-
-        <h2>Tu turno</h2>
-        <div id="actions" tabindex="-1"></div>
-
-        <h2 id="achievements-title">Tus logros</h2>
-        <ul id="achievements" class="achievements"></ul>
+        <div class="side-col" aria-hidden="true">
+          <div id="dice" class="dice" hidden></div>
+          <div id="board" class="board"></div>
+        </div>
       </section>
 
       <!-- Contrarreloj: modo en solitario, al margen de la sala -->
